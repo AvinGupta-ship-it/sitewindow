@@ -23,6 +23,22 @@ acceptance criteria are specified in the research manual and the linked specific
 - `validation_report.json`: one record per benchmark with predicted and reference values, the metric, and pass/fail against the registry threshold; `passed: null` marks runners that report without a pass criterion at the current tier.
 - Verification-tier outputs (`data/processed/verify/`) use reduced configurations and are not evidence for publication claims.
 
+## Reference hardware
+
+The reference workstation for this program is one Apple Silicon machine:
+
+- Processor: Apple M4, 10 cores (4 performance and 6 efficiency cores), arm64.
+- Memory: 24 GB unified memory.
+- Operating system: macOS 15.6.1 (Darwin 24.6.0).
+- Package environment: Python 3.12.16 in the project virtual environment (`.venv`) with the
+  `xtb`, `bayes`, `uq` and `dev` extras; tblite 0.8.0 provides the Tier-2 GFN2-xTB engine.
+- Tier-1 density-functional engine: GPAW 26.7.0 from conda-forge in the `sitewindow` conda
+  environment defined by `environment.yml` (Open MPI 5.0.11, OpenMP, libxc 7.1.2, libvdwxc, FFTW,
+  ScaLAPACK, ELPA, PAW datasets `gpaw_data` 1.0.1), with D3(BJ) dispersion from `dftd3-python`
+  1.7.0. GPAW is the active Tier-1 engine; the PySCF fallback is not installed. The installation
+  was verified by LCAO (dzp) calculations of H and H₂ and a plane-wave calculation of a periodic
+  graphene cell.
+
 ## Known limitations at this version
 
 - Tier-2 (GFN2-xTB) chemisorption energies on the basal plane are offset by about +0.5 eV from the diffusion Monte Carlo reference; the calibration component that models this offset is not yet implemented.

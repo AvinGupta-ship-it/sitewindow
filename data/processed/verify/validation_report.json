@@ -20,8 +20,8 @@
       "passed": false,
       "predicted": {
         "onset_keV": 108.74063113078877,
-        "sigma_100keV_barn": 0.12105104377883394,
-        "sigma_80keV_barn": 9.916944383999962e-07,
+        "sigma_100keV_barn": 0.12105104377883391,
+        "sigma_80keV_barn": 9.91694438399996e-07,
         "sigma_100keV_13C_barn": 0.004729193842590234
       },
       "reference": {
@@ -56,7 +56,7 @@
       "id": "B1",
       "passed": null,
       "predicted": {
-        "E_bind_H_atom_T2_eV": -0.2107738165716011
+        "E_bind_H_atom_T2_eV": -0.21077381657228322
       },
       "reference": {
         "DMC_eV": -0.691,

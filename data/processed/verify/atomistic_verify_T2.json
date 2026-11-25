@@ -3,13 +3,13 @@
   "engine": "GFN2-xTB (tblite)",
   "supercell": 4,
   "basal_monomer": {
-    "E_bind_H_half_H2": 1.4776334560234794,
-    "E_bind_H_atom": -0.2107738165716011
+    "E_bind_H_half_H2": 1.4776334560228026,
+    "E_bind_H_atom": -0.21077381657228322
   },
-  "monovacancy_formation_eV_approx": 7.661228651719057,
+  "monovacancy_formation_eV_approx": 7.661228651718147,
   "vacancy_dangling_bond_H": {
-    "E_bind_H_half_H2": -1.0682425993184985,
-    "E_bind_H_atom": -2.756649871913579
+    "E_bind_H_half_H2": -1.0682425993182658,
+    "E_bind_H_atom": -2.7566498719133516
   },
   "settings_hash": "1ad38283192827fb",
   "converged": true

@@ -18,7 +18,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEXT_EXT = {".py", ".md", ".toml", ".yaml", ".yml", ".cff", ".json", ".txt", ".tex", ".bib", ".cfg"}
-EXCLUDE_DIRS = {".git", "data/raw", "dist", "build", ".pytest_cache", ".ruff_cache", ".mypy_cache", "__pycache__", ".hypothesis"}
+EXCLUDE_DIRS = {".git", "data/raw", "dist", "build", ".pytest_cache", ".ruff_cache", ".mypy_cache", "__pycache__", ".hypothesis", ".venv"}
+EXCLUDE_FILES = {"make_release.py", "CLAUDE.md"}
 
 PATTERNS = {
     "placeholder": re.compile(r"\b(TODO|TBD|FIXME|XXX|lorem ipsum)\b|\[insert|\[placeholder", re.I),
@@ -45,7 +46,7 @@ def iter_files() -> list[Path]:
 def content_check(files: list[Path]) -> list[str]:
     problems = []
     for f in files:
-        if f.name == "make_release.py":
+        if f.name in EXCLUDE_FILES:
             continue
         text = f.read_text(errors="ignore")
         for name, pat in PATTERNS.items():
@@ -72,7 +73,7 @@ def main(version: str) -> int:
     rel_dir = ROOT / "release"
     rel_dir.mkdir(exist_ok=True)
     archive = rel_dir / f"sitewindow-{version}.tar.gz"
-    members = [f for f in files] + [ROOT / "LICENSE"]
+    members = [f for f in files if f.name not in EXCLUDE_FILES] + [ROOT / "LICENSE"]
     with tarfile.open(archive, "w:gz") as tar:
         for f in sorted(set(members)):
             tar.add(f, arcname=str(Path(f"sitewindow-{version}") / f.relative_to(ROOT)))

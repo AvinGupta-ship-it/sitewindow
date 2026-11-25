@@ -61,7 +61,7 @@ def _fugacity_coefficient(T: float, P_bar: float) -> float:
     298 K (tested). CoolProp, when installed, replaces this estimate.
     """
     try:  # pragma: no cover - optional dependency
-        import CoolProp.CoolProp as cp  # type: ignore
+        import CoolProp.CoolProp as cp
 
         rho = cp.PropsSI("Dmolar", "T", T, "P", P_bar * 1e5, "Hydrogen")
         # fugacity coefficient from residual Gibbs energy
@@ -91,7 +91,7 @@ def second_virial_lj(T: float, sigma_A: float = 2.915, eps_over_k: float = 38.0)
 
     def integrand(r: float) -> float:
         u_over_kT = 4.0 * eps_over_k / T * ((sigma_A / r) ** 12 - (sigma_A / r) ** 6)
-        return (np.exp(-u_over_kT) - 1.0) * r * r
+        return float((np.exp(-u_over_kT) - 1.0) * r * r)
 
     val, _ = quad(integrand, 1e-3 * sigma_A, 20.0 * sigma_A, limit=400)
     # r in angstrom -> cm^3: 1 A^3 = 1e-24 cm^3
@@ -138,10 +138,10 @@ def occupancy(
     if channel == "molecular":
         logK = np.log(equilibrium_constant(eps, T, f, entropy))
         x = logK + np.log(f)
-        return 1.0 / (1.0 + np.exp(-x))
+        return np.asarray(1.0 / (1.0 + np.exp(-x)), dtype=np.float64)
     dg = eps - T * delta_s_atomic_eV_K
     log_sqrt_KP = -dg / (K_B_EV * T) + 0.5 * np.log(f)
-    return 1.0 / (1.0 + np.exp(-log_sqrt_KP))
+    return np.asarray(1.0 / (1.0 + np.exp(-log_sqrt_KP)), dtype=np.float64)
 
 
 def swing(

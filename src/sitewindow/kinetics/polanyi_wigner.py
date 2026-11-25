@@ -13,11 +13,12 @@ from scipy.optimize import brentq
 from sitewindow.constants import K_B_EV
 
 
-def rate_constant(E_d_eV: ArrayLike, nu_s: ArrayLike, T: float) -> NDArray[np.float64]:
-    """k = nu exp(-E_d / k_B T), evaluated in the log domain."""
+def rate_constant(E_d_eV: ArrayLike, nu_s: ArrayLike, T: ArrayLike) -> NDArray[np.float64]:
+    """k = nu exp(-E_d / k_B T), evaluated in the log domain; T may be a scalar or an array."""
     E = np.asarray(E_d_eV, dtype=float)
     nu = np.asarray(nu_s, dtype=float)
-    return np.exp(np.log(nu) - E / (K_B_EV * T))
+    temp = np.asarray(T, dtype=float)
+    return np.asarray(np.exp(np.log(nu) - E / (K_B_EV * temp)), dtype=np.float64)
 
 
 def release_fraction_isothermal(
@@ -30,19 +31,20 @@ def release_fraction_isothermal(
 ) -> NDArray[np.float64]:
     """Fraction released after time tau at temperature T (DERIVATIONS 4.2)."""
     k = rate_constant(E_d_eV, nu_s, T)
-    n = np.asarray(order)
+    n = np.asarray(order, dtype=int)
     th0 = np.asarray(theta0, dtype=float)
     kt = k * tau_s
     f1 = -np.expm1(-kt)
     f2 = kt * th0 / (1.0 + kt * th0)
-    return np.where(n == 2, f2, f1)
+    out: NDArray[np.float64] = np.where(n == 2, f2, f1)
+    return out
 
 
 def t90_first_order(E_d_eV: ArrayLike, nu_s: ArrayLike, tau_s: float) -> NDArray[np.float64]:
     """Temperature at which 90 % is released within tau for first-order kinetics (4.6)."""
     E = np.asarray(E_d_eV, dtype=float)
     nu = np.asarray(nu_s, dtype=float)
-    return E / (K_B_EV * np.log(nu * tau_s / np.log(10.0)))
+    return np.asarray(E / (K_B_EV * np.log(nu * tau_s / np.log(10.0))), dtype=np.float64)
 
 
 def t_release(
@@ -109,7 +111,7 @@ def redhead_peak_temperature(
 
     def g(T: float) -> float:
         pre = nu_s / beta_K_s if order == 1 else 2.0 * nu_s * (theta0 / 2.0) / beta_K_s
-        return E / (K_B_EV * T * T) - pre * np.exp(-E / (K_B_EV * T))
+        return float(E / (K_B_EV * T * T) - pre * np.exp(-E / (K_B_EV * T)))
 
     return float(brentq(g, 20.0, 5000.0, xtol=1e-8))
 

@@ -110,17 +110,31 @@ class SelectionResult:
     notes: dict = field(default_factory=dict)
 
 
-def clone_mirror(dest: Path, depth: int = 1) -> str:
-    """Clone (or update) the ISODB mirror and return the commit hash."""
+def _head_commit(repo: Path) -> str:
+    out = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+    )
+    return out.stdout.strip()
+
+
+def clone_mirror(dest: Path, depth: int = 1, commit: str | None = None) -> str:
+    """Clone the ISODB mirror if absent and return the checked-out commit hash.
+
+    When ``commit`` is given (the hash recorded in ``data/sources.lock``), that commit is
+    fetched and checked out so that the corpus is pinned independently of the mirror's
+    current HEAD (manual Section 6.2). Without ``commit`` the mirror's HEAD is used.
+    """
     dest = Path(dest)
     if not (dest / ".git").exists():
         subprocess.run(
             ["git", "clone", "--depth", str(depth), ISODB_GIT_URL, str(dest)], check=True
         )
-    out = subprocess.run(
-        ["git", "-C", str(dest), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
-    )
-    return out.stdout.strip()
+    if commit is not None and _head_commit(dest) != commit:
+        subprocess.run(
+            ["git", "-C", str(dest), "fetch", "--depth", str(depth), "origin", commit], check=True
+        )
+        subprocess.run(["git", "-C", str(dest), "checkout", "--quiet", commit], check=True)
+    return _head_commit(dest)
 
 
 def _is_h2(d: dict) -> bool:

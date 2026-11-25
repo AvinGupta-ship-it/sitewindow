@@ -1,0 +1,8 @@
+# Standing rules for work in this repository
+
+- `RESEARCH_MANUAL.md` and `docs/specs/` are the authoritative specification. Implement from them. If a verified finding requires changing the design, revise the manual coherently and keep the original hypotheses and acceptance thresholds visible; never rewrite hypotheses or thresholds to fit results.
+- Do all scientific, computational, and engineering work yourself. Never assign tasks to the user. The only things the user does are actions that require their personal accounts (for example confirming a Zenodo deposit).
+- Project materials (code, comments, docstrings, docs, commit messages, pull requests, metadata, manuscripts) contain no AI-usage notes, no "Co-Authored-By" or "Generated with" trailers, no tool names, no progress journals or session notes, no emoji, no placeholders, and no schedules, timelines, or time-based plans. Organize everything by scientific component and dependency.
+- Keep scientific integrity: never fabricate data, references, benchmark results, or computational output; label verification-tier results as such; report failed benchmarks and falsified hypotheses as results; never relax thresholds in `data/registry/benchmarks.yaml` after a result has been seen.
+- Run the test suite before every commit, keep the README "Implementation status" table and `docs/validation.md` truthful, and write professional commit messages describing the scientific or engineering change.
+- If a decision is needed that the manual does not settle, make a scientifically justified choice and record it in the appropriate section of the manual.

@@ -38,15 +38,31 @@ def fetch_isodb(
     dest: Path = typer.Option(
         None, help="Clone directory (default: $SITEWINDOW_DATA/raw/isodb-library)"
     ),
+    update: bool = typer.Option(
+        False,
+        "--update",
+        help="Use the mirror's current HEAD instead of the commit pinned in sources.lock.",
+    ),
 ) -> None:
-    """Clone or update the NIST ISODB GitHub mirror and harmonize the carbon H2 isotherms."""
-    from sitewindow.experimental.isodb import clone_mirror, load_carbon_h2, write_parquet
+    """Clone the NIST ISODB GitHub mirror at the pinned commit and harmonize the carbon H2 isotherms."""
+    from sitewindow.experimental.isodb import (
+        ISODB_GIT_URL,
+        clone_mirror,
+        load_carbon_h2,
+        write_parquet,
+    )
 
     dest = dest or _data_root() / "raw" / "isodb-library"
-    commit = clone_mirror(dest)
+    lock_path = _data_root() / "sources.lock"
+    pinned = None
+    if lock_path.exists() and not update:
+        pinned = json.loads(lock_path.read_text()).get("isodb_commit")
+    commit = clone_mirror(dest, commit=pinned)
     res = load_carbon_h2(dest)
     out = write_parquet(res, _data_root() / "processed", commit)
-    (_data_root() / "sources.lock").write_text(json.dumps({"isodb_commit": commit}, indent=2))
+    lock_path.write_text(
+        json.dumps({"isodb_commit": commit, "isodb_url": ISODB_GIT_URL}, indent=2) + "\n"
+    )
     typer.echo(json.dumps({"commit": commit, "output": str(out), **res.notes}, indent=2))
 
 

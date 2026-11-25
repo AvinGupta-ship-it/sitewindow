@@ -26,7 +26,10 @@ _THETA_ROT_K = 1.438776877 * _B_ROT_CM1  # hc B / k_B
 class EntropyModel(Protocol):
     """Protocol for entropy-of-adsorption models."""
 
-    name: str
+    @property
+    def name(self) -> str:
+        """Identifier of the model used in tables and provenance records."""
+        ...
 
     def delta_s(self, T: float, P_bar: float = 1.0) -> float:
         """Standard molar entropy change S_ads - S_gas(T, P0) in J mol^-1 K^-1; P_bar is ignored."""
@@ -39,7 +42,7 @@ def gas_translational_entropy(T: float, P_bar: float, mass_amu: float = M_H2_AMU
     P = P_bar * 1.0e5
     lam = H_PLANCK / np.sqrt(2.0 * np.pi * m * K_B_J * T)
     n_over_v = P / (K_B_J * T)
-    return R_GAS * (np.log(1.0 / (n_over_v * lam**3)) + 2.5)
+    return float(R_GAS * (np.log(1.0 / (n_over_v * lam**3)) + 2.5))
 
 
 def gas_rotational_entropy_h2(T: float) -> float:
@@ -49,13 +52,13 @@ def gas_rotational_entropy_h2(T: float) -> float:
     1 for even J, 3 for odd J), which is the appropriate reference for a gas equilibrated at
     the window temperature; at 77 K the sum is still evaluated explicitly.
     """
-    J = np.arange(0, 40)
+    J = np.arange(0, 40, dtype=float)
     g_ns = np.where(J % 2 == 0, 1.0, 3.0)
     e = J * (J + 1) * _THETA_ROT_K / T
     w = g_ns * (2 * J + 1) * np.exp(-e)
     q = w.sum()
     u_over_kT = (w * e).sum() / q
-    return R_GAS * (np.log(q) + u_over_kT)
+    return float(R_GAS * (np.log(q) + u_over_kT))
 
 
 @dataclass(frozen=True)
