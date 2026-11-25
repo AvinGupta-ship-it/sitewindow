@@ -348,7 +348,7 @@ Mass accounting and the functional:
 
 **Uncertainty.** Per-tier systematic deviations estimated against anchors (C3); numerical uncertainty from convergence studies (target: ≤ 0.02 eV for chemisorption energies, ≤ 0.5 kJ mol⁻¹ for physisorption at Tier 1; ≤ 0.05 eV at Tiers 2–3 relative to their own converged settings).
 
-**Convergence and sensitivity.** Supercell 4×4/5×5/6×6/7×7 for monomer and vacancy; k-mesh 2/4/6; cutoff 400/500/600 eV; vacuum 10/15/20 Å; NEB image count 5/7/9; basis dzp vs. plane-wave agreement for 10 anchors.
+**Convergence and sensitivity.** Supercell 4×4/5×5/6×6/7×7 for monomer and vacancy; k-mesh 2/4/6; cutoff 400/500/600 eV; vacuum 10/15/20 Å; NEB image count 5/7/9; basis dzp vs. plane-wave agreement for 10 anchors. Executed for the basal monomer from the production protocol (5×5 cell, 500 eV, 4×4×1 k-mesh, 15 Å vacuum; `sitewindow tier1 converge`): the 6×6 cell with the scaled 3×3×1 mesh changes the PBE binding energy by −0.020 eV, the 6×6×1 mesh on the 5×5 cell by −0.014 eV, the 600 eV cutoff by −0.002 eV and the 20 Å vacuum by −0.001 eV. The B1 convergence criterion (every change below 0.02 eV) is met, with the cell step at its bound; 0.02 eV is adopted as the numerical uncertainty of Tier-1 chemisorption energies. The remaining steps of this plan (4×4 and 7×7 cells, 2×2 mesh, 400 eV, 10 Å vacuum, the vacancy series, image counts and the basis comparison) are pending.
 
 **Limiting cases.** Large-diameter tube → graphene values (monotone convergence required); isolated H₂ far from surface → zero binding; graphane limit → published graphane formation energy range.
 

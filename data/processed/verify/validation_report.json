@@ -89,6 +89,38 @@
       "summary": "T1 PBE basal monomer -0.781 eV (5x5, 500 eV, k4x4) vs PBE ref -0.821 eV: deviation +0.040 eV"
     },
     {
+      "id": "B1",
+      "passed": true,
+      "predicted": {
+        "E_bind_H_atom_PBE_base_eV": -0.7814965532848468,
+        "delta_PBE_eV": {
+          "cell_plus_one": -0.019933140841076558,
+          "kmesh_dense": -0.013600972963899949,
+          "cutoff_600": -0.0023072977290652386,
+          "vacuum_20": -0.001054631385955851
+        },
+        "variant_settings": {
+          "cell_plus_one": "6x6 cell, k3x3x1",
+          "kmesh_dense": "k6x6x1",
+          "cutoff_600": "600 eV",
+          "vacuum_20": "20 A vacuum"
+        },
+        "max_abs_delta_eV": 0.019933140841076558
+      },
+      "reference": {
+        "threshold_eV": 0.02,
+        "base": "5x5, 500 eV, k4x4x1, 15 A"
+      },
+      "checks": {
+        "cell_plus_one": true,
+        "kmesh_dense": true,
+        "cutoff_600": true,
+        "vacuum_20": true
+      },
+      "metric": "absolute change of the PBE binding energy between the base and each variant (tier T1)",
+      "summary": "T1 convergence of the basal monomer PBE energy from the base (5x5, 500 eV, k4x4x1, 15 A): 6x6 cell, k3x3x1 -0.0199; k6x6x1 -0.0136; 600 eV -0.0023; 20 A vacuum -0.0011 eV; every change below 0.02 eV in magnitude"
+    },
+    {
       "id": "B3",
       "passed": false,
       "predicted": {

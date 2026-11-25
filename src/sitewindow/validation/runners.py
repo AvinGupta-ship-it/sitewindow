@@ -187,6 +187,91 @@ def run_B1_T1(reg: dict, tier: str = "verify") -> dict:
     }
 
 
+def _variant_label(base: dict, settings: dict) -> str:
+    """Name the settings a convergence variant changes relative to the base protocol."""
+    parts = []
+    if settings["supercell"] != base["supercell"]:
+        n = settings["supercell"]
+        parts.append(f"{n}x{n} cell")
+    if list(settings["kmesh_used"]) != list(base["kmesh_used"]):
+        k = settings["kmesh_used"]
+        parts.append(f"k{k[0]}x{k[1]}x{k[2]}")
+    if settings["ecut_eV"] != base["ecut_eV"]:
+        parts.append(f"{settings['ecut_eV']:.0f} eV")
+    if settings["vacuum_A"] != base["vacuum_A"]:
+        parts.append(f"{settings['vacuum_A']:.0f} A vacuum")
+    return ", ".join(parts) if parts else "unchanged settings"
+
+
+def evaluate_convergence(series: dict, threshold_eV: float) -> dict:
+    """Acceptance criterion B1 (convergence) applied to one Tier-1 convergence series.
+
+    Every variant must change the PBE binding energy of the basal monomer by less than
+    ``threshold_eV`` relative to the base protocol. The pass flag is set only when the base is
+    the converged protocol (5x5 cell or larger, 500 eV, 15 A vacuum); a reduced verification
+    series is reported without one.
+    """
+    variants = series["variants"]
+    base = variants["base"]
+    bs = base["settings"]
+    converged_protocol = bs["supercell"] >= 5 and bs["ecut_eV"] >= 500 and bs["vacuum_A"] >= 15
+    deltas = {
+        name: float(v["E_bind_H_atom_PBE"] - base["E_bind_H_atom_PBE"])
+        for name, v in variants.items()
+        if name != "base"
+    }
+    labels = {name: _variant_label(bs, variants[name]["settings"]) for name in deltas}
+    checks = {name: bool(abs(d) < threshold_eV) for name, d in deltas.items()}
+    all_within = bool(deltas) and all(checks.values())
+    k = bs["kmesh_used"]
+    base_label = (
+        f"{bs['supercell']}x{bs['supercell']}, {bs['ecut_eV']:.0f} eV, k{k[0]}x{k[1]}x{k[2]}, "
+        f"{bs['vacuum_A']:.0f} A"
+    )
+    detail = "; ".join(f"{labels[n]} {deltas[n]:+.4f}" for n in deltas)
+    return {
+        "id": "B1",
+        "passed": all_within if converged_protocol else None,
+        "predicted": {
+            "E_bind_H_atom_PBE_base_eV": base["E_bind_H_atom_PBE"],
+            "delta_PBE_eV": deltas,
+            "variant_settings": labels,
+            "max_abs_delta_eV": max(abs(d) for d in deltas.values()) if deltas else None,
+        },
+        "reference": {"threshold_eV": threshold_eV, "base": base_label},
+        "checks": checks,
+        "metric": "absolute change of the PBE binding energy between the base and each variant (tier T1)",
+        "summary": (
+            f"T1 convergence of the basal monomer PBE energy from the base ({base_label}): {detail} eV; "
+            + (
+                f"every change below {threshold_eV:g} eV in magnitude"
+                if all_within
+                else f"not every change below {threshold_eV:g} eV in magnitude"
+            )
+            + ("" if converged_protocol else " (reduced verification settings; not a pass test)")
+        ),
+    }
+
+
+def run_B1_T1_convergence(reg: dict, tier: str = "verify") -> dict:
+    """Acceptance criterion B1 (convergence): the Tier-1 convergence series of the basal monomer."""
+    import json
+
+    candidates = [
+        Path("data/processed/tier1/tier1_convergence_basal_5x5.json"),
+        Path(f"data/processed/{tier}/tier1/tier1_convergence_basal_4x4.json"),
+    ]
+    thr = reg["B1"]["thresholds"]["T1_convergence_abs_eV"]
+    for p in candidates:
+        if p.exists():
+            return evaluate_convergence(json.loads(p.read_text()), thr)
+    return {
+        "id": "B1",
+        "passed": None,
+        "summary": "Tier-1 convergence series not present (run tier1 converge)",
+    }
+
+
 def run_B3_pair_potential(reg: dict) -> dict:
     """Classical pair-potential minimum over coronene versus the CCSD(T)/CBS value (B3).
 
@@ -263,6 +348,7 @@ def run_all(tier: str = "verify") -> dict:
         run_B10(reg),
         run_B1_T2(reg),
         run_B1_T1(reg, tier),
+        run_B1_T1_convergence(reg, tier),
         run_B3_pair_potential(reg),
         run_B4_computed(reg),
     ]
@@ -276,6 +362,8 @@ __all__ = [
     "run_B10",
     "run_B1_T2",
     "run_B1_T1",
+    "run_B1_T1_convergence",
+    "evaluate_convergence",
     "run_B3_pair_potential",
     "run_B4_computed",
 ]

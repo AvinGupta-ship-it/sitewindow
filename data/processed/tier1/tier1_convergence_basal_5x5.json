@@ -1,0 +1,123 @@
+{
+  "tier": "T1",
+  "engine": "gpaw",
+  "package_version": "0.1.0",
+  "criterion": "B1: |delta| < 0.02 eV for cell, k-mesh, cutoff and vacuum variants",
+  "variants": {
+    "base": {
+      "settings": {
+        "supercell": 5,
+        "vacuum_A": 15.0,
+        "ecut_eV": 500.0,
+        "kmesh": null,
+        "fmax_eV_A": 0.02,
+        "relax_steps": 150,
+        "prerelax_tier2": true,
+        "dispersion": "d3bj",
+        "box_A": 15.0,
+        "kmesh_used": [
+          4,
+          4,
+          1
+        ]
+      },
+      "E_bind_H_atom_PBE_D3": -0.8200944511954009,
+      "E_bind_H_atom_PBE": -0.7814965532848468,
+      "n_atoms": 51,
+      "delta_vs_base_PBE_eV": 0.0
+    },
+    "cell_plus_one": {
+      "settings": {
+        "supercell": 6,
+        "vacuum_A": 15.0,
+        "ecut_eV": 500.0,
+        "kmesh": null,
+        "fmax_eV_A": 0.02,
+        "relax_steps": 150,
+        "prerelax_tier2": true,
+        "dispersion": "d3bj",
+        "box_A": 15.0,
+        "kmesh_used": [
+          3,
+          3,
+          1
+        ]
+      },
+      "E_bind_H_atom_PBE_D3": -0.8388598266856053,
+      "E_bind_H_atom_PBE": -0.8014296941259234,
+      "n_atoms": 73,
+      "delta_vs_base_PBE_eV": -0.019933140841076558
+    },
+    "kmesh_dense": {
+      "settings": {
+        "supercell": 5,
+        "vacuum_A": 15.0,
+        "ecut_eV": 500.0,
+        "kmesh": [
+          6,
+          6,
+          1
+        ],
+        "fmax_eV_A": 0.02,
+        "relax_steps": 150,
+        "prerelax_tier2": true,
+        "dispersion": "d3bj",
+        "box_A": 15.0,
+        "kmesh_used": [
+          6,
+          6,
+          1
+        ]
+      },
+      "E_bind_H_atom_PBE_D3": -0.8336954241593009,
+      "E_bind_H_atom_PBE": -0.7950975262487467,
+      "n_atoms": 51,
+      "delta_vs_base_PBE_eV": -0.013600972963899949
+    },
+    "cutoff_600": {
+      "settings": {
+        "supercell": 5,
+        "vacuum_A": 15.0,
+        "ecut_eV": 600.0,
+        "kmesh": null,
+        "fmax_eV_A": 0.02,
+        "relax_steps": 150,
+        "prerelax_tier2": true,
+        "dispersion": "d3bj",
+        "box_A": 15.0,
+        "kmesh_used": [
+          4,
+          4,
+          1
+        ]
+      },
+      "E_bind_H_atom_PBE_D3": -0.8224017489244662,
+      "E_bind_H_atom_PBE": -0.783803851013912,
+      "n_atoms": 51,
+      "delta_vs_base_PBE_eV": -0.0023072977290652386
+    },
+    "vacuum_20": {
+      "settings": {
+        "supercell": 5,
+        "vacuum_A": 20.0,
+        "ecut_eV": 500.0,
+        "kmesh": null,
+        "fmax_eV_A": 0.02,
+        "relax_steps": 150,
+        "prerelax_tier2": true,
+        "dispersion": "d3bj",
+        "box_A": 15.0,
+        "kmesh_used": [
+          4,
+          4,
+          1
+        ]
+      },
+      "E_bind_H_atom_PBE_D3": -0.8211490825813559,
+      "E_bind_H_atom_PBE": -0.7825511846708026,
+      "n_atoms": 51,
+      "delta_vs_base_PBE_eV": -0.001054631385955851
+    }
+  },
+  "all_within_0.02_eV": true
+}

@@ -10,6 +10,7 @@ Status `reported` marks runners that report a value without a pass criterion at 
 | B10 | pass | asymptote deviation 0.016; I_D/I_G maximum at L_D=3.33 nm |
 | B1 | reported | T2 basal monomer -0.211 eV vs DMC -0.691 / PBE -0.821 eV: tier offset +0.48 eV (input to C3 calibration) |
 | B1 | pass | T1 PBE basal monomer -0.781 eV (5x5, 500 eV, k4x4) vs PBE ref -0.821 eV: deviation +0.040 eV |
+| B1 | pass | T1 convergence of the basal monomer PBE energy from the base (5x5, 500 eV, k4x4x1, 15 A): 6x6 cell, k3x3x1 -0.0199; k6x6x1 -0.0136; 600 eV -0.0023; 20 A vacuum -0.0011 eV; every change below 0.02 eV in magnitude |
 | B3 | fail | pair potential on coronene: steele_buch -3.22; steele_darkrim_levesque -3.34 kJ/mol vs -4.7 (tol 1.0); calibrated set eps/k=45.1 K reproduces B3 by construction |
 | B4 | fail | B3-calibrated potential: basal 5.7, slit_0.70nm 9.6, slit_1.00nm 6.1 kJ/mol vs [4.0, 8.0]; literature sets within interval: steele_buch=False, steele_darkrim_levesque=True |
 

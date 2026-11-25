@@ -3,7 +3,7 @@
 B1:
   quantity: "H chemisorption energy on graphene, eV relative to free H"
   reference: { DMC: -0.691, DMC_sigma: 0.019, PBE: -0.821, literature_PBE_PW91_range: [-0.98, -0.79] }
-  thresholds: { T1_PBE_abs_eV: 0.10, calibrated_posterior_covers_DMC: true }
+  thresholds: { T1_PBE_abs_eV: 0.10, T1_convergence_abs_eV: 0.02, calibrated_posterior_covers_DMC: true }
   independence: anchor_with_leave_one_out
 B2:
   quantity: "sticking barrier of H on graphene, eV"

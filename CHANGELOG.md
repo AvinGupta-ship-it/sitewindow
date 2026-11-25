@@ -38,17 +38,21 @@ Keep a Changelog, and the project adheres to Semantic Versioning.
   logs and manifests (`sitewindow landscape build`); verify-tier GFN2-xTB landscape executed.
 - Tier-1 basal-monomer anchor and convergence-series workflow with Tier-2 pre-relaxation, LCAO
   relaxation and plane-wave single points, D3 reported separately (`sitewindow tier1`); the
-  full-protocol 5x5 anchor is executed (`data/processed/tier1/`) and meets benchmark B1.
+  full-protocol 5x5 anchor is executed (`data/processed/tier1/`) and meets benchmark B1; the
+  convergence series (6x6 cell, 6x6x1 k-mesh, 600 eV, 20 A vacuum) is executed and meets the B1
+  convergence criterion, with the cell-size change at the 0.02 eV bound.
 - Pairwise H2-C physisorption potentials (Steele-Buch and Steele-Darkrim-Levesque Lorentz-Berthelot
   sets, B3-calibrated set) with Feynman-Hibbs correction; sheet, pore, tube and bundle site
   energies (`sitewindow landscape physisorption`); parameter registry
   `data/registry/physisorption_potentials.yaml`.
-- Validation runners for B1 (Tier-1 anchor), B3 (pair potential on coronene) and B4 (computed
-  basal and pore site energies).
+- Validation runners for B1 (Tier-1 anchor and Tier-1 convergence series), B3 (pair potential on
+  coronene) and B4 (computed basal and pore site energies).
 - `sitewindow validate --markdown` renders the human-readable validation summary from the
   machine-readable report (`validation/report.py`).
 
 ### Changed
+- The benchmark registry carries the B1 convergence bound (0.02 eV) transcribed from the
+  acceptance criteria, so the convergence runner reads its threshold from the registry.
 - Verification-tier configuration lists the manual's reduced class set (basal, monovacancy,
   Stone-Wales, three armchair nanotubes) and the reduced Tier-1 anchor settings.
 - `environment.yml` installs tblite from conda-forge (`tblite-python`) so that GPAW and tblite
