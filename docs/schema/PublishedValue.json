@@ -1,0 +1,234 @@
+{
+  "$defs": {
+    "Distribution": {
+      "enum": [
+        "normal",
+        "lognormal",
+        "uniform",
+        "posterior_samples"
+      ],
+      "title": "Distribution",
+      "type": "string"
+    },
+    "Extraction": {
+      "enum": [
+        "tabular_text",
+        "digitized_figure",
+        "abstract_statement",
+        "database_record",
+        "computed"
+      ],
+      "title": "Extraction",
+      "type": "string"
+    },
+    "Quantity": {
+      "enum": [
+        "E_bind_H_half_H2",
+        "E_bind_H_atom",
+        "E_bind_H2",
+        "E_sequential",
+        "E_barrier_stick",
+        "E_barrier_recomb",
+        "E_formation_defect",
+        "E_migration"
+      ],
+      "title": "Quantity",
+      "type": "string"
+    },
+    "ReferenceState": {
+      "enum": [
+        "half_H2",
+        "H_atom",
+        "H2_molecule",
+        "pristine_cell"
+      ],
+      "title": "ReferenceState",
+      "type": "string"
+    },
+    "SiteClassName": {
+      "enum": [
+        "basal",
+        "monovacancy",
+        "divacancy_585",
+        "divacancy_555777",
+        "stone_wales",
+        "edge_zigzag",
+        "edge_armchair",
+        "cnt_armchair",
+        "cnt_zigzag",
+        "epoxide",
+        "hydroxyl",
+        "carbonyl_pair",
+        "carboxyl",
+        "mixed_vacancy_cnt",
+        "mixed_sw_cnt",
+        "pore_slit",
+        "cnt_interior",
+        "cnt_interstitial",
+        "cnt_groove"
+      ],
+      "title": "SiteClassName",
+      "type": "string"
+    },
+    "UncertainScalar": {
+      "additionalProperties": false,
+      "description": "A scalar with uncertainty (DATA_SCHEMA, Uncertainty).",
+      "properties": {
+        "components": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Components"
+        },
+        "distribution": {
+          "$ref": "#/$defs/Distribution",
+          "default": "normal"
+        },
+        "samples_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Samples Ref"
+        },
+        "sigma": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Sigma",
+          "type": "number"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "UncertainScalar",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "arxiv": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Arxiv"
+    },
+    "doi": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Doi"
+    },
+    "extraction": {
+      "$ref": "#/$defs/Extraction"
+    },
+    "id": {
+      "pattern": "^PV-\\d{4}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "method": {
+      "additionalProperties": true,
+      "title": "Method",
+      "type": "object"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
+    },
+    "quantity": {
+      "$ref": "#/$defs/Quantity"
+    },
+    "reference_state": {
+      "$ref": "#/$defs/ReferenceState"
+    },
+    "site_class": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SiteClassName"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "site_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Site Id"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "system": {
+      "title": "System",
+      "type": "string"
+    },
+    "unit": {
+      "title": "Unit",
+      "type": "string"
+    },
+    "value": {
+      "$ref": "#/$defs/UncertainScalar"
+    }
+  },
+  "required": [
+    "id",
+    "system",
+    "quantity",
+    "value",
+    "unit",
+    "reference_state",
+    "extraction",
+    "source_id"
+  ],
+  "title": "PublishedValue",
+  "type": "object"
+}

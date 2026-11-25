@@ -10,9 +10,7 @@ from typing import Protocol, runtime_checkable
 
 from ase import Atoms
 
-
-class CalculatorUnavailable(RuntimeError):
-    """Raised when a calculator's dependency is not installed."""
+from sitewindow.errors import CalculatorUnavailable
 
 
 @runtime_checkable

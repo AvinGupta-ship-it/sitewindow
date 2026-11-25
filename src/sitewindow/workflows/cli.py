@@ -13,12 +13,41 @@ from sitewindow import __version__
 app = typer.Typer(
     add_completion=False, help="SiteWindow: site-energy landscapes and deliverable-capacity limits."
 )
+landscape_app = typer.Typer(help="Site-energy landscape construction (C2).")
+tier1_app = typer.Typer(help="Tier-1 density-functional anchors and convergence (C2, B1).")
+schema_app = typer.Typer(help="Canonical data schema.")
+app.add_typer(landscape_app, name="landscape")
+app.add_typer(tier1_app, name="tier1")
+app.add_typer(schema_app, name="schema")
 
 
 def _data_root() -> Path:
     import os
 
     return Path(os.environ.get("SITEWINDOW_DATA", "data"))
+
+
+def _tier_config(tier: str, config: Path | None) -> dict:
+    import yaml
+
+    p = config or Path("configs") / "tiers" / f"{tier}.yaml"
+    return yaml.safe_load(p.read_text()) if p.exists() else {}
+
+
+def _is_master() -> bool:
+    from sitewindow.atomistic.parallel import is_master
+
+    return is_master()
+
+
+def _configure_logging(verbose: bool) -> None:
+    """Timing and settings logging on rank 0 only (manual Section 10.5)."""
+    import logging
+
+    logging.basicConfig(
+        level=logging.INFO if (verbose and _is_master()) else logging.WARNING,
+        format="%(asctime)s %(name)s %(message)s",
+    )
 
 
 @app.callback(invoke_without_command=True)
@@ -135,18 +164,32 @@ def knockon(
 
 @app.command("validate")
 def validate(
-    tier: str = typer.Option("verify", help="verify or full"), out: Path = typer.Option(None)
+    tier: str = typer.Option("verify", help="verify or full"),
+    out: Path = typer.Option(None),
+    markdown: Path = typer.Option(None, help="Also write the human-readable summary (Markdown)"),
 ) -> None:
     """Run the benchmark runners available at the requested tier and write validation_report.json."""
+    from sitewindow.validation.report import render_markdown
     from sitewindow.validation.runners import run_all
 
     report = run_all(tier=tier)
     out = out or _data_root() / "processed" / tier
     out.mkdir(parents=True, exist_ok=True)
     (out / "validation_report.json").write_text(json.dumps(report, indent=2, default=float))
+    if markdown is not None:
+        ids = {r["id"].split("-")[0] for r in report["benchmarks"]}
+        missing = [f"B{k}" for k in range(1, 13) if f"B{k}" not in ids]
+        note = (
+            "Benchmarks "
+            + ", ".join(missing)
+            + " require components not yet executed and are not listed."
+            if missing
+            else None
+        )
+        markdown.write_text(render_markdown(report, note))
     for r in report["benchmarks"]:
-        status = "PASS" if r["passed"] else ("FAIL" if r["passed"] is False else "NOT RUN")
-        typer.echo(f"{r['id']:4s} {status:8s} {r['summary']}")
+        status = "PASS" if r["passed"] else ("FAIL" if r["passed"] is False else "REPORTED")
+        typer.echo(f"{r['id']:5s} {status:8s} {r['summary']}")
 
 
 @app.command("verify-atomistic")
@@ -196,6 +239,193 @@ def verify_atomistic(cache: Path = typer.Option(None), supercell: int = 4) -> No
     out.mkdir(parents=True, exist_ok=True)
     (out / "atomistic_verify_T2.json").write_text(json.dumps(result, indent=2))
     typer.echo(json.dumps(result, indent=2))
+
+
+@landscape_app.command("build")
+def landscape_build(
+    tier: str = typer.Option("verify", help="verify or full (configs/tiers/<tier>.yaml)"),
+    calculator: str = typer.Option("tblite", help="tblite, gpaw, mace or a registered plugin"),
+    classes: str = typer.Option(None, help="Comma-separated site classes (default: tier config)"),
+    config: Path = typer.Option(None, help="Tier configuration file"),
+    cache: Path = typer.Option(
+        None, help="Cache directory (default: $SITEWINDOW_DATA/raw/cache_<tier>_<calculator>)"
+    ),
+    out: Path = typer.Option(
+        None, help="Output directory (default: $SITEWINDOW_DATA/processed/<tier>)"
+    ),
+    fmax: float = typer.Option(None, help="Force tolerance (eV/A); default from the tier config"),
+    spin_search: bool = typer.Option(False, help="Also relax in the next higher spin multiplicity"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Relax every catalogue configuration of the tier and write landscape_raw_<tier>.parquet (E1)."""
+    from sitewindow.atomistic.calculators import make_calculator
+    from sitewindow.atomistic.workflows.landscape import LandscapeSpec, build_landscape
+    from sitewindow.landscape import catalogue
+
+    _configure_logging(verbose)
+    cfg = _tier_config(tier, config).get("atomistic", {})
+    cls_list = [c.strip() for c in classes.split(",")] if classes else list(cfg.get("classes", []))
+    cls_list = cls_list or None
+    recipes: dict[str, dict] = {}
+    if "supercell" in cfg:
+        for name, d in catalogue().items():
+            if "supercell" in d.recipe(tier if tier in d.recipes else "full"):
+                recipes.setdefault(name, {})["supercell"] = int(cfg["supercell"])
+    if "cnt" in cfg:
+        for name in ("cnt_armchair", "cnt_zigzag"):
+            recipes.setdefault(name, {}).update(
+                {k: v for k, v in cfg["cnt"].items() if k in ("diameters_nm", "length")}
+            )
+    spec = LandscapeSpec(
+        tier=tier,
+        classes=cls_list,
+        recipes=recipes,
+        fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
+        spin_states=(0, 2) if spin_search else (0,),
+    )
+    calc = make_calculator(calculator)
+    cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
+    out = out or _data_root() / "processed" / tier
+    result = build_landscape(spec, calc, cache, out)
+    m = result.get("manifest", {})
+    typer.echo(
+        json.dumps(
+            {
+                k: m.get(k)
+                for k in ("tier", "n_records", "n_configurations", "n_excluded", "wall_s")
+            },
+            indent=2,
+        )
+    )
+
+
+@landscape_app.command("physisorption")
+def landscape_physisorption(
+    tier: str = typer.Option("verify", help="verify or full"),
+    out: Path = typer.Option(
+        None, help="Output directory (default: $SITEWINDOW_DATA/processed/<tier>)"
+    ),
+    supercell: int = typer.Option(4),
+) -> None:
+    """Pair-potential H2 site energies for the physisorption set with Feynman-Hibbs corrections (E5)."""
+    from sitewindow.atomistic.workflows.physisorption import PhysisorptionSpec, build_physisorption
+
+    out = out or _data_root() / "processed" / tier
+    res = build_physisorption(PhysisorptionSpec(tier=tier, supercell=supercell), out)
+    t = res["table"]
+    classical = t[t["T_K"].isna()].pivot(index="site_id", columns="potential", values="E_kJ_mol")
+    typer.echo(classical.round(2).to_string())
+    typer.echo(
+        json.dumps({k: res["manifest"][k] for k in ("tier", "n_records", "wall_s")}, indent=2)
+    )
+
+
+@tier1_app.command("anchor")
+def tier1_anchor(
+    supercell: int = typer.Option(5),
+    ecut: float = typer.Option(500.0, help="Plane-wave cutoff (eV)"),
+    kmesh: str = typer.Option(
+        None, help="Explicit k-mesh 'k1,k2,k3' (default: scaled from 4x4x1 on 5x5)"
+    ),
+    vacuum: float = typer.Option(15.0),
+    fmax: float = typer.Option(0.02),
+    no_prerelax: bool = typer.Option(False, help="Skip the Tier-2 pre-relaxation"),
+    cache: Path = typer.Option(None),
+    out: Path = typer.Option(None),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Tier-1 basal-monomer anchor with GPAW (PBE-D3(BJ)); compares the PBE value with B1."""
+    from sitewindow.atomistic.workflows.tier1 import Tier1Settings, anchor_basal_monomer
+
+    _configure_logging(verbose)
+    km = tuple(int(x) for x in kmesh.split(",")) if kmesh else None
+    settings = Tier1Settings(
+        supercell=supercell,
+        vacuum_A=vacuum,
+        ecut_eV=ecut,
+        kmesh=km,
+        fmax_eV_A=fmax,
+        prerelax_tier2=not no_prerelax,
+    )
+    cache = cache or _data_root() / "raw" / "cache_tier1_gpaw"
+    out = out or _data_root() / "processed" / "tier1"
+    res = anchor_basal_monomer(settings, cache, out, log_dir=cache / "logs")
+    if not _is_master():
+        return
+    typer.echo(
+        json.dumps(
+            {
+                "binding_eV": res["binding_eV"],
+                "benchmark_B1": res["benchmark_B1"],
+                "wall_s": res["wall_s"],
+            },
+            indent=2,
+        )
+    )
+
+
+@tier1_app.command("converge")
+def tier1_converge(
+    supercell: int = typer.Option(5),
+    ecut: float = typer.Option(500.0),
+    vacuum: float = typer.Option(15.0),
+    variants: str = typer.Option(
+        None, help="Comma-separated subset of base,cell_plus_one,kmesh_dense,cutoff_600,vacuum_20"
+    ),
+    cache: Path = typer.Option(None),
+    out: Path = typer.Option(None),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Convergence of the Tier-1 basal-monomer binding energy (acceptance criterion B1)."""
+    from sitewindow.atomistic.workflows.tier1 import Tier1Settings, convergence_series
+
+    _configure_logging(verbose)
+    base = Tier1Settings(supercell=supercell, vacuum_A=vacuum, ecut_eV=ecut)
+    cache = cache or _data_root() / "raw" / "cache_tier1_gpaw"
+    out = out or _data_root() / "processed" / "tier1"
+    res = convergence_series(
+        base, cache, out, variants.split(",") if variants else None, log_dir=cache / "logs"
+    )
+    if not _is_master():
+        return
+    typer.echo(
+        json.dumps(
+            {
+                k: {kk: v[kk] for kk in ("E_bind_H_atom_PBE", "delta_vs_base_PBE_eV")}
+                for k, v in res["variants"].items()
+            },
+            indent=2,
+        )
+    )
+
+
+@schema_app.command("export")
+def schema_export(
+    out: Path = typer.Option(Path("docs/schema"), help="Directory for JSON Schema files"),
+) -> None:
+    """Write the JSON Schema of every canonical model."""
+    from sitewindow import schema as sch
+
+    out.mkdir(parents=True, exist_ok=True)
+    names = [
+        "Provenance",
+        "UncertainScalar",
+        "SiteClass",
+        "SiteConfiguration",
+        "SiteEnergyRecord",
+        "PublishedValue",
+        "Isotherm",
+        "Material",
+        "DefectPopulation",
+        "OperatingWindow",
+        "CapacityResult",
+        "BenchmarkRecord",
+    ]
+    for name in names:
+        (out / f"{name}.json").write_text(
+            json.dumps(sch.json_schema(getattr(sch, name)), indent=2, sort_keys=True) + "\n"
+        )
+    typer.echo(f"wrote {len(names)} schema files to {out}")
 
 
 if __name__ == "__main__":  # pragma: no cover

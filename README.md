@@ -36,7 +36,15 @@ sitewindow theory-tables       # window efficiencies, optimum and threshold ener
 sitewindow fetch-isodb         # clone the NIST ISODB mirror and harmonize carbon H2 isotherms
 sitewindow knockon             # electron knock-on cross sections for graphene
 sitewindow verify-atomistic    # GFN2-xTB verification of H binding on graphene and at a vacancy
+sitewindow landscape build     # relax every catalogue configuration of a tier (GFN2-xTB by default)
+sitewindow landscape physisorption  # pair-potential H2 site energies for the physisorption set
 sitewindow validate            # run the benchmark runners and write validation_report.json
+```
+
+Tier-1 anchors run in the conda-forge environment under MPI:
+
+```bash
+mpirun -np 4 gpaw python --module sitewindow.workflows.cli tier1 anchor --supercell 5
 ```
 
 ```python
@@ -52,13 +60,14 @@ bound_wt_percent(W1, "molecular")        # variational bound D_max(W1) for the m
 | Component (manual section) | Status |
 |---|---|
 | C1 Window theory, deliverable functional, bound (`theory/`) | implemented; analytic and randomized tests pass; benchmark B8 passes |
-| C2 Atomistic landscape (`atomistic/`) | structure builders, tier-2 calculator adapter, relaxation and binding-energy workflows with caching implemented; verification-tier runs executed; full class enumeration and tier-1/tier-3 engines pending |
+| C2 Atomistic landscape (`atomistic/`, `landscape/classes.py`) | builders for every catalogue class, descriptors, calculator adapters for tblite (T2), GPAW (T1, PBE-D3(BJ), MPI) and MACE (T3), site-class catalogue (15 chemisorption and 4 physisorption classes; 17 verify-tier and 125 full-tier configurations), landscape workflow writing schema-validated tables; verify-tier Tier-2 landscape executed (17 configurations, 58 records, no exclusions); pairwise physisorption potentials with Feynman–Hibbs correction executed for the verify set; Tier-1 anchor and convergence workflows implemented, verify-tier anchor executed; full-tier enumeration, Tier-1 convergence series, barriers and Tier-3 runs pending |
 | C3 Registry, meta-analysis, calibration (`landscape/`) | pending |
 | C4 Kinetics and forward desorption (`kinetics/`) | Polanyi–Wigner, Redhead, ramps, admissibility implemented and tested; multi-species pathways pending |
 | C5 Defect populations and Raman (`defects/`) | knock-on with Debye smearing, rate equations, Raman relations implemented and tested; benchmark B9 endpoint check fails at 80 keV (model-form difference under investigation), B10 passes |
 | C6 Corpus inference (`experimental/`) | ISODB loader, carbon selection, unit normalization, harmonized table implemented and executed (306 isotherms); isosteric heats and AED inversion pending |
 | C7 Evaluation, sensitivity, hypothesis tests (`evaluate/`) | pending |
-| C8 Validation runners (`validation/`) | B8, B9 (endpoints), B10, B1 (tier-2 report) implemented; remaining runners pending |
+| C8 Validation runners (`validation/`) | B8, B9 (endpoints), B10, B1 (tier-2 report and tier-1 anchor), B3 (pair potential), B4 (computed site energies) implemented; remaining runners pending |
+| Data schema and I/O (`schema/`, `io/`) | pydantic models of every record type with provenance and physical range checks, flat Parquet tables with schema-version metadata, JSON Schema export implemented and tested |
 
 The verification-tier outputs in `data/processed/verify/` are labeled as such and do not
 support publication claims.

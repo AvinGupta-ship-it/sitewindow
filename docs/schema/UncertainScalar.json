@@ -1,0 +1,64 @@
+{
+  "$defs": {
+    "Distribution": {
+      "enum": [
+        "normal",
+        "lognormal",
+        "uniform",
+        "posterior_samples"
+      ],
+      "title": "Distribution",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A scalar with uncertainty (DATA_SCHEMA, Uncertainty).",
+  "properties": {
+    "components": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Components"
+    },
+    "distribution": {
+      "$ref": "#/$defs/Distribution",
+      "default": "normal"
+    },
+    "samples_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Samples Ref"
+    },
+    "sigma": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Sigma",
+      "type": "number"
+    },
+    "value": {
+      "title": "Value",
+      "type": "number"
+    }
+  },
+  "required": [
+    "value"
+  ],
+  "title": "UncertainScalar",
+  "type": "object"
+}

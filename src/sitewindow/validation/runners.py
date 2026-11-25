@@ -132,10 +132,150 @@ def run_B1_T2(reg: dict) -> dict:
     }
 
 
+def run_B1_T1(reg: dict, tier: str = "verify") -> dict:
+    """Tier-1 (GPAW, PBE) basal monomer versus the plane-wave PBE value of B1.
+
+    The pass criterion applies to the converged Tier-1 protocol (5x5 cell, 500 eV, 4x4x1
+    k-mesh, 15 A vacuum). A verification-tier anchor at reduced settings is reported without a
+    pass flag.
+    """
+    import json
+
+    candidates = [
+        Path("data/processed/tier1/tier1_anchor_basal_5x5.json"),
+        Path(f"data/processed/{tier}/tier1/tier1_anchor_basal_4x4.json"),
+    ]
+    thr = reg["B1"]["thresholds"]["T1_PBE_abs_eV"]
+    ref = reg["B1"]["reference"]
+    for p in candidates:
+        if not p.exists():
+            continue
+        d = json.loads(p.read_text())
+        e_pbe = d["binding_eV"]["E_bind_H_atom_PBE"]
+        e_d3 = d["binding_eV"]["E_bind_H_atom_PBE_D3"]
+        s = d["settings"]
+        converged_protocol = s["supercell"] >= 5 and s["ecut_eV"] >= 500 and s["vacuum_A"] >= 15
+        dev = e_pbe - ref["PBE"]
+        return {
+            "id": "B1",
+            "passed": bool(abs(dev) < thr) if converged_protocol else None,
+            "predicted": {
+                "E_bind_H_atom_PBE_eV": e_pbe,
+                "E_bind_H_atom_PBE_D3_eV": e_d3,
+                "supercell": s["supercell"],
+                "ecut_eV": s["ecut_eV"],
+                "kmesh": s["kmesh_used"],
+                "vacuum_A": s["vacuum_A"],
+            },
+            "reference": {"PBE_eV": ref["PBE"], "DMC_eV": ref["DMC"], "threshold_eV": thr},
+            "metric": "absolute difference of the PBE binding energy (tier T1)",
+            "summary": (
+                f"T1 PBE basal monomer {e_pbe:.3f} eV ({s['supercell']}x{s['supercell']}, "
+                f"{s['ecut_eV']:.0f} eV, k{s['kmesh_used'][0]}x{s['kmesh_used'][1]}) vs PBE ref "
+                f"{ref['PBE']} eV: deviation {dev:+.3f} eV"
+                + (
+                    ""
+                    if converged_protocol
+                    else " (reduced verification settings; not a pass test)"
+                )
+            ),
+        }
+    return {
+        "id": "B1-T1",
+        "passed": None,
+        "summary": "Tier-1 anchor not present (run tier1 anchor)",
+    }
+
+
+def run_B3_pair_potential(reg: dict) -> dict:
+    """Classical pair-potential minimum over coronene versus the CCSD(T)/CBS value (B3).
+
+    The literature parameter sets are the prediction; the B3-calibrated set reproduces the
+    reference by construction and is reported, not tested.
+    """
+    from sitewindow.atomistic import physisorption as ph
+
+    ref = reg["B3"]["reference"]["value"]
+    thr = reg["B3"]["thresholds"]["pair_potential_abs_kJ_mol"]
+    predicted = {name: ph.coronene_binding_kJ_mol(p)[0] for name, p in ph.PARAMETER_SETS.items()}
+    cal = ph.calibrated_potential()
+    checks = {name: bool(abs(e - ref) < thr) for name, e in predicted.items()}
+    return {
+        "id": "B3",
+        "passed": bool(all(checks.values())),
+        "predicted": {
+            **{f"{k}_kJ_mol": v for k, v in predicted.items()},
+            "calibrated_epsilon_K": cal.epsilon_K,
+        },
+        "reference": {"CCSD_T_kJ_mol": ref, "threshold_kJ_mol": thr},
+        "metric": "absolute difference of the classical minimum (single-site LJ, no orientation)",
+        "checks": checks,
+        "summary": "pair potential on coronene: "
+        + "; ".join(f"{k} {v:.2f}" for k, v in predicted.items())
+        + f" kJ/mol vs {ref} (tol {thr}); calibrated set eps/k={cal.epsilon_K:.1f} K reproduces B3 by construction",
+    }
+
+
+def run_B4_computed(reg: dict) -> dict:
+    """Computed basal and slit-pore site energies versus the isosteric-heat interval of B4.
+
+    Evaluated for every parameter set on the basal plane and the verification-tier pore
+    widths; the pass flag refers to the B3-calibrated set used for the landscape.
+    """
+    from sitewindow.atomistic import physisorption as ph
+    from sitewindow.atomistic.structures import builders as b
+    from sitewindow.landscape import catalogue
+
+    lo, hi = reg["B4"]["reference"]["interval"]
+    widths = catalogue()["pore_slit"].recipe("verify")["widths_nm"]
+    g = b.graphene_supercell(4)
+    pores = {float(w): b.slit_pore(float(w), n=4) for w in widths}
+    out: dict[str, dict[str, float]] = {}
+    for name, p in ph.all_potentials().items():
+        row = {"basal": -ph.sheet_site_energy(g, p)[0]}
+        for w, pore in pores.items():
+            row[f"slit_{w:.2f}nm"] = -ph.pore_site_energy(pore, p)[0]
+        out[name] = row
+    cal = ph.calibrated_potential().name
+    checks = {name: bool(all(lo <= v <= hi for v in row.values())) for name, row in out.items()}
+    return {
+        "id": "B4",
+        "passed": checks[cal],
+        "predicted": out,
+        "reference": {
+            "interval_kJ_mol": [lo, hi],
+            "AX21_average": reg["B4"]["reference"]["AX21_average"],
+        },
+        "metric": "site energies (minus sign) within the isosteric-heat interval",
+        "checks": checks,
+        "summary": "B3-calibrated potential: "
+        + ", ".join(f"{k} {v:.1f}" for k, v in out[cal].items())
+        + f" kJ/mol vs [{lo}, {hi}]; literature sets within interval: "
+        + ", ".join(f"{k}={v}" for k, v in checks.items() if k != cal),
+    }
+
+
 def run_all(tier: str = "verify") -> dict:
     reg = _registry()
-    results = [run_B8(reg), run_B9_endpoints(reg), run_B10(reg), run_B1_T2(reg)]
+    results = [
+        run_B8(reg),
+        run_B9_endpoints(reg),
+        run_B10(reg),
+        run_B1_T2(reg),
+        run_B1_T1(reg, tier),
+        run_B3_pair_potential(reg),
+        run_B4_computed(reg),
+    ]
     return {"tier": tier, "benchmarks": results}
 
 
-__all__ = ["run_all", "run_B8", "run_B9_endpoints", "run_B10", "run_B1_T2"]
+__all__ = [
+    "run_all",
+    "run_B8",
+    "run_B9_endpoints",
+    "run_B10",
+    "run_B1_T2",
+    "run_B1_T1",
+    "run_B3_pair_potential",
+    "run_B4_computed",
+]

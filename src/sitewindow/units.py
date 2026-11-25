@@ -24,11 +24,7 @@ from sitewindow.constants import (
     TORR_TO_BAR,
     V_MOLAR_STP_CM3,
 )
-
-
-class UnitError(ValueError):
-    """Raised when a unit string is unknown or a conversion needs missing information."""
-
+from sitewindow.errors import UnitError
 
 _PRESSURE_FACTORS: dict[str, float] = {
     "bar": 1.0,

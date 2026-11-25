@@ -1,0 +1,81 @@
+{
+  "tier": "T1",
+  "engine": "gpaw",
+  "package_version": "0.1.0",
+  "settings": {
+    "supercell": 4,
+    "vacuum_A": 12.0,
+    "ecut_eV": 400.0,
+    "kmesh": [
+      3,
+      3,
+      1
+    ],
+    "fmax_eV_A": 0.02,
+    "relax_steps": 150,
+    "prerelax_tier2": true,
+    "dispersion": "d3bj",
+    "box_A": 15.0,
+    "kmesh_used": [
+      3,
+      3,
+      1
+    ]
+  },
+  "settings_hash_pw": "e9e59faa4b0746a2",
+  "structure_hashes": {
+    "graphene": "ef1633df29057f4a",
+    "graphene_H": "4d82ea6db3ca4908"
+  },
+  "energies_eV": {
+    "pw": {
+      "graphene": -295.21664955097486,
+      "graphene_H": -297.2034211938476,
+      "E_H2": -6.703722471938989,
+      "E_H": -1.0971876804513765
+    },
+    "lcao": {
+      "graphene": -289.68065702029514,
+      "graphene_H": -291.66334153209976
+    },
+    "d3": {
+      "graphene": -2.836638016132812,
+      "graphene_H": -2.8762303017229436,
+      "H2": -0.0025788482130298415
+    }
+  },
+  "binding_eV": {
+    "E_bind_H_atom_PBE_D3": -0.8895839624213484,
+    "E_bind_H_atom_PBE": -0.849991676831217,
+    "E_bind_H_half_H2_PBE_D3": 1.3650895930967697,
+    "E_bind_H_half_H2_PBE": 1.4033924545803862,
+    "D3_contribution_atom": -0.03959228559013139,
+    "E_bind_H_atom_PBE_D3_lcao": -0.8854968313532443
+  },
+  "geometry": {
+    "C_H_bond_A": 1.1392867997136293,
+    "puckering_A": 0.5322409300000004,
+    "H2_bond_A": 0.777661023981862
+  },
+  "relaxation": {
+    "graphene": {
+      "converged": true,
+      "max_force_eV_A": 1.7169797711906388e-07,
+      "n_steps": 0
+    },
+    "graphene_H": {
+      "converged": true,
+      "max_force_eV_A": 0.01885694277422278,
+      "n_steps": 22
+    }
+  },
+  "benchmark_B1": {
+    "reference_PBE_eV": -0.821,
+    "reference_DMC_eV": -0.691,
+    "threshold_eV": 0.1,
+    "deviation_from_PBE_eV": -0.02899167683121706,
+    "within_threshold": true,
+    "PBE_minus_DMC_offset_eV": -0.15899167683121707
+  },
+  "wall_s": 28.128514250041917
+}

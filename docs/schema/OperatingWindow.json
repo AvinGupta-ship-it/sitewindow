@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "ChargingMode": {
+      "enum": [
+        "H2_gas",
+        "atomic_H_source"
+      ],
+      "title": "ChargingMode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Operating window as configuration data (DATA_SCHEMA, OperatingWindow).",
+  "properties": {
+    "P_c_bar": {
+      "minimum": 0.0,
+      "title": "P C Bar",
+      "type": "number"
+    },
+    "P_r_bar": {
+      "minimum": 0.0,
+      "title": "P R Bar",
+      "type": "number"
+    },
+    "T_c_K": {
+      "exclusiveMinimum": 0.0,
+      "title": "T C K",
+      "type": "number"
+    },
+    "T_r_K": {
+      "exclusiveMinimum": 0.0,
+      "title": "T R K",
+      "type": "number"
+    },
+    "charging_mode": {
+      "$ref": "#/$defs/ChargingMode",
+      "default": "H2_gas"
+    },
+    "eta_c": {
+      "default": 0.9,
+      "exclusiveMaximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Eta C",
+      "type": "number"
+    },
+    "eta_r": {
+      "default": 0.9,
+      "exclusiveMaximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Eta R",
+      "type": "number"
+    },
+    "fugacity": {
+      "default": true,
+      "title": "Fugacity",
+      "type": "boolean"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "tau_c_s": {
+      "default": 300.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Tau C S",
+      "type": "number"
+    },
+    "tau_r_s": {
+      "default": 1000.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Tau R S",
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "T_c_K",
+    "P_c_bar",
+    "T_r_K",
+    "P_r_bar"
+  ],
+  "title": "OperatingWindow",
+  "type": "object"
+}

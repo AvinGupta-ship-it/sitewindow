@@ -1,0 +1,103 @@
+{
+  "$defs": {
+    "SiteClassName": {
+      "enum": [
+        "basal",
+        "monovacancy",
+        "divacancy_585",
+        "divacancy_555777",
+        "stone_wales",
+        "edge_zigzag",
+        "edge_armchair",
+        "cnt_armchair",
+        "cnt_zigzag",
+        "epoxide",
+        "hydroxyl",
+        "carbonyl_pair",
+        "carboxyl",
+        "mixed_vacancy_cnt",
+        "mixed_sw_cnt",
+        "pore_slit",
+        "cnt_interior",
+        "cnt_interstitial",
+        "cnt_groove"
+      ],
+      "title": "SiteClassName",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "cell": {
+      "items": {
+        "items": {
+          "type": "number"
+        },
+        "type": "array"
+      },
+      "title": "Cell",
+      "type": "array"
+    },
+    "config_hash": {
+      "title": "Config Hash",
+      "type": "string"
+    },
+    "n_H": {
+      "minimum": 0,
+      "title": "N H",
+      "type": "integer"
+    },
+    "pbc": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "title": "Pbc",
+      "type": "array"
+    },
+    "site_class": {
+      "$ref": "#/$defs/SiteClassName"
+    },
+    "site_id": {
+      "title": "Site Id",
+      "type": "string"
+    },
+    "spin_multiplicity": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Spin Multiplicity"
+    },
+    "structure": {
+      "title": "Structure",
+      "type": "string"
+    }
+  },
+  "required": [
+    "config_hash",
+    "site_class",
+    "site_id",
+    "n_H",
+    "structure",
+    "cell",
+    "pbc"
+  ],
+  "title": "SiteConfiguration",
+  "type": "object"
+}

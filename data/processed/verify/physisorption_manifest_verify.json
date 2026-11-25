@@ -1,0 +1,32 @@
+{
+  "tier": "verify",
+  "package_version": "0.1.0",
+  "potentials": {
+    "steele_buch": {
+      "epsilon_K": 30.945112699746307,
+      "sigma_A": 3.1799999999999997,
+      "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Buch, J. Chem. Phys. 100, 7610 (1994)"
+    },
+    "steele_darkrim_levesque": {
+      "epsilon_K": 32.05620064823653,
+      "sigma_A": 3.1790000000000003,
+      "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Darkrim and Levesque, J. Chem. Phys. 109, 4981 (1998)"
+    },
+    "steele_buch_b3": {
+      "epsilon_K": 45.099666824197485,
+      "sigma_A": 3.1799999999999997,
+      "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Buch, J. Chem. Phys. 100, 7610 (1994); epsilon scaled by 1.4574 to the B3 coronene value -4.7 kJ/mol"
+    }
+  },
+  "temperatures_K": [
+    null,
+    77.0,
+    233.15,
+    298.15
+  ],
+  "n_records": 72,
+  "wall_s": 19.663923457963392,
+  "files": {
+    "physisorption_verify.parquet": "7be149e612c8887a31f9470083082fe69378bc97897ea76cb1f7198853a949df"
+  }
+}

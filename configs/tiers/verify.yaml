@@ -1,11 +1,16 @@
 # Verification tier: reduced configurations for a 2-core machine; outputs labeled "verify".
+# Class set per manual Section 16: basal monomer and dimers, monovacancy 1-3 H, one Stone-Wales
+# site, three nanotube diameters; Tier 2 (GFN2-xTB) with a single Tier-1 anchor from the active
+# density-functional engine at reduced settings.
 tier: verify
 atomistic:
   calculator: tblite
   method: GFN2-xTB
   supercell: 4
   fmax_eV_A: 0.05
-  classes: [basal_monomer, monovacancy_dangling_bond]
+  classes: [basal, monovacancy, stone_wales, cnt_armchair]
+  cnt: { diameters_nm: [0.68, 1.09, 1.36], length: 3 }
+  tier1_anchor: { engine: gpaw, supercell: 4, ecut_eV: 400, kmesh: [3, 3, 1], vacuum_A: 12 }
 theory:
   windows: [BM2006, W1, W2, W3]
   entropy_models: [constant, harmonic_oscillator, two_d_gas]

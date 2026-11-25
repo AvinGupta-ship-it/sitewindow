@@ -64,6 +64,83 @@
       },
       "metric": "absolute difference (tier T2, uncalibrated)",
       "summary": "T2 basal monomer -0.211 eV vs DMC -0.691 / PBE -0.821 eV: tier offset +0.48 eV (input to C3 calibration)"
+    },
+    {
+      "id": "B1",
+      "passed": null,
+      "predicted": {
+        "E_bind_H_atom_PBE_eV": -0.849991676831217,
+        "E_bind_H_atom_PBE_D3_eV": -0.8895839624213484,
+        "supercell": 4,
+        "ecut_eV": 400.0,
+        "kmesh": [
+          3,
+          3,
+          1
+        ],
+        "vacuum_A": 12.0
+      },
+      "reference": {
+        "PBE_eV": -0.821,
+        "DMC_eV": -0.691,
+        "threshold_eV": 0.1
+      },
+      "metric": "absolute difference of the PBE binding energy (tier T1)",
+      "summary": "T1 PBE basal monomer -0.850 eV (4x4, 400 eV, k3x3) vs PBE ref -0.821 eV: deviation -0.029 eV (reduced verification settings; not a pass test)"
+    },
+    {
+      "id": "B3",
+      "passed": false,
+      "predicted": {
+        "steele_buch_kJ_mol": -3.224902531004356,
+        "steele_darkrim_levesque_kJ_mol": -3.3394519916878673,
+        "calibrated_epsilon_K": 45.099666824197485
+      },
+      "reference": {
+        "CCSD_T_kJ_mol": -4.7,
+        "threshold_kJ_mol": 1.0
+      },
+      "metric": "absolute difference of the classical minimum (single-site LJ, no orientation)",
+      "checks": {
+        "steele_buch": false,
+        "steele_darkrim_levesque": false
+      },
+      "summary": "pair potential on coronene: steele_buch -3.22; steele_darkrim_levesque -3.34 kJ/mol vs -4.7 (tol 1.0); calibrated set eps/k=45.1 K reproduces B3 by construction"
+    },
+    {
+      "id": "B4",
+      "passed": false,
+      "predicted": {
+        "steele_buch": {
+          "basal": 3.8820642590045176,
+          "slit_0.70nm": 6.613057073257358,
+          "slit_1.00nm": 4.154069525917729
+        },
+        "steele_darkrim_levesque": {
+          "basal": 4.019239667917478,
+          "slit_0.70nm": 6.8411794480923875,
+          "slit_1.00nm": 4.300296770892245
+        },
+        "steele_buch_b3": {
+          "basal": 5.65775301482949,
+          "slit_0.70nm": 9.637924850593752,
+          "slit_1.00nm": 6.054175772479141
+        }
+      },
+      "reference": {
+        "interval_kJ_mol": [
+          4.0,
+          8.0
+        ],
+        "AX21_average": 5.8
+      },
+      "metric": "site energies (minus sign) within the isosteric-heat interval",
+      "checks": {
+        "steele_buch": false,
+        "steele_darkrim_levesque": true,
+        "steele_buch_b3": false
+      },
+      "summary": "B3-calibrated potential: basal 5.7, slit_0.70nm 9.6, slit_1.00nm 6.1 kJ/mol vs [4.0, 8.0]; literature sets within interval: steele_buch=False, steele_darkrim_levesque=True"
     }
   ]
 }

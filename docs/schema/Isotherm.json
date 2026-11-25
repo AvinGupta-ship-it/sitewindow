@@ -1,0 +1,340 @@
+{
+  "$defs": {
+    "Distribution": {
+      "enum": [
+        "normal",
+        "lognormal",
+        "uniform",
+        "posterior_samples"
+      ],
+      "title": "Distribution",
+      "type": "string"
+    },
+    "Extraction": {
+      "enum": [
+        "tabular_text",
+        "digitized_figure",
+        "abstract_statement",
+        "database_record",
+        "computed"
+      ],
+      "title": "Extraction",
+      "type": "string"
+    },
+    "LoadingBasis": {
+      "enum": [
+        "excess",
+        "absolute",
+        "unknown"
+      ],
+      "title": "LoadingBasis",
+      "type": "string"
+    },
+    "Material": {
+      "additionalProperties": false,
+      "properties": {
+        "bet_area_m2_g": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UncertainScalar"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "conflict_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conflict Group"
+        },
+        "material_class": {
+          "$ref": "#/$defs/MaterialClass"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "oxygen_content_at": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Oxygen Content At"
+        },
+        "pore_volume_cm3_g": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pore Volume Cm3 G"
+        },
+        "registry_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Registry Id"
+        }
+      },
+      "required": [
+        "name",
+        "material_class"
+      ],
+      "title": "Material",
+      "type": "object"
+    },
+    "MaterialClass": {
+      "enum": [
+        "graphene",
+        "rGO",
+        "GO",
+        "SWCNT",
+        "MWCNT",
+        "activated_carbon",
+        "templated_carbon",
+        "carbon_other",
+        "non_carbon"
+      ],
+      "title": "MaterialClass",
+      "type": "string"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Origin of a record (DATA_SCHEMA, Provenance).",
+      "properties": {
+        "created": {
+          "format": "date-time",
+          "title": "Created",
+          "type": "string"
+        },
+        "extraction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extraction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "identifier": {
+          "title": "Identifier",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ProvenanceKind"
+        },
+        "package_version": {
+          "title": "Package Version",
+          "type": "string"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        },
+        "settings_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Settings Hash"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source_id",
+        "identifier"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "ProvenanceKind": {
+      "enum": [
+        "experimental_observation",
+        "published_computation",
+        "computed_here",
+        "model_prediction",
+        "derived"
+      ],
+      "title": "ProvenanceKind",
+      "type": "string"
+    },
+    "UncertainScalar": {
+      "additionalProperties": false,
+      "description": "A scalar with uncertainty (DATA_SCHEMA, Uncertainty).",
+      "properties": {
+        "components": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Components"
+        },
+        "distribution": {
+          "$ref": "#/$defs/Distribution",
+          "default": "normal"
+        },
+        "samples_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Samples Ref"
+        },
+        "sigma": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Sigma",
+          "type": "number"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "UncertainScalar",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "adsorbate": {
+      "default": "hydrogen",
+      "title": "Adsorbate",
+      "type": "string"
+    },
+    "digitized": {
+      "default": false,
+      "title": "Digitized",
+      "type": "boolean"
+    },
+    "doi": {
+      "title": "Doi",
+      "type": "string"
+    },
+    "isodb_filename": {
+      "title": "Isodb Filename",
+      "type": "string"
+    },
+    "loading": {
+      "items": {
+        "type": "number"
+      },
+      "title": "Loading",
+      "type": "array"
+    },
+    "loading_basis": {
+      "$ref": "#/$defs/LoadingBasis",
+      "default": "unknown"
+    },
+    "material": {
+      "$ref": "#/$defs/Material"
+    },
+    "original_units": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Original Units",
+      "type": "object"
+    },
+    "pressure": {
+      "items": {
+        "type": "number"
+      },
+      "title": "Pressure",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "quality_flags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Quality Flags",
+      "type": "array"
+    },
+    "tabular": {
+      "default": false,
+      "title": "Tabular",
+      "type": "boolean"
+    },
+    "temperature": {
+      "exclusiveMinimum": 0.0,
+      "title": "Temperature",
+      "type": "number"
+    }
+  },
+  "required": [
+    "isodb_filename",
+    "doi",
+    "material",
+    "temperature",
+    "pressure",
+    "loading",
+    "provenance"
+  ],
+  "title": "Isotherm",
+  "type": "object"
+}

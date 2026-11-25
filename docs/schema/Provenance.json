@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "Extraction": {
+      "enum": [
+        "tabular_text",
+        "digitized_figure",
+        "abstract_statement",
+        "database_record",
+        "computed"
+      ],
+      "title": "Extraction",
+      "type": "string"
+    },
+    "ProvenanceKind": {
+      "enum": [
+        "experimental_observation",
+        "published_computation",
+        "computed_here",
+        "model_prediction",
+        "derived"
+      ],
+      "title": "ProvenanceKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Origin of a record (DATA_SCHEMA, Provenance).",
+  "properties": {
+    "created": {
+      "format": "date-time",
+      "title": "Created",
+      "type": "string"
+    },
+    "extraction": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Extraction"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "identifier": {
+      "title": "Identifier",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/ProvenanceKind"
+    },
+    "package_version": {
+      "title": "Package Version",
+      "type": "string"
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seed"
+    },
+    "settings_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Settings Hash"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "source_id",
+    "identifier"
+  ],
+  "title": "Provenance",
+  "type": "object"
+}

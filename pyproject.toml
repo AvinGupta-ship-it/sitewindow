@@ -58,6 +58,7 @@ sitewindow = "sitewindow.workflows.cli:app"
 [project.entry-points."sitewindow.calculators"]
 tblite = "sitewindow.atomistic.calculators.tblite_adapter:TBLiteCalculator"
 mace = "sitewindow.atomistic.calculators.mace_adapter:MACECalculator"
+gpaw = "sitewindow.atomistic.calculators.gpaw_adapter:GPAWCalculator"
 
 [tool.setuptools.packages.find]
 where = ["src"]

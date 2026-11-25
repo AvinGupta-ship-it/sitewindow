@@ -1,0 +1,272 @@
+{
+  "$defs": {
+    "Channel": {
+      "enum": [
+        "molecular",
+        "atomic"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "Distribution": {
+      "enum": [
+        "normal",
+        "lognormal",
+        "uniform",
+        "posterior_samples"
+      ],
+      "title": "Distribution",
+      "type": "string"
+    },
+    "SiteClassName": {
+      "enum": [
+        "basal",
+        "monovacancy",
+        "divacancy_585",
+        "divacancy_555777",
+        "stone_wales",
+        "edge_zigzag",
+        "edge_armchair",
+        "cnt_armchair",
+        "cnt_zigzag",
+        "epoxide",
+        "hydroxyl",
+        "carbonyl_pair",
+        "carboxyl",
+        "mixed_vacancy_cnt",
+        "mixed_sw_cnt",
+        "pore_slit",
+        "cnt_interior",
+        "cnt_interstitial",
+        "cnt_groove"
+      ],
+      "title": "SiteClassName",
+      "type": "string"
+    },
+    "SiteDescriptors": {
+      "additionalProperties": false,
+      "description": "Local descriptors of a site carbon (DATA_SCHEMA, SiteSpec.descriptors).",
+      "properties": {
+        "coordination": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coordination"
+        },
+        "curvature_inv_nm": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Curvature Inv Nm"
+        },
+        "distance_to_defect_nm": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Distance To Defect Nm"
+        },
+        "n_neighbor_H": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "N Neighbor H"
+        },
+        "pyramidalization_deg": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pyramidalization Deg"
+        }
+      },
+      "title": "SiteDescriptors",
+      "type": "object"
+    },
+    "SiteSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "carbon_indices": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Carbon Indices",
+          "type": "array"
+        },
+        "descriptors": {
+          "$ref": "#/$defs/SiteDescriptors"
+        },
+        "max_occupancy": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Max Occupancy",
+          "type": "integer"
+        },
+        "multiplicity": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Multiplicity",
+          "type": "integer"
+        },
+        "site_id": {
+          "title": "Site Id",
+          "type": "string"
+        },
+        "sublattice": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sublattice"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "site_id",
+        "carbon_indices"
+      ],
+      "title": "SiteSpec",
+      "type": "object"
+    },
+    "Sublattice": {
+      "enum": [
+        "A",
+        "B"
+      ],
+      "title": "Sublattice",
+      "type": "string"
+    },
+    "UncertainScalar": {
+      "additionalProperties": false,
+      "description": "A scalar with uncertainty (DATA_SCHEMA, Uncertainty).",
+      "properties": {
+        "components": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Components"
+        },
+        "distribution": {
+          "$ref": "#/$defs/Distribution",
+          "default": "normal"
+        },
+        "samples_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Samples Ref"
+        },
+        "sigma": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Sigma",
+          "type": "number"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "UncertainScalar",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "amorphization_x_max": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UncertainScalar"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "channel": {
+      "$ref": "#/$defs/Channel"
+    },
+    "delta_mass_per_defect_amu": {
+      "title": "Delta Mass Per Defect Amu",
+      "type": "number"
+    },
+    "name": {
+      "$ref": "#/$defs/SiteClassName"
+    },
+    "recipe": {
+      "additionalProperties": true,
+      "title": "Recipe",
+      "type": "object"
+    },
+    "sites": {
+      "items": {
+        "$ref": "#/$defs/SiteSpec"
+      },
+      "title": "Sites",
+      "type": "array"
+    }
+  },
+  "required": [
+    "name",
+    "channel",
+    "recipe",
+    "delta_mass_per_defect_amu",
+    "sites"
+  ],
+  "title": "SiteClass",
+  "type": "object"
+}

@@ -16,7 +16,7 @@ dependencies:
   - pymc>=5.10
   - arviz
   - salib
+  - tblite-python>=0.4
   - pip
   - pip:
-      - tblite>=0.4
       - -e .

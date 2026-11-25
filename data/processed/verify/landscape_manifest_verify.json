@@ -1,0 +1,43 @@
+{
+  "tier": "verify",
+  "package_version": "0.1.0",
+  "calculator": {
+    "name": "tblite",
+    "tier": "T2",
+    "settings": {
+      "method": "GFN2-xTB",
+      "accuracy": 1.0,
+      "electronic_temperature": 300.0,
+      "max_iterations": 300,
+      "spin_polarized": true
+    },
+    "settings_hash": "1ad38283192827fb"
+  },
+  "classes": [
+    "basal",
+    "monovacancy",
+    "stone_wales",
+    "cnt_armchair"
+  ],
+  "relaxation": {
+    "fmax_eV_A": 0.05,
+    "max_steps": 400,
+    "spin_states": [
+      0
+    ]
+  },
+  "references_eV": {
+    "E_H2": -26.740252835707285,
+    "E_H": -11.681719145258556,
+    "H2_bond_A": 0.776685609245412
+  },
+  "n_records": 58,
+  "n_configurations": 17,
+  "n_excluded": 0,
+  "wall_s": 230.0854440840194,
+  "files": {
+    "landscape_raw_verify.parquet": "06816b76850a443b0cd5858d1a63d9e80c76b1dc6a4bacf1dcdd0979ebdd027a",
+    "landscape_configurations_verify.parquet": "315743b0e054321ffdc0869a84ef6c535499fb9dbdc54d2c7356a98e880a8f9c",
+    "landscape_raw_verify_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  }
+}
