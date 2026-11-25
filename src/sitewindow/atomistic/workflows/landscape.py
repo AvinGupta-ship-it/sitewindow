@@ -29,6 +29,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from ase import Atoms
+from ase.calculators.calculator import CalculationFailed
 from ase.io import write as ase_write
 
 from sitewindow import __version__
@@ -205,7 +206,19 @@ def build_landscape(
         configs = defn.configurations(spec.tier, spec.recipes.get(cls))
         formation_done: set[str] = set()
         for cfg in configs:
-            sub, sub_res = relaxed_substrate(cfg.substrate_name, cfg.substrate)
+            try:
+                sub, sub_res = relaxed_substrate(cfg.substrate_name, cfg.substrate)
+            except (CalculationFailed, RuntimeError) as exc:
+                exclusions.append(
+                    {
+                        "key": cfg.key,
+                        "reason": f"substrate calculation failed: {str(exc).splitlines()[0]}",
+                        "max_force_eV_A": None,
+                        "n_steps": None,
+                    }
+                )
+                log.warning("%s excluded: %s", cfg.key, str(exc).splitlines()[0])
+                continue
             if not sub_res.converged:
                 exclusions.append(
                     {
@@ -245,7 +258,19 @@ def build_landscape(
                 )
                 formation_done.add(cfg.substrate_name)
             start = add_hydrogens(sub, cfg.placements)
-            atoms, res, n_unp = _relax_spin_states(start, calc, cache_dir, spec)
+            try:
+                atoms, res, n_unp = _relax_spin_states(start, calc, cache_dir, spec)
+            except (CalculationFailed, RuntimeError) as exc:
+                exclusions.append(
+                    {
+                        "key": cfg.key,
+                        "reason": f"calculation failed: {str(exc).splitlines()[0]}",
+                        "max_force_eV_A": None,
+                        "n_steps": None,
+                    }
+                )
+                log.warning("%s excluded: %s", cfg.key, str(exc).splitlines()[0])
+                continue
             atoms.info.update(cfg.substrate.info)
             chash = _config_hash(start, settings_hash, n_unp)
             results[cfg.key] = ConfigurationResult(cfg, chash, res.energy_eV, res, atoms, n_unp)

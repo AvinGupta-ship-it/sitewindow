@@ -8,11 +8,15 @@ from __future__ import annotations
 
 from importlib.resources import files
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import yaml
 
 from sitewindow.constants import EV_TO_KJ_PER_MOL
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def _registry() -> dict:
@@ -109,26 +113,83 @@ def run_B10(reg: dict) -> dict:
     }
 
 
-def run_B1_T2(reg: dict) -> dict:
-    """Tier-2 (GFN2-xTB) basal monomer versus B1; reported, not expected to pass without calibration."""
+def evaluate_B1_T2(frame: pd.DataFrame, reg: dict, settings: dict | None = None) -> dict:
+    """Tier-2 basal monomer of a landscape table against B1; reported, not expected to pass
+    without calibration. The summary names the cell and the electronic temperature because the
+    Gamma-only sampling of tblite makes the value depend on both."""
+    ref = reg["B1"]["reference"]
+    rows = frame[
+        (frame["site_class"] == "basal")
+        & (frame["quantity"] == "E_bind_H_atom")
+        & (frame["n_H"] == 1)
+    ]
+    if rows.empty:
+        return {
+            "id": "B1",
+            "passed": None,
+            "predicted": {},
+            "reference": {"DMC_eV": ref["DMC"], "PBE_eV": ref["PBE"]},
+            "metric": "absolute difference (tier T2, uncalibrated)",
+            "summary": "no basal monomer in the Tier-2 landscape table",
+        }
+    r = rows.iloc[0]
+    e = float(r["value_eV"])
+    t_el = (settings or {}).get("electronic_temperature")
+    cell = str(r["supercell"]).replace("graphene_", "")
+    return {
+        "id": "B1",
+        "passed": None,
+        "predicted": {
+            "E_bind_H_atom_T2_eV": e,
+            "supercell": str(r["supercell"]),
+            "electronic_temperature_K": t_el,
+        },
+        "reference": {"DMC_eV": ref["DMC"], "PBE_eV": ref["PBE"]},
+        "metric": "absolute difference (tier T2, uncalibrated)",
+        "summary": (
+            f"T2 basal monomer {e:.3f} eV ({cell}"
+            + (f", {t_el:.0f} K smearing" if t_el else "")
+            + f") vs DMC {ref['DMC']} / PBE {ref['PBE']} eV: offsets {e - ref['DMC']:+.2f} / "
+            f"{e - ref['PBE']:+.2f} eV (input to C3 calibration)"
+        ),
+    }
+
+
+def run_B1_T2(reg: dict, tier: str = "verify") -> dict:
+    """Tier-2 (GFN2-xTB) basal monomer versus B1 from the landscape table of the full tier, else
+    of the requested tier; the engine check of ``verify-atomistic`` is the last fallback."""
+    import json
+
+    import pandas as pd
+
+    for t in ("full", tier):
+        table = Path(f"data/processed/{t}/landscape_raw_{t}.parquet")
+        if table.exists():
+            manifest = Path(f"data/processed/{t}/landscape_manifest_{t}.json")
+            settings = None
+            if manifest.exists():
+                settings = json.loads(manifest.read_text()).get("calculator", {}).get("settings")
+            return evaluate_B1_T2(pd.read_parquet(table), reg, settings)
     p = Path("data/processed/verify/atomistic_verify_T2.json")
     if not p.exists():
         return {
             "id": "B1",
             "passed": None,
-            "summary": "atomistic verification results not present (run verify-atomistic)",
+            "summary": "Tier-2 landscape not present (run landscape build)",
         }
-    import json
-
     d = json.loads(p.read_text())
     e = d["basal_monomer"]["E_bind_H_atom"]
+    ref = reg["B1"]["reference"]
     return {
         "id": "B1",
         "passed": None,
         "predicted": {"E_bind_H_atom_T2_eV": e},
-        "reference": {"DMC_eV": -0.691, "PBE_eV": -0.821},
+        "reference": {"DMC_eV": ref["DMC"], "PBE_eV": ref["PBE"]},
         "metric": "absolute difference (tier T2, uncalibrated)",
-        "summary": f"T2 basal monomer {e:.3f} eV vs DMC -0.691 / PBE -0.821 eV: tier offset {e + 0.691:+.2f} eV (input to C3 calibration)",
+        "summary": (
+            f"T2 basal monomer {e:.3f} eV (engine check, 4x4 cell, 300 K) vs DMC {ref['DMC']} / "
+            f"PBE {ref['PBE']} eV"
+        ),
     }
 
 
@@ -272,6 +333,67 @@ def run_B1_T1_convergence(reg: dict, tier: str = "verify") -> dict:
     }
 
 
+def evaluate_B2(frame: pd.DataFrame, reg: dict) -> dict:
+    """Benchmark B2 applied to a barrier table: the basal monomer sticking barrier per tier and
+    method against 0.2 eV. The pass flag is set from the Tier-1 value only; Tier-2 and Tier-3
+    values are reported as inputs to the calibration."""
+    ref = float(reg["B2"]["reference"]["value"])
+    thr = float(reg["B2"]["thresholds"]["T1_abs_eV"])
+    rows = frame[
+        (frame["quantity"] == "E_barrier_stick")
+        & (frame["site_class"] == "basal")
+        & (frame["reference_state"] == "H_atom")
+    ]
+    if rows.empty:
+        return {
+            "id": "B2",
+            "passed": None,
+            "predicted": {},
+            "reference": {"value_eV": ref, "threshold_T1_eV": thr},
+            "metric": "absolute difference of the sticking barrier (tier T1)",
+            "summary": "no basal monomer sticking barrier in the barrier table",
+        }
+    predicted: dict[str, float] = {}
+    for _, r in rows.iterrows():
+        method = str(r["identifier"]).split("@")[-1] if "@" in str(r["identifier"]) else "unknown"
+        predicted[f"{r['tier']}:{method}:{r['supercell']}"] = float(r["value_eV"])
+    t1 = {k: v for k, v in predicted.items() if k.startswith("T1:")}
+    passed = None
+    if t1:
+        passed = bool(all(abs(v - ref) < thr for v in t1.values()))
+    parts = "; ".join(f"{k} {v:+.3f}" for k, v in predicted.items())
+    return {
+        "id": "B2",
+        "passed": passed,
+        "predicted": predicted,
+        "reference": {"value_eV": ref, "threshold_T1_eV": thr},
+        "checks": {k: bool(abs(v - ref) < thr) for k, v in predicted.items()},
+        "metric": "absolute difference of the sticking barrier (tier T1)",
+        "summary": f"H sticking barrier on the basal plane, eV from H atom + substrate: {parts} vs {ref} eV"
+        + ("" if t1 else " (no Tier-1 value; reported as calibration input)"),
+    }
+
+
+def run_B2(reg: dict, tier: str = "verify") -> dict:
+    """Benchmark B2 from the barrier tables of the full and the requested tier."""
+    import pandas as pd
+
+    frames = []
+    for p in (
+        Path("data/processed/full/barriers_full.parquet"),
+        Path(f"data/processed/{tier}/barriers_{tier}.parquet"),
+    ):
+        if p.exists():
+            frames.append(pd.read_parquet(p))
+    if not frames:
+        return {
+            "id": "B2",
+            "passed": None,
+            "summary": "barrier table not present (run landscape barriers)",
+        }
+    return evaluate_B2(pd.concat(frames, ignore_index=True), reg)
+
+
 def run_B3_pair_potential(reg: dict) -> dict:
     """Classical pair-potential minimum over coronene versus the CCSD(T)/CBS value (B3).
 
@@ -346,9 +468,10 @@ def run_all(tier: str = "verify") -> dict:
         run_B8(reg),
         run_B9_endpoints(reg),
         run_B10(reg),
-        run_B1_T2(reg),
+        run_B1_T2(reg, tier),
         run_B1_T1(reg, tier),
         run_B1_T1_convergence(reg, tier),
+        run_B2(reg, tier),
         run_B3_pair_potential(reg),
         run_B4_computed(reg),
     ]
@@ -361,9 +484,12 @@ __all__ = [
     "run_B9_endpoints",
     "run_B10",
     "run_B1_T2",
+    "evaluate_B1_T2",
     "run_B1_T1",
     "run_B1_T1_convergence",
     "evaluate_convergence",
+    "run_B2",
+    "evaluate_B2",
     "run_B3_pair_potential",
     "run_B4_computed",
 ]

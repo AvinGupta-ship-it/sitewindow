@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from sitewindow import __version__
 from sitewindow.errors import SchemaError
 
-SCHEMA_VERSION = "0.1.0"
+SCHEMA_VERSION = "0.2.0"
 
 
 class _Model(BaseModel):
@@ -198,6 +198,7 @@ class ReferenceState(StrEnum):
     H_atom = "H_atom"
     H2_molecule = "H2_molecule"
     pristine_cell = "pristine_cell"
+    adsorbed_state = "adsorbed_state"
 
 
 COMPUTED_TIERS = frozenset({Tier.T1, Tier.T2, Tier.T3, Tier.potential})

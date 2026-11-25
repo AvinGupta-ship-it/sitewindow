@@ -56,14 +56,16 @@
       "id": "B1",
       "passed": null,
       "predicted": {
-        "E_bind_H_atom_T2_eV": -0.21077381657228322
+        "E_bind_H_atom_T2_eV": -0.8178710752151357,
+        "supercell": "graphene_9x9",
+        "electronic_temperature_K": 3000.0
       },
       "reference": {
         "DMC_eV": -0.691,
         "PBE_eV": -0.821
       },
       "metric": "absolute difference (tier T2, uncalibrated)",
-      "summary": "T2 basal monomer -0.211 eV vs DMC -0.691 / PBE -0.821 eV: tier offset +0.48 eV (input to C3 calibration)"
+      "summary": "T2 basal monomer -0.818 eV (9x9, 3000 K smearing) vs DMC -0.691 / PBE -0.821 eV: offsets -0.13 / +0.00 eV (input to C3 calibration)"
     },
     {
       "id": "B1",
@@ -119,6 +121,11 @@
       },
       "metric": "absolute change of the PBE binding energy between the base and each variant (tier T1)",
       "summary": "T1 convergence of the basal monomer PBE energy from the base (5x5, 500 eV, k4x4x1, 15 A): 6x6 cell, k3x3x1 -0.0199; k6x6x1 -0.0136; 600 eV -0.0023; 20 A vacuum -0.0011 eV; every change below 0.02 eV in magnitude"
+    },
+    {
+      "id": "B2",
+      "passed": null,
+      "summary": "barrier table not present (run landscape barriers)"
     },
     {
       "id": "B3",

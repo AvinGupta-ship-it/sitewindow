@@ -7,11 +7,11 @@
     "settings": {
       "method": "GFN2-xTB",
       "accuracy": 1.0,
-      "electronic_temperature": 300.0,
+      "electronic_temperature": 3000.0,
       "max_iterations": 300,
       "spin_polarized": true
     },
-    "settings_hash": "1ad38283192827fb"
+    "settings_hash": "1db062cf2e92d31d"
   },
   "classes": [
     "basal",
@@ -27,17 +27,17 @@
     ]
   },
   "references_eV": {
-    "E_H2": -26.740252835707285,
-    "E_H": -11.681719145258556,
-    "H2_bond_A": 0.776685609245412
+    "E_H2": -26.740252835707306,
+    "E_H": -11.681719145327678,
+    "H2_bond_A": 0.7766856000000004
   },
   "n_records": 58,
   "n_configurations": 17,
   "n_excluded": 0,
-  "wall_s": 230.0854440840194,
+  "wall_s": 651.9490957499947,
   "files": {
-    "landscape_raw_verify.parquet": "06816b76850a443b0cd5858d1a63d9e80c76b1dc6a4bacf1dcdd0979ebdd027a",
-    "landscape_configurations_verify.parquet": "315743b0e054321ffdc0869a84ef6c535499fb9dbdc54d2c7356a98e880a8f9c",
+    "landscape_raw_verify.parquet": "698ce620c98cbaceebf28560f37d0f3888fd46c19de01ef8e6b66e0b3b1dcf34",
+    "landscape_configurations_verify.parquet": "5ce1e93b606c9a1abe748675a7c4b5a11d343a1ad45d22a656377b248854c860",
     "landscape_raw_verify_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
   }
 }

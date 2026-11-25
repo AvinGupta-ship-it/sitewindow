@@ -3,9 +3,14 @@ tier: full
 atomistic:
   tier1: { engine: gpaw, functional: PBE, dispersion: D3BJ, cutoff_eV: 500, kmesh: [4, 4, 1], vacuum_A: 15, fmax_eV_A: 0.02, anchors: 60 }
   tier2: { engine: tblite, method: GFN2-xTB, fmax_eV_A: 0.05 }
+  # Gamma-only sampling in tblite: Fermi smearing at 3000 K and 12x12 sheets (manual Section 10, Tier 2).
+  calculator_settings: { electronic_temperature: 3000.0 }
+  supercell: 12
   tier3: { engine: mace, model: MACE-MP-0-medium, fmax_eV_A: 0.05, neb_images: 7 }
   classes: [basal, monovacancy, divacancy_585, divacancy_555777, stone_wales, edge_zigzag, edge_armchair, cnt_armchair, cnt_zigzag, epoxide, hydroxyl, carbonyl_pair, carboxyl, mixed_vacancy_cnt, mixed_sw_cnt]
   cnt_diameters_nm: [0.6, 0.8, 1.0, 1.2, 1.4, 1.7, 2.0, 2.5]
+  # Tube lengths: 6 unit cells for armchair and mixed tube classes, 4 for zigzag (manual Section 10, Tier 2).
+  cnt: { length_armchair: 6, length_zigzag: 4 }
 theory:
   windows: [BM2006, W1, W2, W3, W4_358, W4_423, W4_473, W4_573]
   entropy_models: [constant, harmonic_oscillator, two_d_gas]

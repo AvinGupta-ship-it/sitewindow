@@ -40,7 +40,8 @@
         "half_H2",
         "H_atom",
         "H2_molecule",
-        "pristine_cell"
+        "pristine_cell",
+        "adsorbed_state"
       ],
       "title": "ReferenceState",
       "type": "string"

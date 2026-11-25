@@ -3,6 +3,8 @@
 from sitewindow.validation.report import render_markdown
 from sitewindow.validation.runners import (
     _registry,
+    evaluate_B1_T2,
+    evaluate_B2,
     evaluate_convergence,
     run_B3_pair_potential,
     run_B8,
@@ -80,3 +82,69 @@ def test_convergence_criterion_passes_only_when_every_variant_is_within_threshol
     assert bad["passed"] is False and bad["checks"] == {"cell_plus_one": False, "cutoff_600": True}
     reduced = evaluate_convergence(_series({"cutoff_600": 0.001}, supercell=4), thr)
     assert reduced["passed"] is None and "not a pass test" in reduced["summary"]
+
+
+def test_b2_evaluation_reports_tier2_and_passes_only_on_tier1():
+    import pandas as pd
+
+    reg = _registry()
+    cols = [
+        "quantity",
+        "site_class",
+        "reference_state",
+        "identifier",
+        "tier",
+        "supercell",
+        "value_eV",
+    ]
+    t2 = pd.DataFrame(
+        [
+            [
+                "E_barrier_stick",
+                "basal",
+                "H_atom",
+                "basal/graphene_4x4/monomer_stick@constrained_scan",
+                "T2",
+                "graphene_4x4",
+                0.31,
+            ]
+        ],
+        columns=cols,
+    )
+    r = evaluate_B2(t2, reg)
+    assert r["passed"] is None and "T2:constrained_scan:graphene_4x4" in r["predicted"]
+    t1 = pd.DataFrame(
+        [
+            [
+                "E_barrier_stick",
+                "basal",
+                "H_atom",
+                "basal/graphene_5x5/monomer_stick@constrained_scan",
+                "T1",
+                "graphene_5x5",
+                0.23,
+            ]
+        ],
+        columns=cols,
+    )
+    assert evaluate_B2(pd.concat([t2, t1]), reg)["passed"] is True
+    t1.loc[0, "value_eV"] = 0.40
+    assert evaluate_B2(pd.concat([t2, t1]), reg)["passed"] is False
+    assert evaluate_B2(t2.iloc[:0], reg)["passed"] is None
+
+
+def test_b1_tier2_evaluation_reports_cell_and_smearing():
+    import pandas as pd
+
+    reg = _registry()
+    frame = pd.DataFrame(
+        [
+            ["basal", "E_bind_H_atom", 1, "graphene_9x9", -0.818],
+            ["basal", "E_bind_H_atom", 2, "graphene_9x9", -1.1],
+        ],
+        columns=["site_class", "quantity", "n_H", "supercell", "value_eV"],
+    )
+    r = evaluate_B1_T2(frame, reg, {"electronic_temperature": 3000.0})
+    assert r["passed"] is None and r["predicted"]["E_bind_H_atom_T2_eV"] == -0.818
+    assert "9x9, 3000 K smearing" in r["summary"] and "-0.13" in r["summary"]
+    assert evaluate_B1_T2(frame.iloc[:0], reg)["passed"] is None

@@ -45,12 +45,29 @@ Keep a Changelog, and the project adheres to Semantic Versioning.
   sets, B3-calibrated set) with Feynman-Hibbs correction; sheet, pore, tube and bundle site
   energies (`sitewindow landscape physisorption`); parameter registry
   `data/registry/physisorption_potentials.yaml`.
-- Validation runners for B1 (Tier-1 anchor and Tier-1 convergence series), B3 (pair potential on
-  coronene) and B4 (computed basal and pore site energies).
+- Barrier workflow (`sitewindow landscape barriers`): constrained relaxation along the reaction
+  coordinate on a 0.1 A grid refined to 0.02 A, and climbing-image NEB with seven images and
+  resumable bands, for monomer sticking, ortho- and para-dimer recombination, dangling-bond pair
+  recombination at the monovacancy and ortho-dimer recombination on armchair nanotubes at two
+  diameters; tables `barriers_<tier>.parquet` with reaction profiles and transition structures.
+  `relax` accepts ASE constraints. Recombination bands start from the scan geometries, a failed
+  self-consistent field is retried with a damped mixer, and calculations that still fail are
+  excluded with their reason instead of aborting the run. The schema gains the reference state
+  `adsorbed_state` for release barriers (schema version 0.2.0).
+- Validation runners for B1 (Tier-1 anchor and Tier-1 convergence series), B2 (sticking barrier
+  per tier and method), B3 (pair potential on coronene) and B4 (computed basal and pore site
+  energies).
 - `sitewindow validate --markdown` renders the human-readable validation summary from the
   machine-readable report (`validation/report.py`).
 
 ### Changed
+- Tier-2 protocol: Fermi smearing at an electronic temperature of 3000 K and 12x12 (full) or
+  9x9 (verify) graphene cells for every sheet class, after the convergence series showed that
+  the Gamma-only sampling of tblite makes chemisorption energies oscillate by up to 1 eV between
+  cell sizes that fold the Dirac point onto Gamma and those that do not. Calculator settings are
+  read from the tier configuration (`calculator_settings`); armchair nanotubes use six unit
+  cells and zigzag tubes four. The Tier-2 B1 report reads the landscape table and names the cell
+  and the smearing; the verify-tier landscape is recomputed under the revised protocol.
 - The benchmark registry carries the B1 convergence bound (0.02 eV) transcribed from the
   acceptance criteria, so the convergence runner reads its threshold from the registry.
 - Verification-tier configuration lists the manual's reduced class set (basal, monovacancy,

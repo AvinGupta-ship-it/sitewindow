@@ -31,7 +31,15 @@ def _tier_config(tier: str, config: Path | None) -> dict:
     import yaml
 
     p = config or Path("configs") / "tiers" / f"{tier}.yaml"
-    return yaml.safe_load(p.read_text()) if p.exists() else {}
+    return (yaml.safe_load(p.read_text()) or {}) if p.exists() else {}
+
+
+def _calculator_settings(cfg: dict, calculator: str) -> dict:
+    """Calculator keyword settings from the tier configuration: ``calculator_settings`` applies to
+    every engine, ``calculator_settings_<name>`` to one engine."""
+    out = dict(cfg.get("calculator_settings", {}) or {})
+    out.update(cfg.get(f"calculator_settings_{calculator}", {}) or {})
+    return out
 
 
 def _is_master() -> bool:
@@ -271,11 +279,23 @@ def landscape_build(
         for name, d in catalogue().items():
             if "supercell" in d.recipe(tier if tier in d.recipes else "full"):
                 recipes.setdefault(name, {})["supercell"] = int(cfg["supercell"])
-    if "cnt" in cfg:
+    cnt_cfg = dict(cfg.get("cnt", {}))
+    if "cnt_diameters_nm" in cfg:
+        cnt_cfg.setdefault("diameters_nm", list(cfg["cnt_diameters_nm"]))
+    if cnt_cfg:
         for name in ("cnt_armchair", "cnt_zigzag"):
             recipes.setdefault(name, {}).update(
-                {k: v for k, v in cfg["cnt"].items() if k in ("diameters_nm", "length")}
+                {k: v for k, v in cnt_cfg.items() if k in ("diameters_nm", "length")}
             )
+        lengths = {
+            "cnt_armchair": cnt_cfg.get("length_armchair"),
+            "cnt_zigzag": cnt_cfg.get("length_zigzag"),
+            "mixed_vacancy_cnt": cnt_cfg.get("length_armchair", cnt_cfg.get("length")),
+            "mixed_sw_cnt": cnt_cfg.get("length_armchair", cnt_cfg.get("length")),
+        }
+        for name, length in lengths.items():
+            if length is not None:
+                recipes.setdefault(name, {})["length"] = int(length)
     spec = LandscapeSpec(
         tier=tier,
         classes=cls_list,
@@ -283,7 +303,7 @@ def landscape_build(
         fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
         spin_states=(0, 2) if spin_search else (0,),
     )
-    calc = make_calculator(calculator)
+    calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
     cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
     out = out or _data_root() / "processed" / tier
     result = build_landscape(spec, calc, cache, out)
@@ -296,6 +316,80 @@ def landscape_build(
             },
             indent=2,
         )
+    )
+
+
+@landscape_app.command("barriers")
+def landscape_barriers(
+    tier: str = typer.Option("verify", help="verify or full (configs/tiers/<tier>.yaml)"),
+    calculator: str = typer.Option("tblite", help="tblite, gpaw, mace or a registered plugin"),
+    pathways: str = typer.Option(
+        None, help="Comma-separated pathway names or keys (default: all designated pathways)"
+    ),
+    method: str = typer.Option(
+        "constrained_scan", help="Comma-separated: constrained_scan, ci_neb"
+    ),
+    config: Path = typer.Option(None, help="Tier configuration file"),
+    cache: Path = typer.Option(None, help="Cache directory (default: landscape cache of the tier)"),
+    out: Path = typer.Option(
+        None, help="Output directory (default: $SITEWINDOW_DATA/processed/<tier>)"
+    ),
+    fmax: float = typer.Option(None, help="Force tolerance (eV/A); default from the tier config"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Sticking and recombination barriers along the designated pathways (C2; benchmark B2)."""
+    from sitewindow.atomistic.calculators import make_calculator
+    from sitewindow.atomistic.workflows.barriers import BarrierSpec, build_barriers
+    from sitewindow.landscape import catalogue
+
+    _configure_logging(verbose)
+    cfg = _tier_config(tier, config).get("atomistic", {})
+    recipes: dict[str, dict] = {}
+    if "supercell" in cfg:
+        for name, d in catalogue().items():
+            if "supercell" in d.recipe(tier if tier in d.recipes else "full"):
+                recipes.setdefault(name, {})["supercell"] = int(cfg["supercell"])
+    cnt_cfg = dict(cfg.get("cnt", {}))
+    if "cnt_diameters_nm" in cfg:
+        cnt_cfg.setdefault("diameters_nm", list(cfg["cnt_diameters_nm"]))
+    if cnt_cfg:
+        recipes.setdefault("cnt_armchair", {}).update(
+            {k: v for k, v in cnt_cfg.items() if k in ("diameters_nm", "length")}
+        )
+        if cnt_cfg.get("length_armchair") is not None:
+            recipes["cnt_armchair"]["length"] = int(cnt_cfg["length_armchair"])
+    spec = BarrierSpec(
+        tier=tier,
+        pathways=[x.strip() for x in pathways.split(",")] if pathways else None,
+        recipes=recipes,
+        methods=tuple(m.strip() for m in method.split(",")),
+        fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
+    )
+    calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
+    cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
+    out = out or _data_root() / "processed" / tier
+    result = build_barriers(spec, calc, cache, out)
+    if not _is_master():
+        return
+    rows = []
+    for prof in result["profiles"]:
+        for m, r in prof["methods"].items():
+            rows.append(
+                {
+                    "pathway": prof["pathway"],
+                    "method": m,
+                    "barrier_eV": round(r["barrier_eV"], 3),
+                    "reference": prof["reference_state"],
+                    "converged": r["converged"],
+                }
+            )
+    if rows:
+        import pandas as pd
+
+        typer.echo(pd.DataFrame(rows).to_string(index=False))
+    m = result["manifest"]
+    typer.echo(
+        json.dumps({k: m.get(k) for k in ("tier", "n_records", "n_excluded", "wall_s")}, indent=2)
     )
 
 

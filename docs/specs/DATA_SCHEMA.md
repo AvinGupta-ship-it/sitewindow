@@ -45,7 +45,7 @@ All models are implemented as pydantic v2 classes in `sitewindow.schema` and exp
 | `engine` | str | — |
 | `quantity` | enum | `E_bind_H_half_H2`, `E_bind_H_atom`, `E_bind_H2`, `E_sequential`, `E_barrier_stick`, `E_barrier_recomb`, `E_formation_defect`, `E_migration` |
 | `value` | UncertainScalar | eV |
-| `reference_state` | enum | `half_H2`, `H_atom`, `H2_molecule`, `pristine_cell` |
+| `reference_state` | enum | `half_H2`, `H_atom`, `H2_molecule`, `pristine_cell`, `adsorbed_state` (release barriers measured from the relaxed adsorbed initial state of the pathway) |
 | `temperature_K` | float or null | K (for Feynman–Hibbs-corrected potentials) |
 | `converged` | bool | — |
 | `provenance` | Provenance | — |
