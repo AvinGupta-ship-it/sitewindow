@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "SiteWindow: site-energy landscapes and deliverable-capacity limits for hydrogen storage in defect-engineered sp2 carbon"
+version: 0.1.0
+license: MIT
+authors:
+  - family-names: Gupta
+    given-names: Avin
+    affiliation: "University of North Texas"
+keywords:
+  - hydrogen storage
+  - carbon nanomaterials
+  - graphene
+  - carbon nanotubes
+  - defect engineering
+  - adsorption
+  - chemisorption
+  - deliverable capacity
+  - electron irradiation
+  - uncertainty quantification
+abstract: >-
+  SiteWindow constructs, calibrates and evaluates the landscape of hydrogen binding sites in
+  defective, curved and oxygen-functionalized sp2 carbon against the thermodynamic, kinetic and
+  stoichiometric constraints of a storage cycle, including a window theory of deliverable
+  capacity with a variational bound, multi-fidelity atomistic workflows, electron knock-on and
+  defect-population models with Raman observables, forward thermal-desorption models, and
+  inference of adsorption-energy distributions from the public NIST/ARPA-E isotherm corpus.

@@ -1,0 +1,15 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "sitewindow",
+  "description": "Site-energy landscapes and deliverable-capacity limits for hydrogen storage in defect-engineered sp2 carbon.",
+  "version": "0.1.0",
+  "license": "https://spdx.org/licenses/MIT",
+  "programmingLanguage": "Python",
+  "runtimePlatform": "Python 3.11+",
+  "operatingSystem": ["Linux", "macOS"],
+  "author": [{"@type": "Person", "familyName": "Gupta", "givenName": "Avin", "affiliation": {"@type": "Organization", "name": "University of North Texas"}}],
+  "keywords": ["hydrogen storage", "carbon nanomaterials", "graphene", "carbon nanotubes", "defect engineering", "adsorption", "deliverable capacity"],
+  "softwareRequirements": ["numpy", "scipy", "pandas", "pyarrow", "pydantic", "pyyaml", "typer", "matplotlib", "ase"],
+  "developmentStatus": "active"
+}

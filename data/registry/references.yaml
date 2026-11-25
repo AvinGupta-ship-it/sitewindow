@@ -1,0 +1,161 @@
+references:
+- key: BhatiaMyers2006
+  citation: S. K. Bhatia, A. L. Myers, "Optimum conditions for adsorptive storage,"
+    Langmuir 22, 1688–1700 (2006)
+  doi: null
+  arxiv: null
+  verification: citing reference lists; author page
+- key: Dumi2022
+  citation: A. Dumi, S. Upadhyay, L. Bernasconi, H. Shin, A. Benali, K. D. Jordan,
+    J. Chem. Phys. 156, 144702 (2022)
+  doi: 10.1063/5.0085982
+  arxiv: '2202.00194'
+  verification: OSTI; arXiv
+- key: Casolo2009
+  citation: S. Casolo, O. M. Løvvik, R. Martinazzo, G. F. Tantardini, "Understanding
+    adsorption of hydrogen atoms on graphene," J. Chem. Phys. 130, 054704 (2009)
+  doi: 10.1063/1.3072333
+  arxiv: '0808.1312'
+  verification: publisher citation line in open copy; arXiv
+- key: ShaJackson2002
+  citation: X. Sha, B. Jackson, Surf. Sci. 496, 318 (2002)
+  doi: null
+  arxiv: null
+  verification: citing reference lists (multiple)
+- key: Zecho2002
+  citation: T. Zecho, A. Güttler, X. Sha, B. Jackson, J. Küppers, J. Chem. Phys. 117,
+    8486 (2002)
+  doi: null
+  arxiv: null
+  verification: citing reference lists (multiple)
+- key: Hornekaer2006
+  citation: L. Hornekær et al., Phys. Rev. Lett. 96, 156104 (2006)
+  doi: 10.1103/PhysRevLett.96.156104
+  arxiv: null
+  verification: APS landing page
+- key: Hornekaer2006b
+  citation: L. Hornekær et al., Phys. Rev. Lett. 97, 186102 (2006)
+  doi: null
+  arxiv: null
+  verification: citing reference lists
+- key: Boukhvalov2008
+  citation: D. W. Boukhvalov, M. I. Katsnelson, "Chemical functionalization of graphene
+    with defects," Nano Lett. 8, 4373 (2008)
+  doi: null
+  arxiv: '0807.3855'
+  verification: arXiv; citing reference list
+- key: Nikitin2005
+  citation: A. Nikitin et al., "Hydrogenation of single-walled carbon nanotubes,"
+    Phys. Rev. Lett. 95, 225507 (2005)
+  doi: null
+  arxiv: cond-mat/0510399
+  verification: arXiv; citing reference list
+- key: Nikitin2008
+  citation: A. Nikitin, X. Li, Z. Zhang, H. Ogasawara, H. Dai, A. Nilsson, "Hydrogen
+    storage in carbon nanotubes through the formation of stable C–H bonds," Nano Lett.
+    8, 162–167 (2008)
+  doi: 10.1021/nl072325k
+  arxiv: null
+  verification: citation index record
+- key: Kocman2015
+  citation: M. Kocman et al., Phys. Chem. Chem. Phys. 17, 6423 (2015)
+  doi: 10.1039/C4CP04354E
+  arxiv: null
+  verification: publisher
+- key: Meyer2012
+  citation: J. C. Meyer et al., Phys. Rev. Lett. 108, 196102 (2012)
+  doi: 10.1103/PhysRevLett.108.196102
+  arxiv: '1203.2372'
+  verification: APS; arXiv
+- key: Krasheninnikov2010
+  citation: A. V. Krasheninnikov, K. Nordlund, J. Appl. Phys. 107, 071301 (2010)
+  doi: 10.1063/1.3318261
+  arxiv: null
+  verification: journal page header in open copy
+- key: Jones2010
+  citation: J. D. Jones, K. K. Mahajan, W. H. Williams, P. A. Ecton, Y. Mo, J. M.
+    Perez, "Formation of graphane and partially hydrogenated graphene by electron
+    irradiation of adsorbates on graphene," Carbon 48, 2335–2340 (2010)
+  doi: 10.1016/j.carbon.2010.03.010
+  arxiv: null
+  verification: citation index record
+- key: Lucchese2010
+  citation: M. M. Lucchese et al., Carbon 48, 1592–1597 (2010)
+  doi: 10.1016/j.carbon.2009.12.057
+  arxiv: null
+  verification: citing reference list with DOI
+- key: Cancado2011
+  citation: L. G. Cançado et al., Nano Lett. 11, 3190–3196 (2011)
+  doi: 10.1021/nl201432g
+  arxiv: '1105.0175'
+  verification: arXiv; index record
+- key: Eckmann2012
+  citation: A. Eckmann et al., Nano Lett. 12, 3925–3930 (2012)
+  doi: 10.1021/nl300901a
+  arxiv: '1207.2058'
+  verification: index record; arXiv
+- key: Elias2009
+  citation: D. C. Elias et al., Science 323, 610 (2009)
+  doi: null
+  arxiv: null
+  verification: citing reference lists (multiple)
+- key: Tozzini2013
+  citation: V. Tozzini, V. Pellegrini, "Prospects for hydrogen storage in graphene,"
+    Phys. Chem. Chem. Phys. 15, 80 (2013)
+  doi: 10.1039/C2CP42538F
+  arxiv: '1207.5703'
+  verification: publisher; arXiv
+- key: Tozzini2010
+  citation: V. Tozzini, V. Pellegrini, Phys. Rev. B 81, 113404 (2010)
+  doi: null
+  arxiv: null
+  verification: reference list of Tozzini2013
+- key: Chahine1994
+  citation: R. Chahine, T. K. Bose, Int. J. Hydrogen Energy 19, 161 (1994)
+  doi: null
+  arxiv: null
+  verification: reference list of BhatiaMyers2006
+- key: Dillon1997
+  citation: A. C. Dillon et al., Nature 386, 377 (1997)
+  doi: null
+  arxiv: null
+  verification: citing reference lists
+- key: Knight2020
+  citation: E. W. Knight et al., "Determination of the enthalpy of adsorption of hydrogen
+    in activated carbon at room temperature," Int. J. Hydrogen Energy (2020)
+  doi: null
+  arxiv: null
+  verification: journal front matter in open copy
+- key: Langlois2025
+  citation: P. Langlois, C. Chilev, F. Lamari, "Reassessed ability of carbon-based
+    physisorbing materials to keep pace with evolving practical targets for hydrogen
+    storage," preprint (Dec 2025) with peer-reviewed version in C (MDPI)
+  doi: 10.20944/preprints202512.1196.v1
+  arxiv: null
+  verification: preprint server; index record
+- key: Sunnardianto2021
+  citation: G. K. Sunnardianto et al., Int. J. Hydrogen Energy 46, 5485–5494 (2021)
+  doi: null
+  arxiv: null
+  verification: journal header in open copy
+- key: NIST-ISODB
+  citation: NIST/ARPA-E Database of Novel and Emerging Adsorbent Materials
+  doi: 10.18434/T43882
+  arxiv: null
+  verification: data.gov record
+- key: Lehtinen2004
+  citation: P. O. Lehtinen et al., Phys. Rev. Lett. 93, 187202 (2004)
+  doi: null
+  arxiv: null
+  verification: reference list of Krasheninnikov & Banhart (Nat. Mater. 2007)
+- key: KrasheninnikovBanhart2007
+  citation: A. V. Krasheninnikov, F. Banhart, Nat. Mater. 6, 723 (2007)
+  doi: 10.1038/nmat1996
+  arxiv: null
+  verification: doi.org landing
+- key: Gavardi2009
+  citation: E. Gavardi, H. M. Cuppen, L. Hornekær, "A kinetic Monte Carlo study of
+    desorption of H₂ from graphite (0001)," Chem. Phys. Lett. (2009)
+  doi: null
+  arxiv: '0907.3361'
+  verification: arXiv

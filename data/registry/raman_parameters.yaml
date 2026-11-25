@@ -1,0 +1,15 @@
+# Raman defect-relation parameters (DERIVATIONS 8). Source IDs refer to docs/specs/SOURCE_REGISTRY.md.
+two_length_scale_model:
+  r_A_nm: 3.1
+  r_S_nm: 1.0
+  C_A_prefactor: 160.0        # C_A = C_A_prefactor * E_L^-4, E_L in eV
+  C_A_prefactor_sigma: 48.0
+  C_S: 0.0                    # Cancado et al. 2011 (point defects); 0.87 in Lucchese et al. 2010 at 2.41 eV
+  low_defect_factor: 4.3e3    # L_D^2 (nm^2) = factor * E_L^-4 / (I_D/I_G), valid L_D >= 10 nm
+  low_defect_factor_sigma: 1.3e3
+  source_id: S6
+ID_IDprime_by_defect_type:    # Eckmann et al. 2012
+  sp3: 13.0
+  vacancy: 7.0
+  boundary: 3.5
+  source_id: S6

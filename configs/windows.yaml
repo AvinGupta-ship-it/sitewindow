@@ -1,0 +1,10 @@
+# Operating windows (manual Section 3). Pressures in bar (absolute), temperatures in K, times in s.
+windows:
+  - { name: W1, T_c: 298.15, P_c: 100.0, T_r: 298.15, P_r: 5.0, tau_c: 300, tau_r: 1000, eta_c: 0.9, eta_r: 0.9, charging_mode: H2_gas }
+  - { name: W2, T_c: 233.15, P_c: 100.0, T_r: 358.15, P_r: 5.0, tau_c: 300, tau_r: 1000, eta_c: 0.9, eta_r: 0.9, charging_mode: H2_gas }
+  - { name: W3, T_c: 77.0,   P_c: 100.0, T_r: 77.0,   P_r: 5.0, tau_c: 300, tau_r: 1000, eta_c: 0.9, eta_r: 0.9, charging_mode: H2_gas }
+  - { name: W4_358, T_c: 300.0, P_c: 0.0, T_r: 358.15, P_r: 5.0, tau_r: 1000, eta_r: 0.9, charging_mode: atomic_H_source }
+  - { name: W4_423, T_c: 300.0, P_c: 0.0, T_r: 423.15, P_r: 5.0, tau_r: 1000, eta_r: 0.9, charging_mode: atomic_H_source }
+  - { name: W4_473, T_c: 300.0, P_c: 0.0, T_r: 473.15, P_r: 5.0, tau_r: 1000, eta_r: 0.9, charging_mode: atomic_H_source }
+  - { name: W4_573, T_c: 300.0, P_c: 0.0, T_r: 573.15, P_r: 5.0, tau_r: 1000, eta_r: 0.9, charging_mode: atomic_H_source }
+source: "U.S. DOE onboard light-duty targets (minimum delivery pressure 5 bar; delivery temperature -40/85 C; fill time 3-5 min) and common 100 bar charging"

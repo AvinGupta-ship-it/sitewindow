@@ -1,0 +1,130 @@
+# Published values used as anchors (Tier 0/1 references) or benchmark inputs.
+# Fields follow docs/specs/DATA_SCHEMA.md (PublishedValue). Extraction records how each value was
+# obtained: abstract_statement (public abstract), tabular_text (open-access full text), database_record.
+- id: PV-0001
+  doi: 10.1063/5.0085982
+  arxiv: "2202.00194"
+  system: graphene 5x5 supercell
+  site_class: basal
+  site_id: top_monomer
+  quantity: E_bind_H_atom
+  value: -0.691
+  uncertainty: 0.019
+  unit: eV
+  reference_state: H_atom
+  method: { level: DMC, code: QMCPACK, supercell: 5x5, notes: "diffusion Monte Carlo, trial wavefunction from DFT" }
+  extraction: tabular_text
+  source_id: S7
+- id: PV-0002
+  doi: 10.1063/5.0085982
+  arxiv: "2202.00194"
+  system: graphene 5x5 supercell
+  site_class: basal
+  site_id: top_monomer
+  quantity: E_bind_H_atom
+  value: -0.821
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, basis_or_cutoff: plane wave, supercell: 5x5 }
+  extraction: tabular_text
+  source_id: S7
+- id: PV-0003
+  doi: 10.1063/5.0085982
+  arxiv: "2202.00194"
+  system: graphene (literature compilation)
+  site_class: basal
+  site_id: top_monomer
+  quantity: E_bind_H_atom
+  value: [-0.98, -0.79]
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: "PBE/PW91 (various)", notes: "range of previously published values as summarized in the source" }
+  extraction: tabular_text
+  source_id: S7
+- id: PV-0004
+  doi: 10.1039/C4CP04354E
+  system: H2-coronene
+  site_class: basal
+  site_id: coronene_centre
+  quantity: E_bind_H2
+  value: -4.7
+  uncertainty: null
+  unit: kJ/mol
+  reference_state: H2_molecule
+  method: { level: "CCSD(T)/CBS", notes: "verified against DMC in the source for one complex" }
+  extraction: abstract_statement
+  source_id: S8
+- id: PV-0005
+  doi: 10.1039/C4CP04354E
+  system: H2 on boron/lithium-modified coronene
+  site_class: doped_reference
+  site_id: coroB2Li2
+  quantity: E_bind_H2
+  value: -14.3
+  uncertainty: null
+  unit: kJ/mol
+  reference_state: H2_molecule
+  method: { level: "CCSD(T)/CBS" }
+  extraction: abstract_statement
+  source_id: S8
+- id: PV-0006
+  doi: 10.1021/nl201432g
+  arxiv: "1105.0175"
+  system: Ar+-bombarded graphene
+  site_class: null
+  quantity: raman_model_parameters
+  value: { r_A_nm: 3.1, r_S_nm: 1.0, C_A_prefactor: 160, C_A_prefactor_sigma: 48, C_S: 0.0, low_defect_factor: 4.3e3, low_defect_factor_sigma: 1.3e3 }
+  unit: mixed
+  reference_state: null
+  method: { notes: "C_A = (160 +/- 48) E_L^-4 with E_L in eV; L_D^2 = (4.3 +/- 1.3)e3 E_L^-4 (I_D/I_G)^-1 for L_D >= 10 nm" }
+  extraction: tabular_text
+  source_id: S6
+- id: PV-0007
+  doi: 10.1103/PhysRevLett.108.196102
+  arxiv: "1203.2372"
+  system: single-layer graphene (12C, 13C)
+  site_class: null
+  quantity: knockon_model_parameters
+  value: { E_d_eV: 22, theta_D_K: 1287, static_onset_keV: 108, sigma_80keV_barn: 1.0e-4, sigma_100keV_barn: 0.2 }
+  unit: mixed
+  reference_state: null
+  method: { notes: "first-principles threshold used without adjustment; Debye model for mean-square velocity; cross section from ~1e-4 barn at 80 keV to ~0.2 barn at 100 keV (12C); individual values graphical only" }
+  extraction: tabular_text
+  source_id: S5
+- id: PV-0008
+  doi: null
+  journal_citation: "J. Chem. Phys. 117, 8486 (2002)"
+  system: graphite(0001)
+  site_class: basal
+  quantity: tpd_peak_temperatures_K
+  value: { H2: [445, 560], D2: [490, 580] }
+  unit: K
+  reference_state: null
+  method: { notes: "thermal desorption after atomic H/D exposure; values as cited in open-access secondary sources (arXiv:0907.3361, arXiv:1011.3332)" }
+  extraction: abstract_statement
+  source_id: S3
+- id: PV-0009
+  arxiv: "cond-mat/0510399"
+  journal_citation: "Phys. Rev. Lett. 95, 225507 (2005)"
+  system: SWCNT film
+  site_class: cnt
+  quantity: hydrogenation_and_release
+  value: { at_percent_H: 65, at_percent_H_sigma: 15, wt_percent: 5.1, wt_percent_sigma: 1.2, complete_CH_breaking_C: 600 }
+  unit: mixed
+  reference_state: null
+  method: { notes: "XPS/XAS after atomic-hydrogen exposure; C-H bonds completely broken by heating to 600 C" }
+  extraction: tabular_text
+  source_id: S3
+- id: PV-0010
+  doi: 10.1021/nl072325k
+  system: SWCNT (diameter series)
+  site_class: cnt
+  quantity: hydrogenation_diameter_dependence
+  value: { near_complete_hydrogenation_diameter_nm: 2.0, stable_at_room_temperature: true, capacity_wt_percent_gt: 7 }
+  unit: mixed
+  reference_state: null
+  method: { notes: "maximal hydrogenation depends on diameter; near-100% hydrogenation at ~2.0 nm stable at room temperature" }
+  extraction: abstract_statement
+  source_id: S3

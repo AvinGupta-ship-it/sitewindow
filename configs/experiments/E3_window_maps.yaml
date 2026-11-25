@@ -1,0 +1,10 @@
+# E3: window maps and bounds (manual Section 9).
+experiment: E3
+windows_file: configs/windows.yaml
+grid:
+  T_r_K: { start: 233.15, stop: 600.0, n: 60 }
+  pressure_ratio: { start: 2.0, stop: 100.0, n: 60, scale: log }
+  eps_kJ_mol: { start: -60.0, stop: -0.5, n: 400 }
+entropy_models: [constant, harmonic_oscillator, two_d_gas]
+prefactor_s: [1.0e12, 1.0e13, 1.0e14]
+outputs: [theory_window_tables.parquet, capacity_maps.nc, fig1_window_theory]

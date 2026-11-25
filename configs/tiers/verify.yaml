@@ -1,0 +1,14 @@
+# Verification tier: reduced configurations for a 2-core machine; outputs labeled "verify".
+tier: verify
+atomistic:
+  calculator: tblite
+  method: GFN2-xTB
+  supercell: 4
+  fmax_eV_A: 0.05
+  classes: [basal_monomer, monovacancy_dangling_bond]
+theory:
+  windows: [BM2006, W1, W2, W3]
+  entropy_models: [constant, harmonic_oscillator, two_d_gas]
+corpus:
+  max_materials: 20
+posterior_samples: 500

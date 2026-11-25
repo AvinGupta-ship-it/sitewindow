@@ -1,0 +1,62 @@
+# Machine-readable benchmark registry. Thresholds are fixed before evaluation; see
+# docs/specs/BENCHMARK_REGISTRY.md for sources, conditions and limitations.
+B1:
+  quantity: "H chemisorption energy on graphene, eV relative to free H"
+  reference: { DMC: -0.691, DMC_sigma: 0.019, PBE: -0.821, literature_PBE_PW91_range: [-0.98, -0.79] }
+  thresholds: { T1_PBE_abs_eV: 0.10, calibrated_posterior_covers_DMC: true }
+  independence: anchor_with_leave_one_out
+B2:
+  quantity: "sticking barrier of H on graphene, eV"
+  reference: { value: 0.20 }
+  thresholds: { T1_abs_eV: 0.05 }
+  independence: anchor_with_leave_one_out
+B3:
+  quantity: "H2-coronene binding, kJ/mol per H2 (CCSD(T)/CBS)"
+  reference: { value: -4.7 }
+  thresholds: { pair_potential_abs_kJ_mol: 1.0, T1_vdWDF_abs_kJ_mol: 1.5 }
+  independence: anchor_with_leave_one_out
+B4:
+  quantity: "isosteric heat of H2 on carbons at low loading, kJ/mol"
+  reference: { interval: [4.0, 8.0], AX21_average: 5.8 }
+  thresholds: { computed_within_interval: true, corpus_median_within_interval: true }
+  independence: external
+B5:
+  quantity: "TPD peak temperatures of H2/D2 from graphite(0001), K"
+  reference: { H2: [445, 560], D2: [490, 580] }
+  thresholds: { peak_abs_K_at_90pct_posterior: 50 }
+  independence: external
+B6:
+  quantity: "diameter ordering of C-H stability; complete release temperature for SWCNT, K"
+  reference: { complete_release_below_K: 900, ordering: "smaller d releases at lower T" }
+  thresholds: { ordering_posterior_probability: 0.9 }
+  independence: external
+B7:
+  quantity: "slope of 77 K excess uptake vs BET area, wt% per 1000 m2/g"
+  reference: { interval: [1.5, 2.5] }
+  thresholds: { ci_overlaps_interval: true }
+  independence: external
+B8:
+  quantity: "Bhatia-Myers optimum enthalpy and carbon optimum temperature"
+  reference: { dH_opt_kJ_mol: -15.1, T_opt_K: 115 }
+  thresholds: { dH_kJ_mol: 0.1, T_opt_K: 5.0 }
+  independence: theory
+B9:
+  quantity: "electron knock-on cross section of graphene vs beam energy"
+  reference: { onset_keV: 108, sigma_100keV_barn: 0.2, sigma_80keV_barn: 1.0e-4, E_d_eV: 22, theta_D_K: 1287 }
+  thresholds: { onset_keV: 2.0, factor_100keV: 2.0, decade_80keV: 1, digitized_points_within_errors_fraction: 0.8 }
+  independence: external_parameter_free
+B10:
+  quantity: "Raman I_D/I_G vs L_D (2.41 eV) and I_D/I_D' by defect type"
+  reference: { r_A_nm: 3.1, r_S_nm: 1.0, C_A: "160 E_L^-4", C_S: 0.0, ID_IDp: { sp3: 13, vacancy: 7, boundary: 3.5 } }
+  thresholds: { relative: 0.05 }
+  independence: transcription_check
+B11:
+  quantity: "defect energetics in graphene, eV"
+  reference: { monovacancy_formation: [7.4, 7.7], vacancy_migration: 1.3, stone_wales_formation: 5.0, stone_wales_barrier: 9.0 }
+  thresholds: { T1_abs_eV: 0.3, T2_abs_eV: 1.0 }
+  independence: engine_sanity
+B12:
+  quantity: "graphane dehydrogenation at 723 K over 8.6e4 s"
+  reference: { release_fraction_gt: 0.9 }
+  thresholds: { posterior_probability: 0.9 }
+  independence: external

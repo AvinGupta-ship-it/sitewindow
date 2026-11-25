@@ -1,0 +1,21 @@
+name: sitewindow
+channels: [conda-forge]
+dependencies:
+  - python=3.12
+  - gpaw>=24.6
+  - ase>=3.23
+  - numpy>=1.26
+  - scipy>=1.12
+  - pandas>=2.2
+  - pyarrow>=15
+  - pydantic>=2.6
+  - pyyaml
+  - typer
+  - matplotlib
+  - pymc>=5.10
+  - arviz
+  - salib
+  - pip
+  - pip:
+      - tblite>=0.4
+      - -e .

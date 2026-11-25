@@ -1,0 +1,69 @@
+{
+  "tier": "verify",
+  "benchmarks": [
+    {
+      "id": "B8",
+      "passed": true,
+      "predicted": {
+        "dH_opt_kJ_mol": -15.113380422406799,
+        "T_opt_K": 114.4
+      },
+      "reference": {
+        "dH_opt_kJ_mol": -15.1,
+        "T_opt_K": 115.0
+      },
+      "metric": "absolute difference",
+      "summary": "dH*=-15.11 kJ/mol (ref -15.1), T_opt=114 K (ref 115)"
+    },
+    {
+      "id": "B9",
+      "passed": false,
+      "predicted": {
+        "onset_keV": 108.74063113078877,
+        "sigma_100keV_barn": 0.12105104377883394,
+        "sigma_80keV_barn": 9.916944383999962e-07,
+        "sigma_100keV_13C_barn": 0.004729193842590234
+      },
+      "reference": {
+        "onset_keV": 108.0,
+        "sigma_100keV_barn": 0.2,
+        "sigma_80keV_barn": 0.0001
+      },
+      "metric": "endpoint ratios; onset",
+      "checks": {
+        "onset": true,
+        "100keV_within_factor": true,
+        "80keV_within_decade": false,
+        "13C_below_12C": true
+      },
+      "summary": "onset 108.7 keV; sigma(100 keV)=0.121 barn (ref ~0.2); sigma(80 keV)=9.9e-07 barn (ref ~1e-4); checks={'onset': True, '100keV_within_factor': True, '80keV_within_decade': False, '13C_below_12C': True}"
+    },
+    {
+      "id": "B10",
+      "passed": true,
+      "predicted": {
+        "max_rel_dev_low_defect": 0.015687690900640927,
+        "L_D_at_max_nm": 3.3328332083020755
+      },
+      "reference": {
+        "low_defect_relation": "L_D^2 = 4.3e3 E_L^-4 / (I_D/I_G)",
+        "L_D_at_max_nm": "~3"
+      },
+      "metric": "relative deviation",
+      "summary": "asymptote deviation 0.016; I_D/I_G maximum at L_D=3.33 nm"
+    },
+    {
+      "id": "B1",
+      "passed": null,
+      "predicted": {
+        "E_bind_H_atom_T2_eV": -0.2107738165716011
+      },
+      "reference": {
+        "DMC_eV": -0.691,
+        "PBE_eV": -0.821
+      },
+      "metric": "absolute difference (tier T2, uncalibrated)",
+      "summary": "T2 basal monomer -0.211 eV vs DMC -0.691 / PBE -0.821 eV: tier offset +0.48 eV (input to C3 calibration)"
+    }
+  ]
+}
