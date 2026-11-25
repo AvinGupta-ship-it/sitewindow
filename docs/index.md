@@ -58,7 +58,7 @@ The reference workstation for this program is one Apple Silicon machine:
 
 ## Known limitations at this version
 
-- Tier-2 (GFN2-xTB) chemisorption energies on the basal plane are offset by about +0.5 eV from the diffusion Monte Carlo reference; the calibration component that models this offset is not yet implemented.
+- Tier-2 (GFN2-xTB) chemisorption energies on the basal plane are offset by about +0.5 eV from the diffusion Monte Carlo reference and by about +0.6 eV from the Tier-1 PBE value; the calibration component that models these offsets is not yet implemented. The Tier-1 PBE value itself lies 0.09 eV below the diffusion Monte Carlo reference, consistent with the Tier-0 offset the manual anticipates.
 - The Debye-smeared knock-on model reproduces the static onset and the 100 keV cross section within a factor of two but underestimates the published 80 keV tail by about two orders of magnitude; alternative smearing kinematics remain to be compared.
 - Corpus inference is limited to data harmonization; isosteric heats and adsorption-energy-distribution inversion are not yet implemented.
 - The single-site Lennard-Jones H₂–C potential cannot satisfy benchmarks B3 and B4 jointly: the literature parameter sets underestimate the CCSD(T) coronene binding by about 1.4 kJ mol⁻¹, and the set calibrated to B3 places the 0.7 nm slit-pore site above the isosteric-heat interval of B4. Both parameterizations are carried as model-form alternatives; their spread (about 45 % of the site energy) is the physisorption model-form uncertainty until an anisotropic or many-body potential is adopted.

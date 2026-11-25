@@ -37,7 +37,8 @@ Keep a Changelog, and the project adheres to Semantic Versioning.
 - Landscape workflow writing `landscape_raw_<tier>.parquet`, configuration tables, exclusion
   logs and manifests (`sitewindow landscape build`); verify-tier GFN2-xTB landscape executed.
 - Tier-1 basal-monomer anchor and convergence-series workflow with Tier-2 pre-relaxation, LCAO
-  relaxation and plane-wave single points, D3 reported separately (`sitewindow tier1`).
+  relaxation and plane-wave single points, D3 reported separately (`sitewindow tier1`); the
+  full-protocol 5x5 anchor is executed (`data/processed/tier1/`) and meets benchmark B1.
 - Pairwise H2-C physisorption potentials (Steele-Buch and Steele-Darkrim-Levesque Lorentz-Berthelot
   sets, B3-calibrated set) with Feynman-Hibbs correction; sheet, pore, tube and bundle site
   energies (`sitewindow landscape physisorption`); parameter registry

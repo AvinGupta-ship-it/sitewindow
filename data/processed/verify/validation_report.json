@@ -67,18 +67,18 @@
     },
     {
       "id": "B1",
-      "passed": null,
+      "passed": true,
       "predicted": {
-        "E_bind_H_atom_PBE_eV": -0.849991676831217,
-        "E_bind_H_atom_PBE_D3_eV": -0.8895839624213484,
-        "supercell": 4,
-        "ecut_eV": 400.0,
+        "E_bind_H_atom_PBE_eV": -0.7814965532165086,
+        "E_bind_H_atom_PBE_D3_eV": -0.8200944511954009,
+        "supercell": 5,
+        "ecut_eV": 500.0,
         "kmesh": [
-          3,
-          3,
+          4,
+          4,
           1
         ],
-        "vacuum_A": 12.0
+        "vacuum_A": 15.0
       },
       "reference": {
         "PBE_eV": -0.821,
@@ -86,7 +86,7 @@
         "threshold_eV": 0.1
       },
       "metric": "absolute difference of the PBE binding energy (tier T1)",
-      "summary": "T1 PBE basal monomer -0.850 eV (4x4, 400 eV, k3x3) vs PBE ref -0.821 eV: deviation -0.029 eV (reduced verification settings; not a pass test)"
+      "summary": "T1 PBE basal monomer -0.781 eV (5x5, 500 eV, k4x4) vs PBE ref -0.821 eV: deviation +0.040 eV"
     },
     {
       "id": "B3",

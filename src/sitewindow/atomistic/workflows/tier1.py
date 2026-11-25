@@ -127,16 +127,17 @@ def _relaxed_geometries(
     if t2 is not None:
         g, _ = relax(g, t2, cache, fmax=0.05, steps=400)
         gh, _ = relax(gh, t2, cache, fmax=0.05, steps=400)
+    tag = f"{settings.supercell}x{settings.supercell}"
     lcao_g, res_g = relax(
         g,
-        settings.lcao(_log_path(log_dir, "lcao_graphene")),
+        settings.lcao(_log_path(log_dir, tag, "lcao_graphene")),
         cache,
         settings.fmax_eV_A,
         settings.relax_steps,
     )
     lcao_gh, res_gh = relax(
         gh,
-        settings.lcao(_log_path(log_dir, "lcao_graphene_H")),
+        settings.lcao(_log_path(log_dir, tag, "lcao_graphene_H")),
         cache,
         settings.fmax_eV_A,
         settings.relax_steps,
@@ -153,8 +154,9 @@ def _references(settings: Tier1Settings, cache: Path, log_dir: Path | None) -> d
     h2_relaxed, _ = relax(h2, lcao_mol, cache, fmax=0.01, steps=100)
     check_h2_bond(float(h2_relaxed.get_distance(0, 1)))
     h = hydrogen_atom(settings.box_A, pbc=True)
-    sp_h2 = single_point(h2_relaxed, settings.molecule_pw(_log_path(log_dir, "pw_H2")), cache)
-    sp_h = single_point(h, settings.molecule_pw(_log_path(log_dir, "pw_H")), cache)
+    tag = f"{settings.ecut_eV:.0f}eV"
+    sp_h2 = single_point(h2_relaxed, settings.molecule_pw(_log_path(log_dir, tag, "pw_H2")), cache)
+    sp_h = single_point(h, settings.molecule_pw(_log_path(log_dir, tag, "pw_H")), cache)
     d3 = {} if settings.dispersion is None else {"H2": dispersion_energy_eV(h2_relaxed), "H": 0.0}
     return {
         "E_H2": sp_h2.energy_eV,
@@ -178,8 +180,9 @@ def anchor_basal_monomer(
     pw = settings.pw
     g, res_g = geoms["graphene"]
     gh, res_gh = geoms["graphene_H"]
-    sp_g = single_point(g, pw(_log_path(log_dir, "pw_graphene")), cache_dir)
-    sp_gh = single_point(gh, pw(_log_path(log_dir, "pw_graphene_H")), cache_dir)
+    tag = f"{settings.supercell}x{settings.supercell}_{settings.ecut_eV:.0f}eV"
+    sp_g = single_point(g, pw(_log_path(log_dir, tag, "pw_graphene")), cache_dir)
+    sp_gh = single_point(gh, pw(_log_path(log_dir, tag, "pw_graphene_H")), cache_dir)
     d3_g = 0.0 if settings.dispersion is None else dispersion_energy_eV(g)
     d3_gh = 0.0 if settings.dispersion is None else dispersion_energy_eV(gh)
     d3_h2 = refs["D3"].get("H2", 0.0)
