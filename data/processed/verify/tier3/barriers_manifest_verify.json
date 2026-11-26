@@ -52,10 +52,10 @@
   "n_pathways": 6,
   "n_excluded": 0,
   "package_version": "0.1.0",
-  "wall_s": 7067.842225999999,
+  "wall_s": 4098.477691,
   "files": {
-    "barriers_verify.parquet": "c3089409bd4c98769035830f2909f7c9368bedd554ea1a1a92e3097fa0d9a3c3",
-    "barrier_profiles_verify.json": "d7624737a80f09d2fbc7af3e29fd80453f620820c5fcab4839053f7c5dd608cd",
+    "barriers_verify.parquet": "413ae49a8b88487e9633cab531e619897fa4ef92e063ffddd1b0bc0fdfffd25d",
+    "barrier_profiles_verify.json": "0a420b1d14cb4ca173928435256adb6eeeed14edb48e5713942fec8c218d7728",
     "barriers_verify_excluded.csv": "9dcfdf55e8e366ffd2dcc504d24acf6deb74a82b73788fc0dcbeb6f1c4e37e6a"
   }
 }
