@@ -6,3 +6,5 @@
 - Keep scientific integrity: never fabricate data, references, benchmark results, or computational output; label verification-tier results as such; report failed benchmarks and falsified hypotheses as results; never relax thresholds in `data/registry/benchmarks.yaml` after a result has been seen.
 - Run the test suite before every commit, keep the README "Implementation status" table and `docs/validation.md` truthful, and write professional commit messages describing the scientific or engineering change.
 - If a decision is needed that the manual does not settle, make a scientifically justified choice and record it in the appropriate section of the manual.
+- Commit and push completed results promptly after each finished computation rather than holding them for a combined commit.
+- Run long background computations leaving at least one CPU core free so the machine stays responsive and runs cooler.
