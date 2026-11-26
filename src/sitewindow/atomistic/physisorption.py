@@ -4,9 +4,13 @@ energies on carbon structures (manual C2, physisorption set; DERIVATIONS 2.10; b
 H2 is a single Lennard-Jones site. Two parameter sets, both Lorentz-Berthelot combinations of
 Steele's graphite-carbon parameters with a published H2 parameter set, serve as the model-form
 alternatives of the manual: the Buch set and the Darkrim-Levesque set (values and sources in
-``data/registry/physisorption_potentials.yaml``). Site energies are the minimum of the summed
-pair potential over probe positions, with periodic images of in-plane periodic structures.
-Energies are reported in kJ mol^-1 per H2 (negative for binding).
+``data/registry/physisorption_potentials.yaml``). Oxygen atoms of surface groups interact with
+H2 through Lorentz-Berthelot combinations of the same H2 set with the OPLS-AA oxygen parameters
+of the group type (ether oxygen for epoxides, alcohol oxygen for hydroxyls and the acid hydroxyl,
+carbonyl oxygen for carbonyls), assigned from the oxygen's bonding environment; group hydrogens
+carry no Lennard-Jones centre, as in OPLS-AA. Site energies are the minimum of the summed pair
+potential over probe positions, with periodic images of in-plane periodic structures. Energies
+are reported in kJ mol^-1 per H2 (negative for binding).
 """
 
 from __future__ import annotations
@@ -29,12 +33,19 @@ CUTOFF_A = 15.0
 
 @dataclass(frozen=True)
 class PairPotential:
-    """Lennard-Jones H2-C pair potential: well depth epsilon/k_B (K) and diameter sigma (A)."""
+    """Lennard-Jones H2-C pair potential: well depth epsilon/k_B (K) and diameter sigma (A).
+
+    ``h2_epsilon_K`` and ``h2_sigma_A`` are the H2 parameters the carbon pair was combined from;
+    they combine with the oxygen parameters of surface groups (``oxygen_pair``). The B3
+    calibration scales the carbon pair only, since B3 is a carbon-only benchmark.
+    """
 
     name: str
     epsilon_K: float
     sigma_A: float
     source: str
+    h2_epsilon_K: float | None = None
+    h2_sigma_A: float | None = None
 
     @property
     def settings_hash(self) -> str:
@@ -48,6 +59,16 @@ H2_DARKRIM_LEVESQUE = {
     "sigma_A": 2.958,
     "source": "Darkrim and Levesque, J. Chem. Phys. 109, 4981 (1998)",
 }
+OPLS_SOURCE = "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+KCAL_PER_MOL_TO_K = 503.2197
+OXYGEN_TYPES: dict[str, dict[str, Any]] = {
+    "ether": {"epsilon_K": 0.140 * KCAL_PER_MOL_TO_K, "sigma_A": 2.90, "source": OPLS_SOURCE},
+    "alcohol": {"epsilon_K": 0.170 * KCAL_PER_MOL_TO_K, "sigma_A": 3.12, "source": OPLS_SOURCE},
+    "carbonyl": {"epsilon_K": 0.210 * KCAL_PER_MOL_TO_K, "sigma_A": 2.96, "source": OPLS_SOURCE},
+}
+O_C_BOND_A = 1.55
+O_C_DOUBLE_BOND_A = 1.30
+O_H_BOND_A = 1.2
 
 
 def lorentz_berthelot(name: str, carbon: dict[str, Any], hydrogen: dict[str, Any]) -> PairPotential:
@@ -56,7 +77,32 @@ def lorentz_berthelot(name: str, carbon: dict[str, Any], hydrogen: dict[str, Any
         float(np.sqrt(carbon["epsilon_K"] * hydrogen["epsilon_K"])),
         0.5 * (carbon["sigma_A"] + hydrogen["sigma_A"]),
         f"Lorentz-Berthelot: {carbon['source']}; {hydrogen['source']}",
+        float(hydrogen["epsilon_K"]),
+        float(hydrogen["sigma_A"]),
     )
+
+
+def oxygen_type(atoms: Atoms, index: int) -> str:
+    """Group type of oxygen ``index`` from its bonding: a hydrogen within ``O_H_BOND_A`` ->
+    alcohol (hydroxyl, acid hydroxyl); a carbon within the double-bond length ``O_C_DOUBLE_BOND_A``
+    -> carbonyl; two carbons within ``O_C_BOND_A`` -> ether (epoxide); otherwise carbonyl."""
+    d = atoms.get_distances(index, range(len(atoms)), mic=bool(atoms.pbc.any()))
+    carbon = (atoms.numbers == 6) & (d > 0.0)
+    if int(np.sum((atoms.numbers == 1) & (d < O_H_BOND_A))) >= 1:
+        return "alcohol"
+    if int(np.sum(carbon & (d < O_C_DOUBLE_BOND_A))) >= 1:
+        return "carbonyl"
+    if int(np.sum(carbon & (d < O_C_BOND_A))) >= 2:
+        return "ether"
+    return "carbonyl"
+
+
+def oxygen_pair(p: PairPotential, kind: str) -> tuple[float, float]:
+    """(epsilon_K, sigma_A) of the H2-O pair for oxygen ``kind`` with the H2 set of ``p``."""
+    if p.h2_epsilon_K is None or p.h2_sigma_A is None:
+        raise ValueError(f"potential {p.name} carries no H2 parameters to combine with oxygen")
+    o = OXYGEN_TYPES[kind]
+    return float(np.sqrt(o["epsilon_K"] * p.h2_epsilon_K)), 0.5 * (o["sigma_A"] + p.h2_sigma_A)
 
 
 STEELE_BUCH = lorentz_berthelot("steele_buch", STEELE_CARBON, H2_BUCH)
@@ -84,6 +130,8 @@ def calibrate_to_coronene(
         p.epsilon_K * scale,
         p.sigma_A,
         f"{p.source}; epsilon scaled by {scale:.4f} to the B3 coronene value {target_kJ_mol} kJ/mol",
+        p.h2_epsilon_K,
+        p.h2_sigma_A,
     )
 
 
@@ -103,15 +151,29 @@ def all_potentials() -> dict[str, PairPotential]:
     return {**PARAMETER_SETS, cal.name: cal}
 
 
-def lj_energy_K(r_A: NDArray[np.float64], p: PairPotential) -> NDArray[np.float64]:
-    x = (p.sigma_A / r_A) ** 6
-    return 4.0 * p.epsilon_K * (x * x - x)
+def lj_energy_K(
+    r_A: NDArray[np.float64],
+    p: PairPotential,
+    epsilon_K: NDArray[np.float64] | float | None = None,
+    sigma_A: NDArray[np.float64] | float | None = None,
+) -> NDArray[np.float64]:
+    eps = p.epsilon_K if epsilon_K is None else epsilon_K
+    sig = p.sigma_A if sigma_A is None else sigma_A
+    x = (sig / r_A) ** 6
+    return 4.0 * eps * (x * x - x)
 
 
-def lj_laplacian_K_per_A2(r_A: NDArray[np.float64], p: PairPotential) -> NDArray[np.float64]:
+def lj_laplacian_K_per_A2(
+    r_A: NDArray[np.float64],
+    p: PairPotential,
+    epsilon_K: NDArray[np.float64] | float | None = None,
+    sigma_A: NDArray[np.float64] | float | None = None,
+) -> NDArray[np.float64]:
     """Laplacian of the pair potential, 4 eps [132 sigma^12/r^14 - 30 sigma^6/r^8] (DERIVATIONS 2.10)."""
-    s6 = p.sigma_A**6
-    return 4.0 * p.epsilon_K * (132.0 * s6 * s6 / r_A**14 - 30.0 * s6 / r_A**8)
+    eps = p.epsilon_K if epsilon_K is None else epsilon_K
+    sig = p.sigma_A if sigma_A is None else sigma_A
+    s6 = sig**6
+    return 4.0 * eps * (132.0 * s6 * s6 / r_A**14 - 30.0 * s6 / r_A**8)
 
 
 def feynman_hibbs_coefficient_A2(T_K: float, mass_amu: float = M_H2_AMU) -> float:
@@ -121,18 +183,20 @@ def feynman_hibbs_coefficient_A2(T_K: float, mass_amu: float = M_H2_AMU) -> floa
 
 
 def pair_energy_K(
-    r_A: NDArray[np.float64], p: PairPotential, T_K: float | None = None
+    r_A: NDArray[np.float64],
+    p: PairPotential,
+    T_K: float | None = None,
+    epsilon_K: NDArray[np.float64] | float | None = None,
+    sigma_A: NDArray[np.float64] | float | None = None,
 ) -> NDArray[np.float64]:
     """Classical (``T_K=None``) or Feynman-Hibbs-corrected pair energy (K)."""
-    u = lj_energy_K(r_A, p)
+    u = lj_energy_K(r_A, p, epsilon_K, sigma_A)
     if T_K is None:
         return u
-    return u + feynman_hibbs_coefficient_A2(T_K) * lj_laplacian_K_per_A2(r_A, p)
+    return u + feynman_hibbs_coefficient_A2(T_K) * lj_laplacian_K_per_A2(r_A, p, epsilon_K, sigma_A)
 
 
-def carbon_images(atoms: Atoms, cutoff_A: float = CUTOFF_A) -> NDArray[np.float64]:
-    """Carbon positions including the periodic images needed within ``cutoff_A`` of the cell."""
-    pos = atoms.positions[atoms.numbers == 6]
+def _image_shifts(atoms: Atoms, cutoff_A: float) -> NDArray[np.float64]:
     cell = np.array(atoms.cell)
     reps = []
     for axis in range(3):
@@ -141,22 +205,84 @@ def carbon_images(atoms: Atoms, cutoff_A: float = CUTOFF_A) -> NDArray[np.float6
             reps.append(range(-n, n + 1))
         else:
             reps.append(range(0, 1))
-    shifts = np.array(
+    return np.array(
         [i * cell[0] + j * cell[1] + k * cell[2] for i in reps[0] for j in reps[1] for k in reps[2]]
     )
+
+
+def carbon_images(atoms: Atoms, cutoff_A: float = CUTOFF_A) -> NDArray[np.float64]:
+    """Carbon positions including the periodic images needed within ``cutoff_A`` of the cell."""
+    pos = atoms.positions[atoms.numbers == 6]
+    shifts = _image_shifts(atoms, cutoff_A)
     return (pos[None, :, :] + shifts[:, None, :]).reshape(-1, 3)
+
+
+@dataclass(frozen=True)
+class SiteImages:
+    """Interaction centres of a structure with their periodic images and pair parameters: the
+    carbons with the H2-C pair of the potential and the oxygens of surface groups with the H2-O
+    pair of their group type. Group hydrogens carry no centre."""
+
+    positions: NDArray[np.float64]
+    epsilon_K: NDArray[np.float64]
+    sigma_A: NDArray[np.float64]
+    n_oxygen: int
+
+    def __len__(self) -> int:
+        return len(self.positions)
+
+
+def site_images(atoms: Atoms, p: PairPotential, cutoff_A: float = CUTOFF_A) -> SiteImages:
+    """Carbon and oxygen centres with periodic images and their pair parameters under ``p``."""
+    shifts = _image_shifts(atoms, cutoff_A)
+    carbons = atoms.positions[atoms.numbers == 6]
+    pos = [carbons]
+    eps = [np.full(len(carbons), p.epsilon_K)]
+    sig = [np.full(len(carbons), p.sigma_A)]
+    oxygens = np.flatnonzero(atoms.numbers == 8)
+    for k in oxygens:
+        e_o, s_o = oxygen_pair(p, oxygen_type(atoms, int(k)))
+        pos.append(atoms.positions[k][None, :])
+        eps.append(np.array([e_o]))
+        sig.append(np.array([s_o]))
+    centres = np.vstack(pos)
+    eps_a = np.concatenate(eps)
+    sig_a = np.concatenate(sig)
+    n_shift = len(shifts)
+    return SiteImages(
+        (centres[None, :, :] + shifts[:, None, :]).reshape(-1, 3),
+        np.tile(eps_a, n_shift),
+        np.tile(sig_a, n_shift),
+        int(len(oxygens)),
+    )
 
 
 def probe_energy_kJ_mol(
     points: NDArray[np.float64],
-    carbons: NDArray[np.float64],
+    carbons: NDArray[np.float64] | SiteImages,
     p: PairPotential,
     T_K: float | None = None,
     cutoff_A: float = CUTOFF_A,
 ) -> NDArray[np.float64]:
-    """Summed H2-C energy (kJ mol^-1) at each probe point."""
+    """Summed pair energy (kJ mol^-1) at each probe point over carbon positions (the H2-C pair of
+    ``p``) or over :class:`SiteImages` (per-centre parameters)."""
     pts = np.atleast_2d(points)
     out = np.empty(len(pts))
+    if isinstance(carbons, SiteImages):
+        for i, q in enumerate(pts):
+            d = np.linalg.norm(carbons.positions - q, axis=1)
+            mask = (d < cutoff_A) & (d > 0.5)
+            out[i] = (
+                float(
+                    np.sum(
+                        pair_energy_K(
+                            d[mask], p, T_K, carbons.epsilon_K[mask], carbons.sigma_A[mask]
+                        )
+                    )
+                )
+                * K_TO_KJ_PER_MOL
+            )
+        return out
     for i, q in enumerate(pts):
         d = np.linalg.norm(carbons - q, axis=1)
         d = d[(d < cutoff_A) & (d > 0.5)]
@@ -171,8 +297,11 @@ def minimize_site_energy(
     T_K: float | None = None,
     bounds: list[tuple[float, float]] | None = None,
 ) -> tuple[float, NDArray[np.float64]]:
-    """Minimum of the summed potential starting from the best of ``start_points``."""
-    carbons = carbon_images(atoms)
+    """Minimum of the summed potential starting from the best of ``start_points``; oxygen atoms of
+    surface groups contribute through their group-type pair parameters."""
+    carbons: NDArray[np.float64] | SiteImages = (
+        site_images(atoms, p) if np.any(atoms.numbers == 8) else carbon_images(atoms)
+    )
     e = probe_energy_kJ_mol(start_points, carbons, p, T_K)
     best = int(np.argmin(e))
     res = minimize(
@@ -198,10 +327,17 @@ def sheet_site_energy(
     T_K: float | None = None,
     heights_A: tuple[float, ...] = (2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0),
     spacing_A: float = 0.3,
+    near: NDArray[np.float64] | None = None,
+    radius_A: float = 4.0,
 ) -> tuple[float, NDArray[np.float64]]:
-    """Strongest H2 site above a sheet (graphene, defective graphene, coronene, ribbon)."""
+    """Strongest H2 site above a sheet (graphene, defective graphene, coronene, ribbon).
+
+    With ``near`` the probe grid is restricted to the lateral disc of ``radius_A`` around that
+    point (the site adjacent to a surface group), and the heights are measured from the sheet's
+    carbon plane and extended above the group's atoms.
+    """
     carbons = atoms.positions[atoms.numbers == 6]
-    z0 = float(np.max(carbons[:, 2]))
+    z0 = float(np.median(carbons[:, 2])) if near is not None else float(np.max(carbons[:, 2]))
     if any(atoms.pbc[:2]):
         lateral = _lateral_grid(atoms, spacing_A)
     else:
@@ -209,8 +345,20 @@ def sheet_site_energy(
         xs = np.arange(xy[:, 0].min(), xy[:, 0].max() + 1e-9, spacing_A)
         ys = np.arange(xy[:, 1].min(), xy[:, 1].max() + 1e-9, spacing_A)
         lateral = np.array([(x, y) for x in xs for y in ys])
-    pts = np.array([(x, y, z0 + h) for x, y in lateral for h in heights_A])
-    lo, hi = z0 + 2.0, z0 + 6.0
+    heights = list(heights_A)
+    if near is not None:
+        c = np.asarray(near, dtype=float)[:2]
+        cell = np.array(atoms.cell)
+        d = lateral - c[None, :]
+        for axis in range(2):
+            if atoms.pbc[axis]:
+                frac = np.rint(d @ cell[axis, :2] / float(cell[axis, :2] @ cell[axis, :2]))
+                d = d - frac[:, None] * cell[axis, :2][None, :]
+        lateral = lateral[np.linalg.norm(d, axis=1) <= radius_A]
+        top = float(np.max(atoms.positions[:, 2]))
+        heights += [top - z0 + h for h in (2.8, 3.2, 3.6)]
+    pts = np.array([(x, y, z0 + h) for x, y in lateral for h in heights])
+    lo, hi = z0 + 2.0, float(np.max(atoms.positions[:, 2])) + 6.0
     return minimize_site_energy(atoms, pts, p, T_K, bounds=[(None, None), (None, None), (lo, hi)])
 
 

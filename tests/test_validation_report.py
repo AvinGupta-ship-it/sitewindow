@@ -5,6 +5,7 @@ from sitewindow.validation.runners import (
     _registry,
     evaluate_B1_T2,
     evaluate_B2,
+    evaluate_B11,
     evaluate_convergence,
     run_B3_pair_potential,
     run_B8,
@@ -158,3 +159,52 @@ def test_b1_tier2_evaluation_reports_cell_and_smearing():
     assert evaluate_B1_T2(frame.iloc[:0], reg)["passed"] is None
     t3 = evaluate_B1_T2(frame, reg, {"model": "medium"}, tier_label="T3")
     assert t3["summary"].startswith("T3 basal monomer") and "smearing" not in t3["summary"]
+
+
+def test_b11_evaluation_applies_tier_thresholds_and_reports_tier3():
+    import pandas as pd
+
+    reg = _registry()
+
+    def frame(rows):
+        return pd.DataFrame(
+            [
+                {
+                    "quantity": "E_formation_defect",
+                    "site_class": cls,
+                    "supercell": cell,
+                    "n_atoms": 100,
+                    "engine": eng,
+                    "value_eV": v,
+                }
+                for cls, cell, eng, v in rows
+            ]
+        )
+
+    t2 = frame(
+        [
+            ("monovacancy", "monovacancy_12x12", "tblite:GFN2-xTB", 7.59),
+            ("stone_wales", "stone_wales_12x12", "tblite:GFN2-xTB", 4.67),
+        ]
+    )
+    t3 = frame([("monovacancy", "monovacancy_9x9", "mace", 5.69)])
+    r = evaluate_B11({"T2": t2, "T3": t3}, reg)
+    assert r["passed"] is True
+    assert r["checks"] == {
+        "T2:monovacancy:monovacancy_12x12": True,
+        "T2:stone_wales:stone_wales_12x12": True,
+    }
+    assert "T3:monovacancy:monovacancy_9x9" in r["predicted"] and "no T1 values yet" in r["summary"]
+    t1 = frame(
+        [
+            ("monovacancy", "monovacancy_6x6", "gpaw:PBE-D3(BJ)", 8.2),
+            ("monovacancy", "monovacancy_6x6", "gpaw:PBE", 8.1),
+            ("stone_wales", "stone_wales_6x6", "gpaw:PBE-D3(BJ)", 5.1),
+        ]
+    )
+    r1 = evaluate_B11({"T1": t1, "T2": t2}, reg)
+    assert r1["passed"] is False
+    assert r1["checks"]["T1:monovacancy:monovacancy_6x6"] is False
+    assert r1["checks"]["T1:stone_wales:stone_wales_6x6"] is True
+    assert r1["predicted"]["T1:monovacancy:monovacancy_6x6"] == 8.2
+    assert evaluate_B11({}, reg)["passed"] is None

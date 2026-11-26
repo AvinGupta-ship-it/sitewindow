@@ -1,0 +1,14 @@
+# Tier-2 sticking-cell convergence check (manual C2, Convergence and sensitivity): the basal
+# sticking barrier of the verify tier recomputed in the 11x11 cell, the next cell that does not
+# fold the Dirac point onto Gamma, under the sticking protocol (integer occupations at 300 K).
+tier: verify
+atomistic:
+  calculator: tblite
+  method: GFN2-xTB
+  calculator_settings_tblite: { electronic_temperature: 3000.0 }
+  supercell: 9
+  barriers:
+    stick: { supercell: 11, calculator_settings_tblite: { electronic_temperature: 300.0 } }
+  fmax_eV_A: 0.05
+  classes: [basal]
+  cnt: { diameters_nm: [0.68, 1.09, 1.36], length_armchair: 6, length_zigzag: 4 }

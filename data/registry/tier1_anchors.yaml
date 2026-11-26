@@ -1,0 +1,80 @@
+# Tier-1 anchor set (manual C2, Tier 1): configurations spanning every chemisorption class,
+# computed with GPAW at the converged Tier-1 protocol (PBE-D3(BJ), spin-polarized, LCAO dzp
+# relaxation to 0.02 eV/A, 500 eV plane-wave single points, k-mesh scaled from 4x4x1 on the 5x5
+# cell, 15 A vacuum, dipole correction for sheets) after a Tier-2 pre-relaxation under the
+# landscape protocol. Each entry names a catalogue configuration and the recipe that selects its
+# cell, ribbon or tube; the catalogue builds the structure, so the anchor is the same site and
+# hydrogen arrangement as the Tier-2 and Tier-3 landscape entries in their own cells.
+#
+# Rounds order the computation: every class receives one anchor before any class receives a
+# second, and within a round smaller structures run first, so that the calibration of C3 can
+# start on a complete class coverage while the set is still running. Cells follow the class table
+# of the manual (5x5 basal, 6x6 vacancy, Stone-Wales and oxygen groups, 7x7 divacancies and the
+# carbonyl pair, nanoribbons, tubes of 0.6-1.4 nm with three (armchair) or two (zigzag) unit
+# cells, since Tier 1 samples k-points along the axis). Tubes wider than 1.4 nm are left to the
+# calibrated Tier-2 series: the plane-wave storage of their cells exceeds the workstation's
+# memory envelope.
+protocol:
+  engine: gpaw
+  functional: PBE
+  dispersion: D3BJ
+  ecut_eV: 500
+  k_ref_per_5x5_cell: 4
+  vacuum_A: 15
+  fmax_eV_A: 0.02
+  prerelaxation: GFN2-xTB at 3000 K (Tier-2 landscape protocol)
+anchors:
+  # round 1: one anchor per class
+  - {round: 1, site_class: basal, configuration: monomer, recipe: {supercell: 5}}
+  - {round: 1, site_class: monovacancy, configuration: seq1, recipe: {supercell: 6}}
+  - {round: 1, site_class: divacancy_585, configuration: seq1, recipe: {supercell: 7}}
+  - {round: 1, site_class: divacancy_555777, configuration: seq1, recipe: {supercell: 7}}
+  - {round: 1, site_class: stone_wales, configuration: monomer_rotated_bond, recipe: {supercell: 6}}
+  - {round: 1, site_class: edge_zigzag, configuration: edge_CH, recipe: {width: 6, length: 4}}
+  - {round: 1, site_class: edge_armchair, configuration: edge_CH, recipe: {width: 10, length: 3}}
+  - {round: 1, site_class: cnt_armchair, configuration: monomer_exterior, recipe: {diameters_nm: [0.68], length: 3}}
+  - {round: 1, site_class: cnt_zigzag, configuration: monomer_exterior, recipe: {diameters_nm: [0.78], length: 2}}
+  - {round: 1, site_class: epoxide, configuration: monomer_adjacent, recipe: {supercell: 6}}
+  - {round: 1, site_class: hydroxyl, configuration: monomer_adjacent, recipe: {supercell: 6}}
+  - {round: 1, site_class: carbonyl_pair, configuration: monomer_hole, recipe: {supercell: 7}}
+  - {round: 1, site_class: carboxyl, configuration: monomer_adjacent, recipe: {supercell: 6}}
+  - {round: 1, site_class: mixed_vacancy_cnt, configuration: seq1, recipe: {tubes: [[10, 0]], length: 3}}
+  - {round: 1, site_class: mixed_sw_cnt, configuration: monomer, recipe: {tubes: [[10, 0]], length: 3}}
+  # round 2: second anchor per class (the oxygen classes have one catalogue configuration each)
+  - {round: 2, site_class: basal, configuration: ortho, recipe: {supercell: 5}}
+  - {round: 2, site_class: monovacancy, configuration: seq2, recipe: {supercell: 6}}
+  - {round: 2, site_class: divacancy_585, configuration: seq2, recipe: {supercell: 7}}
+  - {round: 2, site_class: divacancy_555777, configuration: rotated_monomer, recipe: {supercell: 7}}
+  - {round: 2, site_class: stone_wales, configuration: monomer_first_neighbor, recipe: {supercell: 6}}
+  - {round: 2, site_class: edge_zigzag, configuration: subedge_monomer, recipe: {width: 6, length: 4}}
+  - {round: 2, site_class: edge_armchair, configuration: subedge_monomer, recipe: {width: 10, length: 3}}
+  - {round: 2, site_class: cnt_armchair, configuration: monomer_exterior, recipe: {diameters_nm: [1.36], length: 3}}
+  - {round: 2, site_class: cnt_zigzag, configuration: monomer_exterior, recipe: {diameters_nm: [0.63], length: 2}}
+  - {round: 2, site_class: mixed_vacancy_cnt, configuration: seq1, recipe: {tubes: [[8, 8]], length: 3}}
+  - {round: 2, site_class: mixed_sw_cnt, configuration: monomer, recipe: {tubes: [[8, 8]], length: 3}}
+  # round 3
+  - {round: 3, site_class: basal, configuration: para, recipe: {supercell: 5}}
+  - {round: 3, site_class: monovacancy, configuration: seq3, recipe: {supercell: 6}}
+  - {round: 3, site_class: divacancy_585, configuration: seq4, recipe: {supercell: 7}}
+  - {round: 3, site_class: divacancy_555777, configuration: seq2, recipe: {supercell: 7}}
+  - {round: 3, site_class: stone_wales, configuration: monomer_second_neighbor_a, recipe: {supercell: 6}}
+  - {round: 3, site_class: cnt_armchair, configuration: ortho_exterior, recipe: {diameters_nm: [0.68], length: 3}}
+  - {round: 3, site_class: cnt_zigzag, configuration: monomer_exterior, recipe: {diameters_nm: [1.02], length: 2}}
+  # round 4
+  - {round: 4, site_class: basal, configuration: meta, recipe: {supercell: 5}}
+  - {round: 4, site_class: monovacancy, configuration: seq4, recipe: {supercell: 6}}
+  - {round: 4, site_class: stone_wales, configuration: dimer_rotated_bond, recipe: {supercell: 6}}
+  - {round: 4, site_class: cnt_armchair, configuration: monomer_exterior, recipe: {diameters_nm: [0.95], length: 3}}
+  - {round: 4, site_class: cnt_zigzag, configuration: ortho_exterior, recipe: {diameters_nm: [0.78], length: 2}}
+  # round 5
+  - {round: 5, site_class: basal, configuration: ortho_alternating, recipe: {supercell: 5}}
+  - {round: 5, site_class: monovacancy, configuration: seq6, recipe: {supercell: 6}}
+  - {round: 5, site_class: cnt_armchair, configuration: monomer_interior, recipe: {diameters_nm: [0.68], length: 3}}
+  - {round: 5, site_class: cnt_zigzag, configuration: monomer_interior, recipe: {diameters_nm: [0.78], length: 2}}
+  # round 6
+  - {round: 6, site_class: basal, configuration: trimer, recipe: {supercell: 5}}
+  - {round: 6, site_class: cnt_armchair, configuration: monomer_interior, recipe: {diameters_nm: [1.36], length: 3}}
+  - {round: 6, site_class: cnt_armchair, configuration: stripe_exterior, recipe: {diameters_nm: [0.68], length: 3}}
+  # round 7
+  - {round: 7, site_class: basal, configuration: tetramer, recipe: {supercell: 5}}
+  - {round: 7, site_class: basal, configuration: graphane, recipe: {supercell: 5}}

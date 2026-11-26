@@ -1,0 +1,49 @@
+{
+  "tier": "full",
+  "package_version": "0.1.0",
+  "potentials": {
+    "steele_buch": {
+      "epsilon_K": 30.945112699746307,
+      "sigma_A": 3.1799999999999997,
+      "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Buch, J. Chem. Phys. 100, 7610 (1994)"
+    },
+    "steele_darkrim_levesque": {
+      "epsilon_K": 32.05620064823653,
+      "sigma_A": 3.1790000000000003,
+      "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Darkrim and Levesque, J. Chem. Phys. 109, 4981 (1998)"
+    },
+    "steele_buch_b3": {
+      "epsilon_K": 45.099666824197485,
+      "sigma_A": 3.1799999999999997,
+      "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Buch, J. Chem. Phys. 100, 7610 (1994); epsilon scaled by 1.4574 to the B3 coronene value -4.7 kJ/mol"
+    }
+  },
+  "oxygen_types": {
+    "ether": {
+      "epsilon_K": 70.45075800000001,
+      "sigma_A": 2.9,
+      "source": "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+    },
+    "alcohol": {
+      "epsilon_K": 85.54734900000001,
+      "sigma_A": 3.12,
+      "source": "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+    },
+    "carbonyl": {
+      "epsilon_K": 105.676137,
+      "sigma_A": 2.96,
+      "source": "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+    }
+  },
+  "temperatures_K": [
+    null,
+    77.0,
+    233.15,
+    298.15
+  ],
+  "n_records": 312,
+  "wall_s": 684.4130719169989,
+  "files": {
+    "physisorption_full.parquet": "927079fa48fb87dfcb5efc4ef1c5d4eabc7a8d473735b619f6924d9e8ce24b18"
+  }
+}

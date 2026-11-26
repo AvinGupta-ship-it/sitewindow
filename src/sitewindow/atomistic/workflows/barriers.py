@@ -194,6 +194,36 @@ class BarrierSpec:
     tube_diameters_nm: tuple[float, float] = (0.68, 1.36)
     stick_recipes: dict[str, dict[str, Any]] = field(default_factory=dict)
     stick_calculator_settings: dict[str, Any] = field(default_factory=dict)
+    seed_profiles: Path | None = None
+    seed_pathways: tuple[str, ...] | None = None
+    seed_label: str = "seeded"
+
+
+def profile_seed(
+    profiles_path: Path | None, key: str, n_atoms: int, cache: dict[str, Any] | None = None
+) -> list[Atoms]:
+    """The transition structure recorded for pathway ``key`` in another run's profile file (the
+    located band saddle, else the scan maximum), as a one-geometry seed for a new band; empty
+    when the file has no such pathway or its structure has another atom count. A band started
+    through the saddle another tier located stays in that recombination valley, where the IDPP
+    interpolation can point the climbing image toward atomic desorption (manual: Tier 3)."""
+    if profiles_path is None:
+        return []
+    cache = cache if cache is not None else {}
+    if "profiles" not in cache:
+        cache["profiles"] = json.loads(Path(profiles_path).read_text())
+    for prof in cache["profiles"]:
+        if prof.get("pathway") != key:
+            continue
+        methods = prof.get("methods", {})
+        candidates = [methods.get(CI_NEB, {}), methods.get(CONSTRAINED_SCAN, {})]
+        for r in sorted(candidates, key=lambda r: not r.get("saddle_located", False)):
+            ts = r.get("transition_structure")
+            if ts:
+                atoms = ase_read(io.StringIO(ts), format="extxyz")
+                if len(atoms) == n_atoms:
+                    return [atoms]
+    return []
 
 
 @dataclass(frozen=True)
@@ -798,6 +828,7 @@ def build_barriers(
     profiles: list[dict[str, Any]] = []
     exclusions: list[dict[str, Any]] = []
     substrates: dict[tuple[str, str], tuple[Atoms, RelaxResult]] = {}
+    seed_cache: dict[str, Any] = {}
 
     radius_opt: dict[str, dict[str, Any]] = {}
 
@@ -1060,12 +1091,28 @@ def build_barriers(
                     "final_state": final_label,
                 }
                 neb_final = None
+        seeded_from_profile = False
         if neb_final is not None:
             final, final_res = neb_final
             traj_dir = cache_dir / "neb"
             if is_master():
                 traj_dir.mkdir(parents=True, exist_ok=True)
-            traj = traj_dir / f"{chash}_{structure_hash(final)[:8]}_{spec.neb_images}.traj"
+            band_seed: list[Atoms] = scan_seed
+            suffix = ""
+            if spec.seed_profiles is not None and (
+                spec.seed_pathways is None
+                or pw.key in spec.seed_pathways
+                or pw.name in spec.seed_pathways
+            ):
+                ext = profile_seed(spec.seed_profiles, pw.key, len(init), seed_cache)
+                if ext:
+                    band_seed, seeded_from_profile, suffix = ext, True, f"_{spec.seed_label}"
+                    log.info(
+                        "band %s seeded from the transition structure of %s",
+                        pw.key,
+                        spec.seed_profiles,
+                    )
+            traj = traj_dir / f"{chash}_{structure_hash(final)[:8]}_{spec.neb_images}{suffix}.traj"
             res = neb_barrier(
                 init,
                 final,
@@ -1076,7 +1123,7 @@ def build_barriers(
                 spec.neb_steps,
                 traj,
                 prerelax_fmax=spec.neb_prerelax_fmax,
-                seed=scan_seed or None,
+                seed=band_seed or None,
             )
             if not np.isfinite(res.energies_eV).all():
                 failed = [k for k, e in enumerate(res.energies_eV) if not np.isfinite(e)]
@@ -1095,7 +1142,8 @@ def build_barriers(
                     "final_state": final_label,
                     "image_energies_eV": [e if np.isfinite(e) else None for e in res.energies_eV],
                     "n_images": spec.neb_images,
-                    "seeded_from_scan": bool(scan_seed),
+                    "seeded_from_scan": bool(scan_seed) and not seeded_from_profile,
+                    "seeded_from_profile": seeded_from_profile,
                     "n_steps": res.n_steps,
                     "wall_s": res.wall_s,
                 }
@@ -1130,7 +1178,9 @@ def build_barriers(
                 "image_energies_eV": [e if np.isfinite(e) else None for e in res.energies_eV],
                 "n_images": spec.neb_images,
                 "spring_eV_A": spec.neb_spring_eV_A,
-                "seeded_from_scan": bool(scan_seed),
+                "seeded_from_scan": bool(scan_seed) and not seeded_from_profile,
+                "seeded_from_profile": seeded_from_profile,
+                "seed_profiles": None if not seeded_from_profile else str(spec.seed_profiles),
                 "final_state": final_label,
                 "converged": neb_converged,
                 "far_point_offset_eV": neb_far_offset,
@@ -1199,6 +1249,8 @@ def build_barriers(
         "tube_radius_optimization": radius_opt,
         "neb_images": spec.neb_images,
         "neb_spring_eV_A": spec.neb_spring_eV_A,
+        "seed_profiles": None if spec.seed_profiles is None else str(spec.seed_profiles),
+        "seed_pathways": None if spec.seed_pathways is None else list(spec.seed_pathways),
         "reference_energies_eV": refs,
         "n_records": len(frame),
         "n_pathways": len(profiles),
@@ -1232,6 +1284,7 @@ __all__ = [
     "pathways",
     "primary_method",
     "product_distance",
+    "profile_seed",
     "resample_path",
     "saddle_caveat",
     "scan_profile",

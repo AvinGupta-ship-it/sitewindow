@@ -388,3 +388,37 @@ def test_relax_retries_a_failed_scf_with_the_robust_calculator(tmp_path):
     assert res.scf_retried and res.converged and calls["n"] == 2
     again, res2 = relax(h2, FlakyCalculator(), tmp_path, fmax=0.05)
     assert res2.cached and res2.scf_retried
+
+
+def test_profile_seed_returns_the_located_transition_structure(tmp_path):
+    import io
+    import json
+
+    from ase.io import write as ase_write
+
+    from sitewindow.atomistic.workflows.barriers import profile_seed
+
+    def xyz(a):
+        buf = io.StringIO()
+        ase_write(buf, a, format="extxyz")
+        return buf.getvalue()
+
+    scan_ts = Atoms("H2", positions=[[0, 0, 0], [0, 0, 1.0]], cell=[8, 8, 8], pbc=True)
+    neb_ts = Atoms("H2", positions=[[0, 0, 0], [0, 0, 1.5]], cell=[8, 8, 8], pbc=True)
+    profiles = [
+        {
+            "pathway": "basal/x/ortho_recomb",
+            "methods": {
+                "constrained_scan": {"saddle_located": False, "transition_structure": xyz(scan_ts)},
+                "ci_neb": {"saddle_located": True, "transition_structure": xyz(neb_ts)},
+            },
+        }
+    ]
+    p = tmp_path / "profiles.json"
+    p.write_text(json.dumps(profiles))
+    cache = {}
+    seed = profile_seed(p, "basal/x/ortho_recomb", 2, cache)
+    assert len(seed) == 1 and abs(seed[0].get_distance(0, 1) - 1.5) < 1e-6
+    assert profile_seed(p, "basal/x/ortho_recomb", 3, cache) == []
+    assert profile_seed(p, "basal/x/other", 2, cache) == []
+    assert profile_seed(None, "basal/x/ortho_recomb", 2) == []

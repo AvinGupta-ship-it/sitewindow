@@ -15,9 +15,11 @@ app = typer.Typer(
 )
 landscape_app = typer.Typer(help="Site-energy landscape construction (C2).")
 tier1_app = typer.Typer(help="Tier-1 density-functional anchors and convergence (C2, B1).")
+tier2_app = typer.Typer(help="Tier-2 (GFN2-xTB) protocol studies (C2).")
 schema_app = typer.Typer(help="Canonical data schema.")
 app.add_typer(landscape_app, name="landscape")
 app.add_typer(tier1_app, name="tier1")
+app.add_typer(tier2_app, name="tier2")
 app.add_typer(schema_app, name="schema")
 
 
@@ -335,6 +337,14 @@ def landscape_barriers(
         None, help="Output directory (default: $SITEWINDOW_DATA/processed/<tier>)"
     ),
     fmax: float = typer.Option(None, help="Force tolerance (eV/A); default from the tier config"),
+    neb_images: int = typer.Option(None, help="Number of NEB images (default: tier config, 7)"),
+    seed_profiles: Path = typer.Option(
+        None,
+        help="Profile file of another run whose transition structures seed the bands of "
+        "--seed-pathways (default: every pathway it holds)",
+    ),
+    seed_pathways: str = typer.Option(None, help="Comma-separated pathway names or keys to seed"),
+    seed_label: str = typer.Option("seeded", help="Label of the seeded band trajectories"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Sticking and recombination barriers along the designated pathways (C2; benchmark B2)."""
@@ -370,6 +380,16 @@ def landscape_barriers(
         fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
         stick_recipes=stick_recipes,
         stick_calculator_settings=_calculator_settings(stick_cfg, calculator),
+        neb_images=int(
+            neb_images
+            if neb_images is not None
+            else (cfg.get("tier3", {}) or {}).get("neb_images", 7)
+        ),
+        seed_profiles=seed_profiles,
+        seed_pathways=(
+            tuple(x.strip() for x in seed_pathways.split(",")) if seed_pathways else None
+        ),
+        seed_label=seed_label,
     )
     calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
     cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
@@ -413,7 +433,9 @@ def landscape_physisorption(
     out = out or _data_root() / "processed" / tier
     res = build_physisorption(PhysisorptionSpec(tier=tier, supercell=supercell), out)
     t = res["table"]
-    classical = t[t["T_K"].isna()].pivot(index="site_id", columns="potential", values="E_kJ_mol")
+    classical = t[t["T_K"].isna()].pivot(
+        index=["geometry", "site_id"], columns="potential", values="E_kJ_mol"
+    )
     typer.echo(classical.round(2).to_string())
     typer.echo(
         json.dumps({k: res["manifest"][k] for k in ("tier", "n_records", "wall_s")}, indent=2)
@@ -464,6 +486,57 @@ def tier1_anchor(
     )
 
 
+@tier1_app.command("anchors")
+def tier1_anchors(
+    registry: Path = typer.Option(
+        None, help="Anchor registry (default: $SITEWINDOW_DATA/registry/tier1_anchors.yaml)"
+    ),
+    rounds: str = typer.Option(None, help="Comma-separated rounds to run (default: all)"),
+    keys: str = typer.Option(None, help="Comma-separated anchor keys to run (default: all)"),
+    ecut: float = typer.Option(500.0, help="Plane-wave cutoff (eV)"),
+    vacuum: float = typer.Option(15.0),
+    fmax: float = typer.Option(0.02),
+    relax_steps: int = typer.Option(200),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print the ordered plan and exit"),
+    cache: Path = typer.Option(None),
+    out: Path = typer.Option(None),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Tier-1 anchor set (PBE-D3(BJ) at the converged protocol) over the registry, checkpointed
+    per structure and per anchor; rebuilds anchors_tier1.parquet after every anchor (C2, C3)."""
+    from sitewindow.atomistic.workflows.tier1 import Tier1Settings, run_anchor_set
+
+    _configure_logging(verbose)
+    settings = Tier1Settings(vacuum_A=vacuum, ecut_eV=ecut, fmax_eV_A=fmax, relax_steps=relax_steps)
+    registry = registry or _data_root() / "registry" / "tier1_anchors.yaml"
+    cache = cache or _data_root() / "raw" / "cache_tier1_gpaw"
+    out = out or _data_root() / "processed" / "tier1"
+    res = run_anchor_set(
+        settings,
+        cache,
+        out,
+        registry_path=registry,
+        rounds=[int(r) for r in rounds.split(",")] if rounds else None,
+        keys=[k.strip() for k in keys.split(",")] if keys else None,
+        log_dir=cache / "logs",
+        dry_run=dry_run,
+    )
+    if not _is_master():
+        return
+    import pandas as pd
+
+    plan = pd.DataFrame(res["plan"])
+    typer.echo(plan.drop(columns=["record"]).to_string(index=False))
+    if "manifest" in res:
+        m = res["manifest"]
+        typer.echo(
+            json.dumps(
+                {k: m.get(k) for k in ("n_anchors", "n_records", "classes", "wall_s_total")},
+                indent=2,
+            )
+        )
+
+
 @tier1_app.command("converge")
 def tier1_converge(
     supercell: int = typer.Option(5),
@@ -497,6 +570,53 @@ def tier1_converge(
             indent=2,
         )
     )
+
+
+@tier2_app.command("smearing")
+def tier2_smearing(
+    cells: str = typer.Option("9,10,12", help="Comma-separated graphene cell sizes"),
+    temperatures: str = typer.Option("1500,3000,6000", help="Electronic temperatures (K)"),
+    classes: str = typer.Option("basal,monovacancy,epoxide"),
+    cache: Path = typer.Option(None),
+    out: Path = typer.Option(
+        None, help="Output directory (default: $SITEWINDOW_DATA/processed/tier2)"
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Free energy, internal energy and zero-temperature extrapolation of Tier-2 binding energies
+    under Fermi smearing: far hydrogen, basal monomer, monovacancy and epoxide (C2, Tier 2)."""
+    from sitewindow.atomistic.workflows.smearing import SmearingSpec, build_smearing_study
+
+    _configure_logging(verbose)
+    spec = SmearingSpec(
+        cells=tuple(int(x) for x in cells.split(",")),
+        temperatures_K=tuple(float(x) for x in temperatures.split(",")),
+        classes=tuple(c.strip() for c in classes.split(",")),
+    )
+    cache = cache or _data_root() / "raw" / "cache_tier2_smearing"
+    out = out or _data_root() / "processed" / "tier2"
+    res = build_smearing_study(spec, cache, out)
+    if not _is_master():
+        return
+    import pandas as pd
+
+    far = pd.DataFrame(res["far_hydrogen"])
+    typer.echo(
+        far[["cell", "T_K", "offset_F_eV", "offset_E_internal_eV", "offset_E0_eV"]]
+        .round(3)
+        .to_string(index=False)
+    )
+    b = pd.DataFrame(res["binding"])
+    cols = [
+        "site_class",
+        "cell",
+        "T_K",
+        "E_bind_H_atom_F",
+        "E_bind_H_atom_E_internal",
+        "E_bind_H_atom_E0",
+        "delta_TS_eV",
+    ]
+    typer.echo(b[cols].round(3).to_string(index=False))
 
 
 @schema_app.command("export")

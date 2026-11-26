@@ -433,6 +433,93 @@ def run_B2(reg: dict, tier: str = "verify") -> dict:
     return evaluate_B2(pd.concat(frames, ignore_index=True), reg)
 
 
+B11_CLASSES = {
+    "monovacancy": ("monovacancy_formation", "monovacancy formation"),
+    "stone_wales": ("stone_wales_formation", "Stone-Wales formation"),
+}
+
+
+def _b11_deviation(value: float, ref: float | list[float]) -> float:
+    """Signed distance of ``value`` from a reference value or from a reference interval (zero
+    inside the interval)."""
+    if isinstance(ref, list):
+        lo, hi = float(ref[0]), float(ref[1])
+        return 0.0 if lo <= value <= hi else (value - hi if value > hi else value - lo)
+    return value - float(ref)
+
+
+def evaluate_B11(frames: dict[str, pd.DataFrame], reg: dict) -> dict:
+    """Benchmark B11 (defect energetics as engine sanity checks): the monovacancy and Stone-Wales
+    formation energies of each tier against the registry values, with the Tier-1 and Tier-2
+    thresholds; Tier-3 values are reported without a threshold. ``frames`` maps a tier label to
+    a landscape or anchor table holding ``E_formation_defect`` records."""
+    ref = reg["B11"]["reference"]
+    thr = {k.split("_")[0]: float(v) for k, v in reg["B11"]["thresholds"].items()}
+    predicted: dict[str, float] = {}
+    checks: dict[str, bool] = {}
+    for label, frame in frames.items():
+        rows = frame[frame["quantity"] == "E_formation_defect"]
+        if "engine" in rows.columns:
+            rows = rows[~rows["engine"].astype(str).str.endswith(":PBE")]
+        for cls, (ref_key, _) in B11_CLASSES.items():
+            sub = rows[rows["site_class"] == cls]
+            if sub.empty:
+                continue
+            r = sub.sort_values("n_atoms", ascending=False).iloc[0]
+            key = f"{label}:{cls}:{r['supercell']}"
+            value = float(r["value_eV"])
+            predicted[key] = value
+            if label in thr:
+                checks[key] = bool(abs(_b11_deviation(value, ref[ref_key])) < thr[label])
+    if not predicted:
+        return {
+            "id": "B11",
+            "passed": None,
+            "predicted": {},
+            "reference": {k: ref[k] for k in ("monovacancy_formation", "stone_wales_formation")},
+            "metric": "absolute deviation of defect formation energies per tier",
+            "summary": "no defect formation energies in the landscape or anchor tables",
+        }
+    missing = [t for t in thr if not any(k.startswith(f"{t}:") for k in predicted)]
+    parts = "; ".join(
+        f"{k} {v:.2f}" + ("" if k not in checks else (" ok" if checks[k] else " off"))
+        for k, v in predicted.items()
+    )
+    return {
+        "id": "B11",
+        "passed": bool(all(checks.values())) if checks else None,
+        "predicted": predicted,
+        "checks": checks,
+        "reference": {
+            "monovacancy_formation_eV": ref["monovacancy_formation"],
+            "stone_wales_formation_eV": ref["stone_wales_formation"],
+            "thresholds_eV": thr,
+        },
+        "metric": "absolute deviation of defect formation energies per tier",
+        "summary": f"defect formation energies, eV: {parts} vs monovacancy {ref['monovacancy_formation']} "
+        f"and Stone-Wales {ref['stone_wales_formation']} (thresholds T1 {thr.get('T1')}, T2 {thr.get('T2')})"
+        + (f"; no {', '.join(missing)} values yet" if missing else ""),
+    }
+
+
+def run_B11(reg: dict, tier: str = "verify") -> dict:
+    """Benchmark B11 from the Tier-2 landscape table (full tier, else the requested tier), the
+    Tier-3 table and the Tier-1 anchor table."""
+    import pandas as pd
+
+    frames: dict[str, pd.DataFrame] = {}
+    found = _landscape_table(tier)
+    if found is not None:
+        frames["T2"] = pd.read_parquet(found[0])
+    found3 = _landscape_table(tier, "tier3")
+    if found3 is not None:
+        frames["T3"] = pd.read_parquet(found3[0])
+    anchors = Path("data/processed/tier1/anchors_tier1.parquet")
+    if anchors.exists():
+        frames["T1"] = pd.read_parquet(anchors)
+    return evaluate_B11(frames, reg)
+
+
 def run_B3_pair_potential(reg: dict) -> dict:
     """Classical pair-potential minimum over coronene versus the CCSD(T)/CBS value (B3).
 
@@ -514,6 +601,7 @@ def run_all(tier: str = "verify") -> dict:
         run_B2(reg, tier),
         run_B3_pair_potential(reg),
         run_B4_computed(reg),
+        run_B11(reg, tier),
     ]
     return {"tier": tier, "benchmarks": results}
 
@@ -533,4 +621,6 @@ __all__ = [
     "evaluate_B2",
     "run_B3_pair_potential",
     "run_B4_computed",
+    "evaluate_B11",
+    "run_B11",
 ]

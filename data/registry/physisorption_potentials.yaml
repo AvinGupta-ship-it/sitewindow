@@ -14,6 +14,16 @@ combined:
   steele_buch: { epsilon_K: 30.945, sigma_A: 3.180, rule: Lorentz-Berthelot, status: literature }
   steele_darkrim_levesque: { epsilon_K: 32.056, sigma_A: 3.179, rule: Lorentz-Berthelot, status: literature }
   steele_buch_b3: { base: steele_buch, sigma_A: 3.180, calibration: "epsilon scaled so that E_min(coronene) = -4.7 kJ/mol (B3)", status: calibrated_to_B3 }
+oxygen:
+  # OPLS-AA Lennard-Jones parameters of oxygen by group type (kcal/mol converted to K); H2-O pairs
+  # are Lorentz-Berthelot combinations with the H2 set of each potential. The B3 scale factor of
+  # the calibrated set applies to the carbon pair only, B3 being a carbon-only benchmark. Group
+  # hydrogens carry no Lennard-Jones centre, as in OPLS-AA.
+  source: "W. L. Jorgensen, D. S. Maxwell, J. Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+  ether: { epsilon_kcal_mol: 0.140, epsilon_K: 70.45, sigma_A: 2.90, groups: [epoxide] }
+  alcohol: { epsilon_kcal_mol: 0.170, epsilon_K: 85.55, sigma_A: 3.12, groups: [hydroxyl, carboxyl O-H] }
+  carbonyl: { epsilon_kcal_mol: 0.210, epsilon_K: 105.68, sigma_A: 2.96, groups: [carbonyl pair, carboxyl C=O] }
+  assignment: "by bonding environment: two carbon neighbours -> ether; a hydrogen neighbour -> alcohol; otherwise carbonyl"
 feynman_hibbs:
   mass_amu: 2.01588
   note: "second-order correction with the H2 mass against a rigid carbon framework"

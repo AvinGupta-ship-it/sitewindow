@@ -18,6 +18,23 @@
       "source": "Lorentz-Berthelot: Steele, Surf. Sci. 36, 317 (1973); Buch, J. Chem. Phys. 100, 7610 (1994); epsilon scaled by 1.4574 to the B3 coronene value -4.7 kJ/mol"
     }
   },
+  "oxygen_types": {
+    "ether": {
+      "epsilon_K": 70.45075800000001,
+      "sigma_A": 2.9,
+      "source": "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+    },
+    "alcohol": {
+      "epsilon_K": 85.54734900000001,
+      "sigma_A": 3.12,
+      "source": "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+    },
+    "carbonyl": {
+      "epsilon_K": 105.676137,
+      "sigma_A": 2.96,
+      "source": "Jorgensen, Maxwell and Tirado-Rives, J. Am. Chem. Soc. 118, 11225 (1996)"
+    }
+  },
   "temperatures_K": [
     null,
     77.0,
@@ -25,8 +42,8 @@
     298.15
   ],
   "n_records": 72,
-  "wall_s": 19.663923457963392,
+  "wall_s": 46.2037299170006,
   "files": {
-    "physisorption_verify.parquet": "7be149e612c8887a31f9470083082fe69378bc97897ea76cb1f7198853a949df"
+    "physisorption_verify.parquet": "c954c202ccda863dd9afdf3969796955ef64694aea6197debef2cd084923aaac"
   }
 }

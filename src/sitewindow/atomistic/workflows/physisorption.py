@@ -1,9 +1,11 @@
 """Physisorption landscape (manual C2 physisorption set; experiment E5).
 
-For every physisorption geometry of the catalogue (basal plane, vacancy-adjacent sheet, slit
-pores, nanotube interiors, bundle grooves and interstitials) and every pair-potential parameter
-set, the strongest H2 site energy is recorded classically and with the Feynman-Hibbs correction
-at the window temperatures. Records carry tier ``potential`` and the parameter-set hash.
+For every physisorption geometry of the catalogue (basal plane, vacancy-adjacent sheet, the
+sites adjacent to the oxygen groups of the full tier, slit pores, nanotube interiors, bundle
+grooves and interstitials) and every pair-potential parameter set, the strongest H2 site energy
+is recorded classically and with the Feynman-Hibbs correction at the window temperatures.
+Oxygen-adjacent sites use the oxygen pair parameters of ``physisorption.OXYGEN_TYPES`` and are
+searched within 4 A of the group. Records carry tier ``potential`` and the parameter-set hash.
 """
 
 from __future__ import annotations
@@ -75,6 +77,26 @@ def _geometries(spec: PhysisorptionSpec) -> list[dict[str, Any]]:
             "kind": "sheet",
         }
     )
+    if spec.tier == "full":
+        for cls, build in (
+            ("epoxide", b.epoxide),
+            ("hydroxyl", b.hydroxyl),
+            ("carbonyl_pair", b.carbonyl_pair),
+            ("carboxyl", b.carboxyl),
+        ):
+            rec = cat[cls].recipe(spec.tier, spec.recipes.get(cls))
+            m = int(rec["supercell"])
+            a = build(m)
+            out.append(
+                {
+                    "site_class": SiteClassName(cls),
+                    "site_id": "physisorption_adjacent",
+                    "name": f"{cls}_{m}x{m}",
+                    "atoms": a,
+                    "kind": "sheet_local",
+                    "near": np.asarray(a.info["defect_center"], dtype=float),
+                }
+            )
     pore = cat["pore_slit"].recipe(spec.tier, spec.recipes.get("pore_slit"))
     for w in pore["widths_nm"]:
         out.append(
@@ -118,6 +140,8 @@ def _site_energy(
     kind = g["kind"]
     if kind == "sheet":
         return ph.sheet_site_energy(g["atoms"], p, T)
+    if kind == "sheet_local":
+        return ph.sheet_site_energy(g["atoms"], p, T, near=g["near"])
     if kind == "pore":
         return ph.pore_site_energy(g["atoms"], p, T)
     if kind == "tube_interior":
@@ -206,6 +230,10 @@ def build_physisorption(spec: PhysisorptionSpec, out_dir: Path) -> dict[str, Any
                 k: {"epsilon_K": v.epsilon_K, "sigma_A": v.sigma_A, "source": v.source}
                 for k, v in pots.items()
                 if k in spec.potentials
+            },
+            "oxygen_types": {
+                k: {"epsilon_K": v["epsilon_K"], "sigma_A": v["sigma_A"], "source": v["source"]}
+                for k, v in ph.OXYGEN_TYPES.items()
             },
             "temperatures_K": [t for t in spec.temperatures_K],
             "n_records": int(len(frame)),
