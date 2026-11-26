@@ -35,20 +35,132 @@
     "max_steps": 400,
     "spin_states": [
       0
-    ]
+    ],
+    "tube_radius_optimization": {
+      "swcnt_4_4_x6": {
+        "scale": 1.00982694,
+        "dE_eV": -0.28887285921518924,
+        "n_single_points": 10
+      },
+      "swcnt_6_6_x6": {
+        "scale": 1.00203429,
+        "dE_eV": -0.01855358672401053,
+        "n_single_points": 7
+      },
+      "swcnt_7_7_x6": {
+        "scale": 1.0004058,
+        "dE_eV": -0.0007448604119417723,
+        "n_single_points": 7
+      },
+      "swcnt_9_9_x6": {
+        "scale": 0.99850083,
+        "dE_eV": -0.015884589109191438,
+        "n_single_points": 7
+      },
+      "swcnt_10_10_x6": {
+        "scale": 0.99795022,
+        "dE_eV": -0.03257724304057774,
+        "n_single_points": 7
+      },
+      "swcnt_13_13_x6": {
+        "scale": 0.99696199,
+        "dE_eV": -0.09158610298254644,
+        "n_single_points": 7
+      },
+      "swcnt_15_15_x6": {
+        "scale": 0.99656494,
+        "dE_eV": -0.13450567156178295,
+        "n_single_points": 7
+      },
+      "swcnt_18_18_x6": {
+        "scale": 0.99627358,
+        "dE_eV": -0.1914199087950692,
+        "n_single_points": 7
+      },
+      "swcnt_8_0_x4": {
+        "scale": 1.00819397,
+        "dE_eV": -0.267968828075027,
+        "n_single_points": 10
+      },
+      "swcnt_10_0_x4": {
+        "scale": 1.00294432,
+        "dE_eV": -0.044011827625581645,
+        "n_single_points": 7
+      },
+      "swcnt_13_0_x4": {
+        "scale": 1.0,
+        "dE_eV": 0.0,
+        "n_single_points": 7
+      },
+      "swcnt_15_0_x4": {
+        "scale": 0.99868704,
+        "dE_eV": -0.013581093186076032,
+        "n_single_points": 7
+      },
+      "swcnt_18_0_x4": {
+        "scale": 0.9976441,
+        "dE_eV": -0.05320226690309937,
+        "n_single_points": 7
+      },
+      "swcnt_22_0_x4": {
+        "scale": 0.99670145,
+        "dE_eV": -0.12319114308047574,
+        "n_single_points": 7
+      },
+      "swcnt_26_0_x4": {
+        "scale": 0.99624793,
+        "dE_eV": -0.1876350965903839,
+        "n_single_points": 7
+      },
+      "swcnt_32_0_x4": {
+        "scale": 0.99585742,
+        "dE_eV": -0.28024871023444575,
+        "n_single_points": 7
+      },
+      "swcnt_10_0_x6_vacancy": {
+        "scale": 1.00265509,
+        "dE_eV": -0.05276149594828894,
+        "n_single_points": 7
+      },
+      "swcnt_10_0_x6": {
+        "scale": 1.00314918,
+        "dE_eV": -0.07562139325636963,
+        "n_single_points": 7
+      },
+      "swcnt_8_8_x6_vacancy": {
+        "scale": 0.99856297,
+        "dE_eV": -0.012791774024663027,
+        "n_single_points": 7
+      },
+      "swcnt_8_8_x6": {
+        "scale": 0.99930178,
+        "dE_eV": -0.0031990316510928096,
+        "n_single_points": 7
+      },
+      "swcnt_10_0_x6_stone_wales": {
+        "scale": 1.00567015,
+        "dE_eV": -0.2381809143407736,
+        "n_single_points": 10
+      },
+      "swcnt_8_8_x6_stone_wales": {
+        "scale": 1.00123188,
+        "dE_eV": -0.008806995718259714,
+        "n_single_points": 7
+      }
+    }
   },
   "references_eV": {
     "E_H2": -26.740252835707306,
     "E_H": -11.681719145327678,
-    "H2_bond_A": 0.776685609245515
+    "H2_bond_A": 0.7766856000000004
   },
   "n_records": 368,
   "n_configurations": 125,
   "n_excluded": 0,
-  "wall_s": 41623.198255333,
+  "wall_s": 1745.000771167,
   "files": {
-    "landscape_raw_full.parquet": "1c59c6ce1fa0c0d761cb75e736c2c123862abfba3c074f2c36c878d8408a02f2",
-    "landscape_configurations_full.parquet": "28385ffc32f77bf3ec091d0e4a012f4cc85cf90375dbb3b4b2f1262fff14fa6e",
+    "landscape_raw_full.parquet": "dfe385d68111537d188f29624395875ee86abe09f22bcf7e1852194581f9fd21",
+    "landscape_configurations_full.parquet": "75e690d775d859beb0d0eb0e0b84e4a3799aefdbe0e5f70a28dcc09aca2c4f19",
     "landscape_raw_full_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
   }
 }

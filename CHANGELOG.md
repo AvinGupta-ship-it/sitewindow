@@ -37,8 +37,7 @@ Keep a Changelog, and the project adheres to Semantic Versioning.
 - Landscape workflow writing `landscape_raw_<tier>.parquet`, configuration tables, exclusion
   logs and manifests (`sitewindow landscape build`); verify-tier and full-tier GFN2-xTB landscapes
   executed (`data/processed/verify/`, 17 configurations; `data/processed/full/`, 125 configurations,
-  no exclusions; the full-tier tables are the first series, computed before the breathing-mode
-  minimization of clean tubes, and their recomputation from that reference is pending).
+  no exclusions; both computed from breathing-optimized tube substrates).
 - Tier-1 basal-monomer anchor and convergence-series workflow with Tier-2 pre-relaxation, LCAO
   relaxation and plane-wave single points, D3 reported separately (`sitewindow tier1`); the
   full-protocol 5x5 anchor is executed (`data/processed/tier1/`) and meets benchmark B1; the
