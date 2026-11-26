@@ -1,5 +1,6 @@
 """Barrier workflow (C2, B2): coordinate scan, climbing-image NEB, pathway catalogue, tables."""
 
+import json
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -17,10 +18,14 @@ from sitewindow.atomistic.workflows.barriers import (
     ScanPoint,
     build_barriers,
     h2_above,
+    largest_step,
+    mark_islands,
     neb_barrier,
     pathways,
     primary_method,
+    product_distance,
     resample_path,
+    saddle_caveat,
     scan_profile,
     set_coordinate,
 )
@@ -58,6 +63,43 @@ def test_scan_profile_refines_the_maximum_to_the_fine_grid():
     assert [p.coordinate_A for p in pts] == sorted(p.coordinate_A for p in pts)
     assert len(set(calls)) == len(calls)
     assert calls[:7] == [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8]
+
+
+def test_mark_islands_excludes_upper_scf_solutions_but_not_valley_jumps():
+    # The 10x10 sticking scan pattern: a physical barrier, then isolated points that converged
+    # to a solution 1.6 eV above the ground state of their neighbours.
+    energies = {1.5: 0.12, 1.6: 0.23, 1.7: 0.25, 1.8: 0.21, 2.9: -0.04, 3.0: 1.53, 3.1: -0.04}
+    energies.update({3.2: 1.54, 3.3: 1.54, 3.32: 1.66, 3.34: 1.66, 3.36: 1.55, 3.44: -0.03})
+    energies.update({3.5: -0.03, 3.6: -0.02})
+    pts = [ScanPoint(d, e, True, None) for d, e in energies.items()]
+    marked = mark_islands(pts)
+    excluded = {p.coordinate_A for p in marked if p.excluded}
+    assert excluded == {3.0, 3.2, 3.3, 3.32, 3.34, 3.36}
+    assert all(p.excluded is None for p in marked if p.coordinate_A < 2.95)
+    assert [p.coordinate_A for p in marked] == sorted(energies)
+    # A jump between two valleys keeps both branches: the lower branch holds the end point.
+    valley = [ScanPoint(d, 0.8 * (d - 1.1), True, None) for d in (1.1, 1.5, 1.9, 2.1, 2.16)]
+    valley += [ScanPoint(d, -1.1, True, None) for d in (2.18, 2.5, 3.0)]
+    assert all(p.excluded is None for p in mark_islands(valley))
+    # A run above its left neighbour but below its right one is not an island.
+    middle = [ScanPoint(1.0, 0.0, True, None), ScanPoint(1.1, 1.0, True, None)]
+    middle += [ScanPoint(1.12, 2.0, True, None), ScanPoint(1.14, 3.0, True, None)]
+    assert all(p.excluded is None for p in mark_islands(middle))
+    assert mark_islands([]) == []
+
+
+def test_scan_profile_refines_around_the_ground_state_maximum_not_an_island():
+    def evaluate(d, prev):
+        spike = 1.6 if 2.95 < d < 3.45 and round(d * 100) % 20 == 0 else 0.0
+        return ScanPoint(d, spike + float(np.exp(-((d - 1.73) ** 2) / 0.02)), True, None)
+
+    grid = [1.2 + 0.1 * k for k in range(25)]
+    pts = scan_profile(evaluate, grid, 0.02, 0.1)
+    accepted = [p for p in pts if p.accepted]
+    top = max(accepted, key=lambda p: p.energy_eV)
+    assert abs(top.coordinate_A - 1.73) <= 0.011
+    assert any(p.excluded for p in pts)
+    assert all(abs(p.coordinate_A - 1.73) < 0.12 for p in pts if p.coordinate_A * 10 % 1 > 1e-6)
 
 
 def test_set_coordinate_moves_only_the_hydrogen_for_sticking_and_both_for_recombination():
@@ -106,10 +148,18 @@ def test_neb_barrier_on_the_emt_adatom_hop_is_positive_and_resumes(tmp_path):
     assert traj.exists()
     again = neb_barrier(initial, final, calc, n_images=3, fmax=0.3, steps=60, trajectory=traj)
     if res.converged:
-        assert again.cached and again.n_steps == 0
+        assert again.cached and again.n_steps == res.n_steps
         assert again.energies_eV == res.energies_eV
     else:
-        assert not again.cached
+        assert not again.cached and again.n_steps > res.n_steps
+    # a band that has taken twice the budget without converging is returned as it stands
+    sidecar = traj.with_suffix(".json")
+    meta = json.loads(sidecar.read_text())
+    meta.update(converged=False, n_steps=120)
+    sidecar.write_text(json.dumps(meta))
+    stale = neb_barrier(initial, final, calc, n_images=3, fmax=0.3, steps=60, trajectory=traj)
+    assert stale.cached and not stale.converged and stale.n_steps == 120
+    assert stale.energies_eV == tuple(meta["energies_eV"])
 
 
 def test_pathways_follow_the_catalogue_configurations():
@@ -135,6 +185,12 @@ def test_pathways_follow_the_catalogue_configurations():
             assert p.quantity.value == "E_barrier_recomb"
             assert p.reference_state.value == "adsorbed_state"
     only = pathways(BarrierSpec(tier="verify", pathways=["monomer_stick"], recipes=spec.recipes))
+    bigger = pathways(
+        BarrierSpec(tier="verify", recipes=spec.recipes, stick_recipes={"basal": {"supercell": 4}})
+    )
+    by_name = {p.name: p for p in bigger}
+    assert by_name["monomer_stick"].config.substrate_name == "graphene_4x4"
+    assert by_name["ortho_recomb"].config.substrate_name == "graphene_3x3"
     assert [p.name for p in only] == ["monomer_stick"]
 
 
@@ -169,6 +225,48 @@ def test_primary_method_prefers_scan_for_sticking_and_converged_neb_for_recombin
     failed = {CI_NEB: {"barrier_eV": None, "converged": False}}
     assert primary_method("recomb", failed) is None
     assert primary_method("stick", {}) is None
+    neither = {
+        CONSTRAINED_SCAN: {"barrier_eV": 2.5, "converged": True, "saddle_located": False},
+        CI_NEB: {"barrier_eV": 31.0, "converged": False, "saddle_located": False},
+    }
+    assert primary_method("recomb", neither) == CONSTRAINED_SCAN
+    wrong_product = {
+        CONSTRAINED_SCAN: {"barrier_eV": 1.0, "converged": True, "saddle_located": True},
+        CI_NEB: {"barrier_eV": 0.9, "converged": True, "saddle_located": False},
+    }
+    assert primary_method("recomb", wrong_product) == CONSTRAINED_SCAN
+    assert primary_method("stick", wrong_product) == CONSTRAINED_SCAN
+
+
+def test_product_distance_and_saddle_caveat_name_the_wrong_product():
+    h2 = hydrogen_molecule()
+    d, ok = product_distance("recomb", h2, (0, 1), [0, 1], 3.6, 0.75)
+    assert ok and d == pytest.approx(h2.get_distance(0, 1))
+    far = set_coordinate(h2, (0, 1), 2.9, "recomb")
+    d, ok = product_distance("recomb", far, (0, 1), [0, 1], 3.6, 0.75)
+    assert not ok and d == pytest.approx(2.9)
+    assert product_distance("stick", far, (0, 1), [1], 3.6, 0.75)[1]
+    assert not product_distance("stick", h2, (0, 1), [1], 3.6, 0.75)[1]
+    assert saddle_caveat("recomb", True, True, False, 0.75) is None
+    text = saddle_caveat("recomb", False, False, True, 2.9)
+    assert text is not None
+    assert "not every point converged" in text
+    assert "H-H distance 2.90 A" in text and "end of the grid" in text
+    assert (
+        saddle_caveat("stick", True, True, True, 3.6, CI_NEB) == "the highest image is an end point"
+    )
+    assert saddle_caveat("stick", False, True, False, 3.6, CI_NEB) == "the band did not converge"
+    smooth = saddle_caveat("recomb", True, True, False, 0.75, discontinuity=(0.3, 1.9, 2.0))
+    assert smooth is None
+    jump = saddle_caveat("recomb", True, True, False, 0.75, discontinuity=(2.69, 2.16, 2.18))
+    assert jump == "the constrained path is discontinuous (2.69 eV between 2.16 and 2.18 A)"
+    assert saddle_caveat("stick", True, True, False, 3.6, far_offset_eV=0.012) is None
+    off = saddle_caveat("stick", True, True, False, 3.6, far_offset_eV=0.47)
+    assert off == "the far end of the path lies +0.47 eV from the separated reactants"
+    pts = [ScanPoint(1.1, -1.0, True, None), ScanPoint(1.2, -0.5, True, None)]
+    pts += [ScanPoint(1.3, float("nan"), False, None), ScanPoint(1.4, 1.5, True, None)]
+    assert largest_step(pts) == (2.0, 1.2, 1.4)
+    assert largest_step(pts[:1]) is None
 
 
 def test_build_barriers_writes_validated_tables_with_both_methods(tmp_path):
@@ -186,6 +284,7 @@ def test_build_barriers_writes_validated_tables_with_both_methods(tmp_path):
         recomb_distance_A=2.4,
         neb_images=3,
         neb_steps=30,
+        stick_calculator_settings={"extra": {"variant": "stick"}},
     )
     out = build_barriers(spec, EMTCalculator(), tmp_path / "cache", tmp_path / "out")
     frame = out["records"]
@@ -214,6 +313,27 @@ def test_build_barriers_writes_validated_tables_with_both_methods(tmp_path):
         )
     recomb = next(p for p in profiles if p["kind"] == "recomb")
     assert recomb["initial_H_H_distance_A"] > 1.0 and len(recomb["hydrogen_indices"]) == 2
+    for prof in profiles:
+        for r in prof["methods"].values():
+            assert isinstance(r["product_reached"], bool)
+            assert isinstance(r["saddle_located"], bool)
+            assert (r["saddle_caveat"] is None) == r["saddle_located"]
+            assert r["final_distance_A"] is None or r["final_distance_A"] > 0.0
+        primary = prof["methods"][prof["primary_method"]]
+        row = frame[frame["identifier"] == f"{prof['pathway']}@{prof['primary_method']}"].iloc[0]
+        assert bool(row["converged"]) == primary["saddle_located"]
+    stick = next(p for p in profiles if p["kind"] == "stick")
+    stick_row = frame[frame["quantity"] == "E_barrier_stick"].iloc[0]
+    recomb_row = frame[frame["quantity"] == "E_barrier_recomb"].iloc[0]
+    assert stick_row["settings_hash"] != recomb_row["settings_hash"]
+    assert out["manifest"]["stick_settings_hash"] == stick_row["settings_hash"]
+    assert out["manifest"]["calculator"]["settings_hash"] == recomb_row["settings_hash"]
+    assert stick["methods"][CONSTRAINED_SCAN]["n_excluded_points"] == 0
+    assert stick["methods"][CONSTRAINED_SCAN]["far_point_offset_eV"] is not None
+    assert stick["methods"][CI_NEB]["far_point_offset_eV"] is not None
+    assert stick["methods"][CONSTRAINED_SCAN]["largest_step_eV"] >= 0.0
+    assert len(stick["methods"][CONSTRAINED_SCAN]["largest_step_between_A"]) == 2
+    assert recomb["methods"][CONSTRAINED_SCAN]["far_point_offset_eV"] is None
     assert (tmp_path / "out" / "barrier_profiles_verify.json").exists()
     assert (tmp_path / "out" / "barriers_manifest_verify.json").exists()
     rerun = build_barriers(spec, EMTCalculator(), tmp_path / "cache", tmp_path / "out")

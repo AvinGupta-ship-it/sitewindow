@@ -1,0 +1,61 @@
+{
+  "tier": "verify",
+  "calculator": {
+    "name": "mace",
+    "tier": "T3",
+    "settings": {
+      "model": "medium",
+      "device": "cpu",
+      "default_dtype": "float64",
+      "dispersion": false
+    },
+    "settings_hash": "0001941085bd4d81"
+  },
+  "stick_calculator_settings": {},
+  "stick_recipes": {
+    "basal": {
+      "supercell": 10
+    }
+  },
+  "stick_settings_hash": "0001941085bd4d81",
+  "methods": [
+    "constrained_scan",
+    "ci_neb"
+  ],
+  "primary_method": {
+    "stick": "constrained_scan",
+    "recomb": "ci_neb"
+  },
+  "grid_step_A": 0.1,
+  "refine_step_A": 0.02,
+  "fmax_eV_A": 0.05,
+  "tube_radius_optimization": {
+    "swcnt_5_5_x6@0001941085bd4d81": {
+      "scale": 1.01488577,
+      "dE_eV": -0.580722075525955,
+      "n_single_points": 9
+    },
+    "swcnt_10_10_x6@0001941085bd4d81": {
+      "scale": 1.0083293,
+      "dE_eV": -0.4025872107081341,
+      "n_single_points": 10
+    }
+  },
+  "neb_images": 7,
+  "neb_spring_eV_A": 0.1,
+  "reference_energies_eV": {
+    "E_H2": -6.524490106774508,
+    "E_H": -1.1589879653522108,
+    "H2_bond_A": 0.7472067800000008
+  },
+  "n_records": 6,
+  "n_pathways": 6,
+  "n_excluded": 0,
+  "package_version": "0.1.0",
+  "wall_s": 17754.268532250077,
+  "files": {
+    "barriers_verify.parquet": "d929ebb35a944a62bc10a2e78cbba827a9cb31a520006150ee56915b85e2c5b3",
+    "barrier_profiles_verify.json": "961438b004d64257cf499fcafe3428e65ca8ed29f398030f6bf91150b81b7646",
+    "barriers_verify_excluded.csv": "9dcfdf55e8e366ffd2dcc504d24acf6deb74a82b73788fc0dcbeb6f1c4e37e6a"
+  }
+}

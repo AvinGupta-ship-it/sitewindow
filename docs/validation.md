@@ -8,10 +8,11 @@ Status `reported` marks runners that report a value without a pass criterion at 
 | B8 | pass | dH*=-15.11 kJ/mol (ref -15.1), T_opt=114 K (ref 115) |
 | B9 | fail | onset 108.7 keV; sigma(100 keV)=0.121 barn (ref ~0.2); sigma(80 keV)=9.9e-07 barn (ref ~1e-4); checks={'onset': True, '100keV_within_factor': True, '80keV_within_decade': False, '13C_below_12C': True} |
 | B10 | pass | asymptote deviation 0.016; I_D/I_G maximum at L_D=3.33 nm |
-| B1 | reported | T2 basal monomer -0.818 eV (9x9, 3000 K smearing) vs DMC -0.691 / PBE -0.821 eV: offsets -0.13 / +0.00 eV (input to C3 calibration) |
+| B1 | reported | T2 basal monomer -0.791 eV (12x12, 3000 K smearing) vs DMC -0.691 / PBE -0.821 eV: offsets -0.10 / +0.03 eV (input to C3 calibration) |
+| B1 | reported | T3 basal monomer -1.847 eV (9x9) vs DMC -0.691 / PBE -0.821 eV: offsets -1.16 / -1.03 eV (input to C3 calibration) |
 | B1 | pass | T1 PBE basal monomer -0.781 eV (5x5, 500 eV, k4x4) vs PBE ref -0.821 eV: deviation +0.040 eV |
 | B1 | pass | T1 convergence of the basal monomer PBE energy from the base (5x5, 500 eV, k4x4x1, 15 A): 6x6 cell, k3x3x1 -0.0199; k6x6x1 -0.0136; 600 eV -0.0023; 20 A vacuum -0.0011 eV; every change below 0.02 eV in magnitude |
-| B2 | reported | barrier table not present (run landscape barriers) |
+| B2 | reported | H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input) |
 | B3 | fail | pair potential on coronene: steele_buch -3.22; steele_darkrim_levesque -3.34 kJ/mol vs -4.7 (tol 1.0); calibrated set eps/k=45.1 K reproduces B3 by construction |
 | B4 | fail | B3-calibrated potential: basal 5.7, slit_0.70nm 9.6, slit_1.00nm 6.1 kJ/mol vs [4.0, 8.0]; literature sets within interval: steele_buch=False, steele_darkrim_levesque=True |
 

@@ -1,0 +1,64 @@
+{
+  "tier": "verify",
+  "calculator": {
+    "name": "tblite",
+    "tier": "T2",
+    "settings": {
+      "method": "GFN2-xTB",
+      "accuracy": 1.0,
+      "electronic_temperature": 3000.0,
+      "max_iterations": 300,
+      "spin_polarized": true
+    },
+    "settings_hash": "1db062cf2e92d31d"
+  },
+  "stick_calculator_settings": {
+    "electronic_temperature": 300.0
+  },
+  "stick_recipes": {
+    "basal": {
+      "supercell": 10
+    }
+  },
+  "stick_settings_hash": "1ad38283192827fb",
+  "methods": [
+    "constrained_scan",
+    "ci_neb"
+  ],
+  "primary_method": {
+    "stick": "constrained_scan",
+    "recomb": "ci_neb"
+  },
+  "grid_step_A": 0.1,
+  "refine_step_A": 0.02,
+  "fmax_eV_A": 0.05,
+  "tube_radius_optimization": {
+    "swcnt_5_5_x6@1db062cf2e92d31d": {
+      "scale": 1.00475271,
+      "dE_eV": -0.08421689815077116,
+      "n_single_points": 7
+    },
+    "swcnt_10_10_x6@1db062cf2e92d31d": {
+      "scale": 0.99795022,
+      "dE_eV": -0.03257724304603471,
+      "n_single_points": 7
+    }
+  },
+  "neb_images": 7,
+  "neb_spring_eV_A": 0.1,
+  "reference_energies_eV": {
+    "E_H2": -26.740252835707306,
+    "E_H": -11.681719145327678,
+    "H2_bond_A": 0.7766856000000004
+  },
+  "n_records": 6,
+  "n_pathways": 6,
+  "n_excluded": 0,
+  "package_version": "0.1.0",
+  "wall_s": 11752.413914708886,
+  "files": {
+    "barriers_verify.parquet": "1400833e1a232d5daa2bb6e5d1c6a9b4896db932c06f5b638c6a5bb3eda4c91b",
+    "barrier_profiles_verify.json": "f2924cbf24ab51d9dbfa4790131084a4e80199e3221c53dbb48ab3f4439c7bcd",
+    "barriers_verify_excluded.csv": "9dcfdf55e8e366ffd2dcc504d24acf6deb74a82b73788fc0dcbeb6f1c4e37e6a"
+  }
+}

@@ -131,6 +131,14 @@ def test_b2_evaluation_reports_tier2_and_passes_only_on_tier1():
     t1.loc[0, "value_eV"] = 0.40
     assert evaluate_B2(pd.concat([t2, t1]), reg)["passed"] is False
     assert evaluate_B2(t2.iloc[:0], reg)["passed"] is None
+    flagged = pd.concat([t2, t1]).assign(converged=[True, False])
+    r = evaluate_B2(flagged, reg)
+    assert r["passed"] is None and "no saddle located" in r["summary"]
+    assert r["saddle_located"] == {
+        "T2:constrained_scan:graphene_4x4": True,
+        "T1:constrained_scan:graphene_5x5": False,
+    }
+    assert set(r["checks"]) == {"T2:constrained_scan:graphene_4x4"}
 
 
 def test_b1_tier2_evaluation_reports_cell_and_smearing():
@@ -145,6 +153,8 @@ def test_b1_tier2_evaluation_reports_cell_and_smearing():
         columns=["site_class", "quantity", "n_H", "supercell", "value_eV"],
     )
     r = evaluate_B1_T2(frame, reg, {"electronic_temperature": 3000.0})
-    assert r["passed"] is None and r["predicted"]["E_bind_H_atom_T2_eV"] == -0.818
+    assert r["passed"] is None and r["predicted"]["E_bind_H_atom_eV"] == -0.818
     assert "9x9, 3000 K smearing" in r["summary"] and "-0.13" in r["summary"]
     assert evaluate_B1_T2(frame.iloc[:0], reg)["passed"] is None
+    t3 = evaluate_B1_T2(frame, reg, {"model": "medium"}, tier_label="T3")
+    assert t3["summary"].startswith("T3 basal monomer") and "smearing" not in t3["summary"]

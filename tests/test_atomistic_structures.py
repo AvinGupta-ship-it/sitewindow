@@ -163,3 +163,18 @@ def test_verify_tier_class_set_matches_manual_section_16():
         for k in ("basal", "monovacancy", "stone_wales", "cnt_armchair")
     }
     assert counts == {"basal": 4, "monovacancy": 3, "stone_wales": 1, "cnt_armchair": 9}
+
+
+def test_scale_tube_radius_scales_distances_from_the_axis_only():
+    import numpy as np
+
+    from sitewindow.atomistic.structures.builders import scale_tube_radius, swcnt
+
+    t = swcnt(5, 5, length=2)
+    centre = np.array([t.cell[0, 0], t.cell[1, 1]]) / 2.0
+    r0 = np.linalg.norm(t.positions[:, :2] - centre, axis=1)
+    out = scale_tube_radius(t, 1.02)
+    r1 = np.linalg.norm(out.positions[:, :2] - centre, axis=1)
+    assert np.allclose(r1, 1.02 * r0)
+    assert np.allclose(out.positions[:, 2], t.positions[:, 2])
+    assert out.info["geometry"] == "tube" and (out.cell == t.cell).all()

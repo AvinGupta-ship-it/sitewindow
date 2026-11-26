@@ -7,8 +7,12 @@ atomistic:
   calculator: tblite
   method: GFN2-xTB
   # Gamma-only sampling in tblite: Fermi smearing at 3000 K and 9x9 sheets (manual Section 10, Tier 2).
-  calculator_settings: { electronic_temperature: 3000.0 }
+  calculator_settings_tblite: { electronic_temperature: 3000.0 }
   supercell: 9
+  # Sticking barriers are referenced to the separated reactants: integer occupations (300 K) in a cell
+  # that does not fold the Dirac point onto Gamma (manual Section 10, Tier 2).
+  barriers:
+    stick: { supercell: 10, calculator_settings_tblite: { electronic_temperature: 300.0 } }
   fmax_eV_A: 0.05
   classes: [basal, monovacancy, stone_wales, cnt_armchair]
   # Armchair tubes: 6 unit cells (the lengths that sample the Fermi point converge monotonically; manual Section 10, Tier 2).

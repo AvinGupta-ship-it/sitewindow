@@ -337,6 +337,15 @@ def swcnt(n: int, m: int, length: int = 3, vacuum: float = VACUUM_A) -> Atoms:
     return t
 
 
+def scale_tube_radius(atoms: Atoms, scale: float) -> Atoms:
+    """Scale the distance of every atom from the tube axis (the z axis through the cell centre)
+    by ``scale``; the uniform radial breathing coordinate of a tube."""
+    out = atoms.copy()
+    centre = np.array([out.cell[0, 0], out.cell[1, 1]]) / 2.0
+    out.positions[:, :2] = centre + scale * (out.positions[:, :2] - centre)
+    return out
+
+
 def chirality_for_diameter(diameter_nm: float, chirality: str = "armchair") -> tuple[int, int]:
     """(n, m) of the armchair or zigzag tube whose diameter is closest to ``diameter_nm``."""
     a = GRAPHENE_LATTICE_A
@@ -640,6 +649,7 @@ def structure_hash(atoms: Atoms) -> str:
 
 
 __all__ = [
+    "scale_tube_radius",
     "VACUUM_A",
     "GRAPHENE_LATTICE_A",
     "neighbor_map",

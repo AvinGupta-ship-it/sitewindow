@@ -1,0 +1,59 @@
+{
+  "tier": "verify",
+  "package_version": "0.1.0",
+  "calculator": {
+    "name": "mace",
+    "tier": "T3",
+    "settings": {
+      "model": "medium",
+      "device": "cpu",
+      "default_dtype": "float64",
+      "dispersion": false
+    },
+    "settings_hash": "0001941085bd4d81"
+  },
+  "classes": [
+    "basal",
+    "monovacancy",
+    "stone_wales",
+    "cnt_armchair"
+  ],
+  "relaxation": {
+    "fmax_eV_A": 0.05,
+    "max_steps": 400,
+    "spin_states": [
+      0
+    ],
+    "tube_radius_optimization": {
+      "swcnt_5_5_x6": {
+        "scale": 1.01488577,
+        "dE_eV": -0.580722075525955,
+        "n_single_points": 9
+      },
+      "swcnt_8_8_x6": {
+        "scale": 1.009566,
+        "dE_eV": -0.4173610552563787,
+        "n_single_points": 10
+      },
+      "swcnt_10_10_x6": {
+        "scale": 1.0083293,
+        "dE_eV": -0.4025872107081341,
+        "n_single_points": 10
+      }
+    }
+  },
+  "references_eV": {
+    "E_H2": -6.524490106774508,
+    "E_H": -1.1589879653522108,
+    "H2_bond_A": 0.7472067800000008
+  },
+  "n_records": 58,
+  "n_configurations": 17,
+  "n_excluded": 0,
+  "wall_s": 442.22793333395384,
+  "files": {
+    "landscape_raw_verify.parquet": "f4d0cdca22d27ee00eb33625ea49f0f1bd7fd0d223d080b163eea8c8c43d744c",
+    "landscape_configurations_verify.parquet": "32b012052f105fb63ad598f71a704cf974039901d66a2ff4b5633cbc85af97ef",
+    "landscape_raw_verify_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  }
+}

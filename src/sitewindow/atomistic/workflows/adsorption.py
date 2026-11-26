@@ -32,6 +32,7 @@ from sitewindow.atomistic.parallel import barrier, broadcast_array, is_master
 from sitewindow.atomistic.structures.builders import (
     hydrogen_atom,
     hydrogen_molecule,
+    scale_tube_radius,
     structure_hash,
 )
 
@@ -256,8 +257,60 @@ def binding_energies(
     raise ValueError(adsorbate)
 
 
+def relax_tube_radius(
+    atoms: Atoms,
+    calc: Calculator,
+    cache_dir: Path | None = None,
+    step: float = 0.005,
+    tol: float = 1e-4,
+    max_iter: int = 4,
+) -> tuple[Atoms, dict[str, Any]]:
+    """Minimize the energy of a tube along its uniform radial breathing coordinate.
+
+    A per-atom force criterion does not resolve this collective strain: in a wide tube rolled at
+    the graphene bond length the radial force on every atom is small while the strain energy of
+    the whole tube is of order N F^2 / 2k, a few tenths of an eV for several hundred atoms, and a
+    hydrogenated tube relaxes part of it during its own relaxation while the clean tube does not.
+    Single points at the radial scales s - step, s and s + step are interpolated by a parabola,
+    the scale is moved to its minimum (at most two steps at a time) until the move is below
+    ``tol``, and the lowest sampled scale is kept. Returns the scaled structure and a record with
+    the scale, the energy change from the unscaled tube and the number of single points.
+    """
+    energies: dict[float, float] = {}
+
+    def energy(scale: float) -> float:
+        key = round(scale, 8)
+        if key not in energies:
+            energies[key] = single_point(scale_tube_radius(atoms, key), calc, cache_dir).energy_eV
+        return energies[key]
+
+    s = 1.0
+    e_ref = energy(1.0)
+    for _ in range(max_iter):
+        e_m, e_0, e_p = energy(s - step), energy(s), energy(s + step)
+        curvature = e_m - 2.0 * e_0 + e_p
+        if curvature <= 0.0:
+            s_new = s - step if e_m < e_p else s + step
+        else:
+            s_new = s + 0.5 * step * (e_m - e_p) / curvature
+            s_new = min(max(s_new, s - 2.0 * step), s + 2.0 * step)
+        moved = abs(s_new - s)
+        s = s_new
+        if moved < tol:
+            break
+    energy(s)
+    best = min(energies, key=lambda k: energies[k])
+    record = {
+        "scale": float(best),
+        "dE_eV": float(energies[best] - e_ref),
+        "n_single_points": len(energies),
+    }
+    return scale_tube_radius(atoms, best), record
+
+
 __all__ = [
     "constraint_tag",
+    "relax_tube_radius",
     "relax",
     "single_point",
     "RelaxResult",

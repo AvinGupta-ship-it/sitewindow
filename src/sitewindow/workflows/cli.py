@@ -358,12 +358,18 @@ def landscape_barriers(
         )
         if cnt_cfg.get("length_armchair") is not None:
             recipes["cnt_armchair"]["length"] = int(cnt_cfg["length_armchair"])
+    stick_cfg = dict((cfg.get("barriers", {}) or {}).get("stick", {}) or {})
+    stick_recipes: dict[str, dict] = {}
+    if "supercell" in stick_cfg:
+        stick_recipes["basal"] = {"supercell": int(stick_cfg["supercell"])}
     spec = BarrierSpec(
         tier=tier,
         pathways=[x.strip() for x in pathways.split(",")] if pathways else None,
         recipes=recipes,
         methods=tuple(m.strip() for m in method.split(",")),
         fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
+        stick_recipes=stick_recipes,
+        stick_calculator_settings=_calculator_settings(stick_cfg, calculator),
     )
     calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
     cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
@@ -378,9 +384,9 @@ def landscape_barriers(
                 {
                     "pathway": prof["pathway"],
                     "method": m,
-                    "barrier_eV": round(r["barrier_eV"], 3),
+                    "barrier_eV": None if r["barrier_eV"] is None else round(r["barrier_eV"], 3),
                     "reference": prof["reference_state"],
-                    "converged": r["converged"],
+                    "saddle_located": r.get("saddle_located", False),
                 }
             )
     if rows:

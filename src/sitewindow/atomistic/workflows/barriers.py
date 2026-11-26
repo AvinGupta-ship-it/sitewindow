@@ -8,20 +8,46 @@ Two methods are implemented.
   adsorbed hydrogen for sticking, and of the first hydrogen of the pair for recombination, so
   that the leaving hydrogen can abstract its partner while every other degree of freedom relaxes.
 - ``ci_neb``: climbing-image nudged elastic band with seven images and a spring constant of
-  0.1 eV/A between the relaxed initial state and the relaxed final state (the hydrogen atom held
-  far from the surface for sticking; physisorbed H2 for recombination, the relaxed end of the
-  scan when the scan ran). The band starts from the geometries of the constrained scan when
-  available (an IDPP interpolation otherwise), is first relaxed without the climbing image to a
-  loose tolerance and then with it to the tolerance of the tier, and is resumable from its
-  trajectory (manual: Tier 3; run at Tier 2 as well, where it is cheap).
+  0.1 eV/A between the relaxed initial state and the relaxed product state: the hydrogen atom
+  held far from the surface for sticking; for recombination the relaxed end of the scan when the
+  scan formed H2, and otherwise an H2 molecule relaxed above the pair, with its centre of mass
+  held when a free relaxation lets it fall back onto the surface (the vacancy hole); a band whose
+  final state is not the product is not run. The band starts from the
+  geometries of the constrained scan when that scan reached the product (an IDPP interpolation
+  otherwise), is first relaxed without the climbing image to a loose tolerance and then with it
+  to the tolerance of the tier, and is resumable from its trajectory (manual: Tier 3; run at
+  Tier 2 as well, where it is cheap).
+
+Every method result is checked against the product. The sticking product is the hydrogen atom
+separated from the surface (final carbon-hydrogen distance within 1 A of the far end of the grid);
+the recombination product is H2 (final hydrogen-hydrogen distance within a factor
+``PRODUCT_H_H_FACTOR`` of the engine's own H2 bond length). A method has located the saddle only
+when every point or image converged, the path ends in the product, the maximum lies in the
+interior of the path, the constrained path is continuous (no energy step steeper than
+``SCAN_SLOPE_LIMIT_EV_A``, about twice the largest restoring force of a carbon-hydrogen bond,
+between adjacent points: a steeper step means the constrained minimum jumped between valleys and
+the maximum before the jump is not a saddle) and, for sticking, the far end of the path lies
+within ``FAR_POINT_TOLERANCE_EV`` of the separated reactants (the far point reproduces them up to
+physisorption, so a larger offset means the reference is inconsistent with the path, as happens
+when Fermi smearing shares electrons between a distant hydrogen atom and the sheet); otherwise
+``saddle_located`` is false and ``saddle_caveat`` names the reason. A single carbon-hydrogen
+coordinate does not reach H2 from every initial state (a para pair, or the two dangling-bond
+hydrogens of a monovacancy, only detach one hydrogen), and a scan that ends in the wrong product
+is not a bound on the recombination barrier in either direction.
 
 The table ``barriers_<tier>.parquet`` holds one record per pathway from the primary method: the
 constrained scan for sticking, whose single coordinate follows the minimum-energy path (the NEB
 confirms it), and the NEB for recombination, where a constrained scan can miss the saddle in
 either direction (the constrained minimum can jump between valleys, or follow a higher valley
-than the true path). When the NEB does not converge the scan value is written with the method
-flagged in the provenance identifier (manual: failure modes). The profile file keeps every
-method with its energies and structures.
+than the true path). When the preferred method has not located the saddle the other method is
+used if it has; when neither has, the scan maximum is written and the record carries
+``converged = False``, so that a record with ``converged = True`` is a saddle-point energy and
+one without is the maximum of a path that stopped early, ended in the wrong product, or rose to
+the end of the grid (manual: failure modes). At Tier 2 the GFN2-xTB self-consistent field does
+not converge at the hydrogen-abstraction saddle, so recombination records there are of the
+second kind. The profile file keeps every method with its energies, flags and structures, and
+for sticking the energy of the far end of the grid relative to the separated reactants (the
+``far_point_offset_eV``), which is zero up to physisorption when the reference is consistent.
 
 Pathways (manual C2, governing principles) are taken from the site-class catalogue so that the
 initial states are the landscape configurations themselves: monomer sticking on the basal plane,
@@ -37,21 +63,22 @@ along the coordinate; the value is kept and flagged in the profile.
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import io
 import json
 import logging
 import time
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, is_dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
 from ase import Atoms
 from ase.calculators.calculator import CalculationFailed
-from ase.constraints import FixBondLength
+from ase.constraints import FixBondLength, FixSubsetCom
 from ase.io import read as ase_read
 from ase.io import write as ase_write
 from ase.mep import NEB
@@ -67,7 +94,12 @@ from sitewindow.atomistic.structures.builders import (
     structure_hash,
     surface_normal,
 )
-from sitewindow.atomistic.workflows.adsorption import RelaxResult, reference_energies, relax
+from sitewindow.atomistic.workflows.adsorption import (
+    RelaxResult,
+    reference_energies,
+    relax,
+    relax_tube_radius,
+)
 from sitewindow.io import sha256_file, write_table
 from sitewindow.landscape.classes import Configuration, catalogue
 from sitewindow.schema import (
@@ -91,6 +123,9 @@ CONSTRAINED_SCAN = "constrained_scan"
 CI_NEB = "ci_neb"
 METHODS = (CONSTRAINED_SCAN, CI_NEB)
 H2_BOND_A = 0.75
+PRODUCT_H_H_FACTOR = 1.3
+SCAN_SLOPE_LIMIT_EV_A = 10.0
+FAR_POINT_TOLERANCE_EV = 0.1
 
 
 @dataclass(frozen=True)
@@ -150,12 +185,15 @@ class BarrierSpec:
     far_distance_A: float = 3.6
     recomb_distance_A: float = 3.0
     h2_height_A: float = 3.0
+    h2_far_height_A: float = 6.0
     neb_images: int = 7
     neb_spring_eV_A: float = 0.1
     neb_steps: int = 600
     neb_prerelax_fmax: float = 0.3
     numerical_sigma_eV: float = 0.05
     tube_diameters_nm: tuple[float, float] = (0.68, 1.36)
+    stick_recipes: dict[str, dict[str, Any]] = field(default_factory=dict)
+    stick_calculator_settings: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -164,6 +202,12 @@ class ScanPoint:
     energy_eV: float
     converged: bool
     atoms: Atoms | None
+    excluded: str | None = None
+
+    @property
+    def accepted(self) -> bool:
+        """A finite point that is not excluded from the constrained path."""
+        return bool(np.isfinite(self.energy_eV)) and self.excluded is None
 
 
 @dataclass(frozen=True)
@@ -205,7 +249,7 @@ def pathways(spec: BarrierSpec) -> list[Pathway]:
         coord = (int(cfg.placements[0][0]), len(cfg.substrate))
         out.append(Pathway(name, kind, cfg, coord, cfg.tiers))
 
-    add("monomer_stick", STICK, find("basal", "monomer"))
+    add("monomer_stick", STICK, find("basal", "monomer", spec.stick_recipes.get("basal")))
     add("ortho_recomb", RECOMB, find("basal", "ortho"))
     add("para_recomb", RECOMB, find("basal", "para"))
     add("dangling_pair_recomb", RECOMB, find("monovacancy", "seq2"))
@@ -319,10 +363,11 @@ def scan_profile(
         points.append(point)
         if point.atoms is not None:
             prev = point
-    finite = [p for p in points if np.isfinite(p.energy_eV)]
-    if not finite:
-        return sorted(points, key=lambda p: p.coordinate_A)
-    converged = [p for p in finite if p.converged] or finite
+    points = mark_islands(points)
+    accepted = [p for p in points if p.accepted]
+    if not accepted:
+        return points
+    converged = [p for p in accepted if p.converged] or accepted
     top = max(converged, key=lambda p: p.energy_eV)
     lo, hi = min(grid), max(grid)
     fine = np.arange(
@@ -336,7 +381,41 @@ def scan_profile(
         if any(abs(d - p.coordinate_A) < 1e-6 for p in points):
             continue
         points.append(evaluate(float(round(d, 4)), top))
-    return sorted(points, key=lambda p: p.coordinate_A)
+    return mark_islands(points)
+
+
+ISLAND_REASON = "self-consistent field solution above the ground state of the neighbouring points"
+
+
+def mark_islands(
+    points: Sequence[ScanPoint], slope_limit_eV_A: float = SCAN_SLOPE_LIMIT_EV_A
+) -> list[ScanPoint]:
+    """Mark the islands of a scan: maximal runs of finite points that are separated from both
+    of their neighbours by energy steps steeper than ``slope_limit_eV_A`` and lie entirely above
+    both neighbours. Such a run is a self-consistent field solution that is not the ground state
+    of the constrained system, since lower states exist at the adjacent coordinates; its points
+    are kept with their energies but excluded from the path. Earlier marks are recomputed, and
+    the result is sorted by coordinate."""
+    ordered = sorted((replace(p, excluded=None) for p in points), key=lambda p: p.coordinate_A)
+    finite = [k for k, p in enumerate(ordered) if np.isfinite(p.energy_eV)]
+    if len(finite) < 3:
+        return ordered
+    segments: list[list[int]] = [[finite[0]]]
+    for a, b in zip(finite, finite[1:]):
+        pa, pb = ordered[a], ordered[b]
+        gap = abs(pb.coordinate_A - pa.coordinate_A)
+        if gap > 0 and abs(pb.energy_eV - pa.energy_eV) / gap > slope_limit_eV_A:
+            segments.append([b])
+        else:
+            segments[-1].append(b)
+    for n in range(1, len(segments) - 1):
+        seg = segments[n]
+        left = ordered[segments[n - 1][-1]].energy_eV
+        right = ordered[segments[n + 1][0]].energy_eV
+        if min(ordered[k].energy_eV for k in seg) > max(left, right):
+            for k in seg:
+                ordered[k] = replace(ordered[k], excluded=ISLAND_REASON)
+    return ordered
 
 
 def _grid(start: float, end: float, step: float) -> list[float]:
@@ -368,8 +447,10 @@ def neb_barrier(
     """Climbing-image NEB between two relaxed states.
 
     With ``trajectory`` the band is checkpointed: a converged band recorded in the sidecar JSON
-    next to the trajectory is returned without recomputation, and an unconverged band resumes
-    from its last images. A ``seed`` (an ordered sequence of geometries from ``initial`` to
+    next to the trajectory is returned without recomputation; an unconverged band resumes from
+    its last images with a fresh step budget until it has taken twice the budget, after which it
+    is returned as it stands, and the recorded step count is cumulative. A ``seed`` (an ordered
+    sequence of geometries from ``initial`` to
     ``final``, for example the constrained scan) replaces the IDPP interpolation of a new band so
     that the band starts in the valley the scan found. Not available under MPI (the Tier-1
     anchors use the constrained scan).
@@ -391,15 +472,25 @@ def neb_barrier(
             and np.allclose(saved[-1].positions, final.positions, atol=1e-3)
         ):
             saved = []  # a band between other end points is not resumed
+    prior_steps = 0
     if saved and sidecar is not None and sidecar.exists():
         meta = json.loads(sidecar.read_text())
-        if meta.get("converged") and len(meta.get("energies_eV", [])) == n_images:
+        prior_steps = int(meta.get("n_steps", 0))
+        complete = len(meta.get("energies_eV", [])) == n_images
+        if complete and (meta.get("converged") or prior_steps >= 2 * steps):
             for img, s in zip(images, saved):
                 img.positions = s.positions
-            energies = tuple(float(e) for e in meta["energies_eV"])
-            top = max(energies)
+            energies = tuple(float("nan") if e is None else float(e) for e in meta["energies_eV"])
+            top = float(np.nanmax(energies)) if np.isfinite(energies).any() else float("nan")
             return NEBResult(
-                energies, top - energies[0], top - energies[-1], True, 0, tuple(images), 0.0, True
+                energies,
+                top - energies[0],
+                top - energies[-1],
+                bool(meta.get("converged")),
+                prior_steps,
+                tuple(images),
+                0.0,
+                True,
             )
     for img in images:
         calc.attach(img)
@@ -437,7 +528,7 @@ def neb_barrier(
     except (CalculationFailed, RuntimeError) as exc:
         log.warning("NEB stopped: %s", str(exc).splitlines()[0])
         converged = False
-    n_steps += int(opt.get_number_of_steps())
+    n_steps += int(opt.get_number_of_steps()) + prior_steps
     energies_list: list[float] = []
     for img in images:
         try:
@@ -526,10 +617,16 @@ def _record(
     )
 
 
+def _located(result: dict[str, Any]) -> bool:
+    return bool(result.get("saddle_located", result.get("converged", False)))
+
+
 def primary_method(kind: str, results: dict[str, dict[str, Any]]) -> str | None:
     """The method whose barrier enters the table: the constrained scan for sticking, the NEB for
-    recombination, falling back to the other method when the preferred one is absent or, for the
-    NEB, not converged."""
+    recombination, falling back to the other method when the preferred one is absent or has not
+    located the saddle. When neither method has located it the scan is reported before the NEB,
+    because the constrained minima are meaningful points of the surface while an unconverged
+    band is not."""
     order = [CONSTRAINED_SCAN, CI_NEB] if kind == STICK else [CI_NEB, CONSTRAINED_SCAN]
     usable = {
         m: r
@@ -537,12 +634,90 @@ def primary_method(kind: str, results: dict[str, dict[str, Any]]) -> str | None:
         if r.get("barrier_eV") is not None and np.isfinite(r["barrier_eV"])
     }
     for m in order:
-        if m in usable and (m != CI_NEB or usable[m]["converged"]):
+        if m in usable and _located(usable[m]):
             return m
-    for m in order:
+    for m in (CONSTRAINED_SCAN, CI_NEB):
         if m in usable:
             return m
     return None
+
+
+def product_distance(
+    kind: str,
+    atoms: Atoms,
+    coordinate: tuple[int, int],
+    hydrogens: Sequence[int],
+    far_distance_A: float,
+    h2_bond_A: float,
+) -> tuple[float, bool]:
+    """The distance that defines the product of a pathway and whether ``atoms`` is that product:
+    the carbon-hydrogen distance of the scanned bond for sticking (product: within 1 A of the far
+    end of the grid), the hydrogen-hydrogen distance for recombination (product: H2, within
+    ``PRODUCT_H_H_FACTOR`` of the engine's bond length)."""
+    if kind == STICK:
+        d = float(atoms.get_distance(*coordinate, mic=True))
+        return d, bool(d >= far_distance_A - 1.0)
+    h1, h2 = hydrogens
+    d = float(atoms.get_distance(h1, h2, mic=True))
+    return d, bool(d <= PRODUCT_H_H_FACTOR * h2_bond_A)
+
+
+def saddle_caveat(
+    kind: str,
+    converged: bool,
+    product_reached: bool,
+    maximum_at_end: bool,
+    final_distance_A: float | None,
+    method: str = CONSTRAINED_SCAN,
+    discontinuity: tuple[float, float, float] | None = None,
+    far_offset_eV: float | None = None,
+) -> str | None:
+    """Why a method result is not a saddle-point energy, or ``None`` when it is.
+    ``discontinuity`` is the largest energy step of a scan with the coordinates it joins, and
+    ``far_offset_eV`` the energy of the far end of a sticking path relative to the separated
+    reactants."""
+    reasons = []
+    if not converged:
+        reasons.append(
+            "not every point converged"
+            if method == CONSTRAINED_SCAN
+            else "the band did not converge"
+        )
+    if not product_reached:
+        label = "C-H" if kind == STICK else "H-H"
+        where = "" if final_distance_A is None else f" ({label} distance {final_distance_A:.2f} A)"
+        reasons.append(f"the path does not end in the product{where}")
+    if maximum_at_end:
+        reasons.append(
+            "the maximum is at the end of the grid"
+            if method == CONSTRAINED_SCAN
+            else "the highest image is an end point"
+        )
+    if discontinuity is not None:
+        jump, d1, d2 = discontinuity
+        if abs(d2 - d1) > 0 and jump / abs(d2 - d1) > SCAN_SLOPE_LIMIT_EV_A:
+            reasons.append(
+                f"the constrained path is discontinuous ({jump:.2f} eV between {d1:.2f} and {d2:.2f} A)"
+            )
+    if far_offset_eV is not None and abs(far_offset_eV) > FAR_POINT_TOLERANCE_EV:
+        reasons.append(
+            f"the far end of the path lies {far_offset_eV:+.2f} eV from the separated reactants"
+        )
+    return "; ".join(reasons) or None
+
+
+def largest_step(points: Sequence[ScanPoint]) -> tuple[float, float, float] | None:
+    """The largest energy difference between adjacent finite points of a scan, with the two
+    coordinates it joins; ``None`` with fewer than two finite points."""
+    finite = sorted((p for p in points if np.isfinite(p.energy_eV)), key=lambda p: p.coordinate_A)
+    if len(finite) < 2:
+        return None
+    best = max(zip(finite, finite[1:]), key=lambda pq: abs(pq[1].energy_eV - pq[0].energy_eV))
+    return (
+        float(abs(best[1].energy_eV - best[0].energy_eV)),
+        float(best[0].coordinate_A),
+        float(best[1].coordinate_A),
+    )
 
 
 # --------------------------------------------------------------------------- workflow
@@ -574,21 +749,36 @@ def _points(pts: Sequence[ScanPoint]) -> list[dict[str, Any]]:
             "coordinate_A": p.coordinate_A,
             "energy_eV": p.energy_eV if np.isfinite(p.energy_eV) else None,
             "converged": p.converged,
+            "excluded": p.excluded,
         }
         for p in pts
     ]
 
 
+def _engine(calc: Calculator, cache_dir: Path) -> dict[str, Any]:
+    """A calculator with its tier, engine label, settings hash and reference energies."""
+    settings = calc.settings()
+    return {
+        "calc": calc,
+        "tier": Tier(calc.tier),
+        "settings": settings,
+        "engine": f"{calc.name}:{settings.get('method', settings.get('xc', ''))}".rstrip(":"),
+        "settings_hash": CalculatorSpec(calc.name, calc.tier, settings).settings_hash,
+        "refs": reference_energies(calc, cache_dir),
+    }
+
+
 def build_barriers(
     spec: BarrierSpec, calc: Calculator, cache_dir: Path, out_dir: Path
 ) -> dict[str, Any]:
-    """Compute the barriers of every pathway of the tier and write the barrier tables."""
+    """Compute the barriers of every pathway of the tier and write the barrier tables.
+
+    Sticking pathways use ``spec.stick_recipes`` for their substrate and the calculator with
+    ``spec.stick_calculator_settings`` applied (the same calculator when empty), because a
+    barrier measured from the separated reactants needs integer occupations in a cell whose
+    far-hydrogen state reproduces them (manual: Tier-2 protocol)."""
     t_start = time.perf_counter()
     cache_dir, out_dir = Path(cache_dir), Path(out_dir)
-    tier = Tier(calc.tier)
-    settings = calc.settings()
-    engine = f"{calc.name}:{settings.get('method', settings.get('xc', ''))}".rstrip(":")
-    settings_hash = CalculatorSpec(calc.name, calc.tier, settings).settings_hash
     sigma = spec.numerical_sigma_eV
     for m in spec.methods:
         if m not in METHODS:
@@ -596,32 +786,58 @@ def build_barriers(
     methods = tuple(m for m in spec.methods if not (m == CI_NEB and size() > 1))
     if methods != tuple(spec.methods):
         log.info("NEB skipped under MPI; the constrained scan is the only method")
-    refs = reference_energies(calc, cache_dir)
+    main = _engine(calc, cache_dir)
+    engines = {RECOMB: main, STICK: main}
+    if spec.stick_calculator_settings:
+        if not is_dataclass(calc):
+            raise ValueError("stick calculator settings require a dataclass calculator")
+        calc_stick = cast(Calculator, replace(cast(Any, calc), **spec.stick_calculator_settings))
+        engines[STICK] = _engine(calc_stick, cache_dir)
 
     records: list[SiteEnergyRecord] = []
     profiles: list[dict[str, Any]] = []
     exclusions: list[dict[str, Any]] = []
-    substrates: dict[str, tuple[Atoms, RelaxResult]] = {}
+    substrates: dict[tuple[str, str], tuple[Atoms, RelaxResult]] = {}
 
-    def relaxed_substrate(name: str, atoms: Atoms) -> tuple[Atoms, RelaxResult]:
-        if name not in substrates:
+    radius_opt: dict[str, dict[str, Any]] = {}
+
+    def relaxed_substrate(
+        name: str, atoms: Atoms, c: Calculator, key: str
+    ) -> tuple[Atoms, RelaxResult]:
+        if (name, key) not in substrates:
             a0 = atoms.copy()
             set_unpaired_electrons(a0, int(np.sum(a0.numbers)) % 2)
-            a, res = relax(a0, calc, cache_dir, fmax=spec.fmax, steps=spec.steps)
+            if a0.info.get("geometry") == "tube":
+                a0, rad = relax_tube_radius(a0, c, cache_dir)
+                radius_opt[f"{name}@{key}"] = rad
+                log.info(
+                    "substrate %s: radial scale %.5f, dE=%.4f eV (%d single points)",
+                    name,
+                    rad["scale"],
+                    rad["dE_eV"],
+                    rad["n_single_points"],
+                )
+            a, res = relax(a0, c, cache_dir, fmax=spec.fmax, steps=spec.steps)
             a.info.update(atoms.info)
-            substrates[name] = (a, res)
-        return substrates[name]
+            substrates[(name, key)] = (a, res)
+        return substrates[(name, key)]
 
-    def relax_free(a0: Atoms) -> tuple[Atoms, RelaxResult]:
-        return relax(a0, calc, cache_dir, fmax=spec.fmax, steps=spec.steps)
+    def relax_free(a0: Atoms, c: Calculator) -> tuple[Atoms, RelaxResult]:
+        return relax(a0, c, cache_dir, fmax=spec.fmax, steps=spec.steps)
 
-    def relax_with(a0: Atoms, constraints: list[Any]) -> tuple[Atoms, RelaxResult]:
-        return relax(a0, calc, cache_dir, fmax=spec.fmax, steps=spec.steps, constraints=constraints)
+    def relax_with(a0: Atoms, constraints: list[Any], c: Calculator) -> tuple[Atoms, RelaxResult]:
+        return relax(a0, c, cache_dir, fmax=spec.fmax, steps=spec.steps, constraints=constraints)
 
     for pw in pathways(spec):
         cfg = pw.config
+        eng = engines[pw.kind]
+        c: Calculator = eng["calc"]
+        refs: dict[str, float] = eng["refs"]
+        settings_hash: str = eng["settings_hash"]
+        tier: Tier = eng["tier"]
+        engine: str = eng["engine"]
         try:
-            sub, sub_res = relaxed_substrate(cfg.substrate_name, cfg.substrate)
+            sub, sub_res = relaxed_substrate(cfg.substrate_name, cfg.substrate, c, settings_hash)
             if not sub_res.converged:
                 exclusions.append(
                     {"key": pw.key, "reason": "substrate relaxation did not converge"}
@@ -629,7 +845,7 @@ def build_barriers(
                 continue
             start = add_hydrogens(sub, cfg.placements)
             n_unp = int(np.sum(start.numbers)) % 2
-            init, init_res = relax_free(start)
+            init, init_res = relax_free(start, c)
         except (CalculationFailed, RuntimeError) as exc:
             exclusions.append(
                 {"key": pw.key, "reason": f"calculation failed: {str(exc).splitlines()[0]}"}
@@ -681,74 +897,169 @@ def build_barriers(
         scan_final: tuple[Atoms, RelaxResult] | None = None
         if CONSTRAINED_SCAN in methods:
             t0 = time.perf_counter()
-            evaluate = _bond_evaluator(init, (i, j), relax_with)
+            evaluate = _bond_evaluator(init, (i, j), functools.partial(relax_with, c=c))
             end = spec.far_distance_A if pw.kind == STICK else spec.recomb_distance_A
             grid = _grid(d0, end, spec.grid_step_A)
             first = ScanPoint(d0, init_res.energy_eV, True, init)
             points = scan_profile(evaluate, grid, spec.refine_step_A, spec.refine_halfwidth_A)
             all_points = sorted([first, *points], key=lambda p: p.coordinate_A)
-            finite = [p for p in all_points if np.isfinite(p.energy_eV)]
+            finite = [p for p in all_points if p.accepted]
             conv = [p for p in finite if p.converged] or finite
             top = max(conv, key=lambda p: p.energy_eV)
-            last = next(p for p in reversed(all_points) if p.atoms is not None)
+            last = next(p for p in reversed(all_points) if p.atoms is not None and p.accepted)
+            final_distance: float | None = None
+            product = False
             try:
-                final_free, final_res = relax_free(last.atoms if last.atoms is not None else init)
+                final_free, final_res = relax_free(
+                    last.atoms if last.atoms is not None else init, c
+                )
                 final_energy: float | None = final_res.energy_eV
                 final_converged = final_res.converged
-                if final_res.converged:
+                final_distance, product = product_distance(
+                    pw.kind, final_free, (i, j), hydrogens, spec.far_distance_A, refs["H2_bond_A"]
+                )
+                if final_res.converged and product:
                     scan_final = (final_free, final_res)
             except (CalculationFailed, RuntimeError) as exc:
                 log.warning("final state of %s failed: %s", pw.key, str(exc).splitlines()[0])
                 final_free, final_energy, final_converged = init, None, False
             scan_seed = [p.atoms for p in all_points if p.atoms is not None]
-            all_converged = all(p.converged for p in points) and final_converged
+            all_converged = (
+                all(p.converged for p in points if p.excluded is None) and final_converged
+            )
             barrier = top.energy_eV - e_ref
+            at_end = top is last
+            far_offset = (
+                float(last.energy_eV - e_ref)
+                if pw.kind == STICK and np.isfinite(last.energy_eV)
+                else None
+            )
+            step = largest_step(finite)
+            caveat = saddle_caveat(
+                pw.kind,
+                all_converged,
+                product,
+                at_end,
+                final_distance,
+                discontinuity=step,
+                far_offset_eV=far_offset,
+            )
+            k_top = next(k for k, q in enumerate(all_points) if q is top)
+            if any(q.excluded for q in all_points[max(0, k_top - 1) : k_top + 2]):
+                caveat = "; ".join(
+                    x for x in (caveat, "the maximum neighbours an excluded point") if x
+                )
             profile["methods"][CONSTRAINED_SCAN] = {
                 "barrier_eV": barrier,
                 "barrier_from_initial_eV": top.energy_eV - init_res.energy_eV,
                 "barrierless": bool(barrier <= 0.0),
                 "transition_coordinate_A": top.coordinate_A,
-                "maximum_at_grid_end": bool(top is last),
+                "maximum_at_grid_end": bool(at_end),
+                "far_point_offset_eV": far_offset,
+                "largest_step_eV": None if step is None else step[0],
+                "largest_step_between_A": None if step is None else [step[1], step[2]],
                 "E_final_eV": final_energy,
                 "reaction_energy_eV": (
                     None if final_energy is None else final_energy - init_res.energy_eV
                 ),
+                "final_distance_A": final_distance,
+                "product_reached": product,
+                "saddle_located": caveat is None,
+                "saddle_caveat": caveat,
                 "points": _points(all_points),
                 "n_points": len(points),
+                "n_excluded_points": sum(q.excluded is not None for q in all_points),
                 "converged": all_converged,
                 "transition_structure": _extxyz(top.atoms if top.atoms is not None else init),
                 "final_structure": _extxyz(final_free),
                 "wall_s": time.perf_counter() - t0,
             }
             log.info(
-                "barrier %s %s E=%.3f eV at %.2f A (%d points, converged=%s) wall=%.1fs",
+                "barrier %s %s E=%.3f eV at %.2f A (%d points, saddle=%s%s) wall=%.1fs",
                 pw.key,
                 CONSTRAINED_SCAN,
                 barrier,
                 top.coordinate_A,
                 len(points),
-                all_converged,
+                caveat is None,
+                "" if caveat is None else ": " + caveat,
                 time.perf_counter() - t0,
             )
 
         neb_final: tuple[Atoms, RelaxResult] | None = None
+        final_label = ""
         if CI_NEB in methods:
+
+            def intact(
+                a: Atoms,
+                pair: tuple[int, int] = (i, j),
+                hs: Sequence[int] = hydrogens,
+                bond: float = refs["H2_bond_A"],
+            ) -> bool:
+                return product_distance(RECOMB, a, pair, hs, spec.far_distance_A, bond)[1]
+
             try:
                 if pw.kind == STICK:
                     final0 = set_coordinate(init, (i, j), spec.far_distance_A, STICK)
-                    neb_final = relax_with(final0, [FixBondLength(i, j)])
+                    neb_final = relax_with(final0, [FixBondLength(i, j)], c)
+                    final_label = "H atom at the far distance"
                 elif scan_final is not None:
                     neb_final = scan_final
+                    final_label = "relaxed end point of the scan"
                 else:
+                    held = [FixSubsetCom(list(hydrogens))]
                     final0 = h2_above(init, hydrogens, pw.site_carbons, normal, spec.h2_height_A)
-                    neb_final = relax_free(final0)
+                    neb_final = relax_free(final0, c)
+                    final_label = "H2 above the pair"
+                    if not intact(neb_final[0]):
+                        log.info(
+                            "H2 above %s does not stay intact when relaxed freely; "
+                            "its centre of mass is held",
+                            pw.key,
+                        )
+                        neb_final = relax_with(final0, held, c)
+                        final_label = "H2 above the pair, centre of mass held"
+                    if not intact(neb_final[0]):
+                        log.info(
+                            "H2 dissociates %.1f A above %s with its centre of mass held; "
+                            "the desorbed molecule %.1f A above the pair is the product",
+                            spec.h2_height_A,
+                            pw.key,
+                            spec.h2_far_height_A,
+                        )
+                        far0 = h2_above(
+                            init, hydrogens, pw.site_carbons, normal, spec.h2_far_height_A
+                        )
+                        neb_final = relax_with(far0, held, c)
+                        final_label = "desorbed H2, centre of mass held"
+                    scan_seed = []
             except (CalculationFailed, RuntimeError) as exc:
                 log.warning("NEB final state of %s failed: %s", pw.key, str(exc).splitlines()[0])
                 profile["methods"][CI_NEB] = {
                     "barrier_eV": None,
                     "converged": False,
                     "failure": f"final state: {str(exc).splitlines()[0]}",
+                    "final_state": final_label,
                 }
+        if neb_final is not None:
+            end_distance, end_is_product = product_distance(
+                pw.kind, neb_final[0], (i, j), hydrogens, spec.far_distance_A, refs["H2_bond_A"]
+            )
+            if not end_is_product:
+                label = "C-H" if pw.kind == STICK else "H-H"
+                log.warning(
+                    "NEB final state of %s is not the product (%s distance %.2f A); band skipped",
+                    pw.key,
+                    label,
+                    end_distance,
+                )
+                profile["methods"][CI_NEB] = {
+                    "barrier_eV": None,
+                    "converged": False,
+                    "failure": f"final state is not the product ({label} distance {end_distance:.2f} A)",
+                    "final_state": final_label,
+                }
+                neb_final = None
         if neb_final is not None:
             final, final_res = neb_final
             traj_dir = cache_dir / "neb"
@@ -758,7 +1069,7 @@ def build_barriers(
             res = neb_barrier(
                 init,
                 final,
-                calc,
+                c,
                 spec.neb_images,
                 spec.neb_spring_eV_A,
                 spec.fmax,
@@ -767,9 +1078,50 @@ def build_barriers(
                 prerelax_fmax=spec.neb_prerelax_fmax,
                 seed=scan_seed or None,
             )
+            if not np.isfinite(res.energies_eV).all():
+                failed = [k for k, e in enumerate(res.energies_eV) if not np.isfinite(e)]
+                log.warning(
+                    "barrier %s %s: images %s have no converged energy after %d steps; "
+                    "the path maximum is undefined",
+                    pw.key,
+                    CI_NEB,
+                    failed,
+                    res.n_steps,
+                )
+                profile["methods"][CI_NEB] = {
+                    "barrier_eV": None,
+                    "converged": False,
+                    "failure": f"images {failed} have no converged energy",
+                    "final_state": final_label,
+                    "image_energies_eV": [e if np.isfinite(e) else None for e in res.energies_eV],
+                    "n_images": spec.neb_images,
+                    "seeded_from_scan": bool(scan_seed),
+                    "n_steps": res.n_steps,
+                    "wall_s": res.wall_s,
+                }
+                neb_final = None
+        if neb_final is not None:
             finite_e = np.where(np.isfinite(res.energies_eV), res.energies_eV, -np.inf)
             top_i = int(np.argmax(finite_e))
             barrier = float(np.nanmax(res.energies_eV)) - e_ref
+            neb_distance, neb_product = product_distance(
+                pw.kind, res.images[-1], (i, j), hydrogens, spec.far_distance_A, refs["H2_bond_A"]
+            )
+            neb_converged = res.converged and final_res.converged
+            neb_far_offset = (
+                float(res.energies_eV[-1] - e_ref)
+                if pw.kind == STICK and np.isfinite(res.energies_eV[-1])
+                else None
+            )
+            neb_caveat = saddle_caveat(
+                pw.kind,
+                neb_converged,
+                neb_product,
+                top_i in (0, spec.neb_images - 1),
+                neb_distance,
+                CI_NEB,
+                far_offset_eV=neb_far_offset,
+            )
             profile["methods"][CI_NEB] = {
                 "barrier_eV": barrier,
                 "barrier_from_initial_eV": res.forward_barrier_eV,
@@ -779,7 +1131,13 @@ def build_barriers(
                 "n_images": spec.neb_images,
                 "spring_eV_A": spec.neb_spring_eV_A,
                 "seeded_from_scan": bool(scan_seed),
-                "converged": res.converged and final_res.converged,
+                "final_state": final_label,
+                "converged": neb_converged,
+                "far_point_offset_eV": neb_far_offset,
+                "final_distance_A": neb_distance,
+                "product_reached": neb_product,
+                "saddle_located": neb_caveat is None,
+                "saddle_caveat": neb_caveat,
                 "n_steps": res.n_steps,
                 "cached": res.cached,
                 "E_final_eV": res.energies_eV[-1],
@@ -789,13 +1147,14 @@ def build_barriers(
                 "wall_s": res.wall_s,
             }
             log.info(
-                "barrier %s %s E=%.3f eV (image %d of %d, converged=%s) wall=%.1fs",
+                "barrier %s %s E=%.3f eV (image %d of %d, saddle=%s%s) wall=%.1fs",
                 pw.key,
                 CI_NEB,
                 barrier,
                 top_i,
                 spec.neb_images,
-                res.converged,
+                neb_caveat is None,
+                "" if neb_caveat is None else ": " + neb_caveat,
                 res.wall_s,
             )
 
@@ -812,7 +1171,7 @@ def build_barriers(
                     settings_hash,
                     tier,
                     engine,
-                    bool(r["converged"]),
+                    bool(r.get("saddle_located", r["converged"])),
                     desc,
                     len(init),
                     sigma,
@@ -826,14 +1185,18 @@ def build_barriers(
         "calculator": {
             "name": calc.name,
             "tier": calc.tier,
-            "settings": settings,
-            "settings_hash": settings_hash,
+            "settings": main["settings"],
+            "settings_hash": main["settings_hash"],
         },
+        "stick_calculator_settings": spec.stick_calculator_settings,
+        "stick_recipes": spec.stick_recipes,
+        "stick_settings_hash": engines[STICK]["settings_hash"],
         "methods": list(methods),
         "primary_method": {STICK: CONSTRAINED_SCAN, RECOMB: CI_NEB},
         "grid_step_A": spec.grid_step_A,
         "refine_step_A": spec.refine_step_A,
         "fmax_eV_A": spec.fmax,
+        "tube_radius_optimization": radius_opt,
         "neb_images": spec.neb_images,
         "neb_spring_eV_A": spec.neb_spring_eV_A,
         "reference_energies_eV": refs,
@@ -846,7 +1209,7 @@ def build_barriers(
     if is_master():
         out_dir.mkdir(parents=True, exist_ok=True)
         table = out_dir / f"barriers_{spec.tier}.parquet"
-        write_table(frame, table, {"tier": spec.tier, "settings_hash": settings_hash})
+        write_table(frame, table, {"tier": spec.tier, "settings_hash": main["settings_hash"]})
         prof = out_dir / f"barrier_profiles_{spec.tier}.json"
         prof.write_text(json.dumps(profiles, indent=1))
         excl = out_dir / f"barriers_{spec.tier}_excluded.csv"
@@ -863,10 +1226,14 @@ __all__ = [
     "ScanPoint",
     "build_barriers",
     "h2_above",
+    "largest_step",
+    "mark_islands",
     "neb_barrier",
     "pathways",
     "primary_method",
+    "product_distance",
     "resample_path",
+    "saddle_caveat",
     "scan_profile",
     "set_coordinate",
 ]

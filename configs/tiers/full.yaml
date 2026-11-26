@@ -4,8 +4,12 @@ atomistic:
   tier1: { engine: gpaw, functional: PBE, dispersion: D3BJ, cutoff_eV: 500, kmesh: [4, 4, 1], vacuum_A: 15, fmax_eV_A: 0.02, anchors: 60 }
   tier2: { engine: tblite, method: GFN2-xTB, fmax_eV_A: 0.05 }
   # Gamma-only sampling in tblite: Fermi smearing at 3000 K and 12x12 sheets (manual Section 10, Tier 2).
-  calculator_settings: { electronic_temperature: 3000.0 }
+  calculator_settings_tblite: { electronic_temperature: 3000.0 }
   supercell: 12
+  # Sticking barriers are referenced to the separated reactants: integer occupations (300 K) in a cell
+  # that does not fold the Dirac point onto Gamma (manual Section 10, Tier 2).
+  barriers:
+    stick: { supercell: 10, calculator_settings_tblite: { electronic_temperature: 300.0 } }
   tier3: { engine: mace, model: MACE-MP-0-medium, fmax_eV_A: 0.05, neb_images: 7 }
   classes: [basal, monovacancy, divacancy_585, divacancy_555777, stone_wales, edge_zigzag, edge_armchair, cnt_armchair, cnt_zigzag, epoxide, hydroxyl, carbonyl_pair, carboxyl, mixed_vacancy_cnt, mixed_sw_cnt]
   cnt_diameters_nm: [0.6, 0.8, 1.0, 1.2, 1.4, 1.7, 2.0, 2.5]

@@ -113,10 +113,12 @@ def run_B10(reg: dict) -> dict:
     }
 
 
-def evaluate_B1_T2(frame: pd.DataFrame, reg: dict, settings: dict | None = None) -> dict:
-    """Tier-2 basal monomer of a landscape table against B1; reported, not expected to pass
-    without calibration. The summary names the cell and the electronic temperature because the
-    Gamma-only sampling of tblite makes the value depend on both."""
+def evaluate_B1_T2(
+    frame: pd.DataFrame, reg: dict, settings: dict | None = None, tier_label: str = "T2"
+) -> dict:
+    """Basal monomer of a Tier-2 or Tier-3 landscape table against B1; reported, not expected to
+    pass without calibration. The summary names the cell and, for tblite, the electronic
+    temperature because the Gamma-only sampling makes the value depend on both."""
     ref = reg["B1"]["reference"]
     rows = frame[
         (frame["site_class"] == "basal")
@@ -129,8 +131,8 @@ def evaluate_B1_T2(frame: pd.DataFrame, reg: dict, settings: dict | None = None)
             "passed": None,
             "predicted": {},
             "reference": {"DMC_eV": ref["DMC"], "PBE_eV": ref["PBE"]},
-            "metric": "absolute difference (tier T2, uncalibrated)",
-            "summary": "no basal monomer in the Tier-2 landscape table",
+            "metric": f"absolute difference (tier {tier_label}, uncalibrated)",
+            "summary": f"no basal monomer in the {tier_label} landscape table",
         }
     r = rows.iloc[0]
     e = float(r["value_eV"])
@@ -140,19 +142,52 @@ def evaluate_B1_T2(frame: pd.DataFrame, reg: dict, settings: dict | None = None)
         "id": "B1",
         "passed": None,
         "predicted": {
-            "E_bind_H_atom_T2_eV": e,
+            "E_bind_H_atom_eV": e,
+            "tier": tier_label,
+            "engine": str(r["engine"]) if "engine" in r else None,
             "supercell": str(r["supercell"]),
             "electronic_temperature_K": t_el,
         },
         "reference": {"DMC_eV": ref["DMC"], "PBE_eV": ref["PBE"]},
-        "metric": "absolute difference (tier T2, uncalibrated)",
+        "metric": f"absolute difference (tier {tier_label}, uncalibrated)",
         "summary": (
-            f"T2 basal monomer {e:.3f} eV ({cell}"
+            f"{tier_label} basal monomer {e:.3f} eV ({cell}"
             + (f", {t_el:.0f} K smearing" if t_el else "")
             + f") vs DMC {ref['DMC']} / PBE {ref['PBE']} eV: offsets {e - ref['DMC']:+.2f} / "
             f"{e - ref['PBE']:+.2f} eV (input to C3 calibration)"
         ),
     }
+
+
+def _landscape_table(tier: str, sub: str = "") -> tuple[Path, dict | None] | None:
+    """The landscape table of the full tier, else of ``tier``, in the optional subdirectory."""
+    import json
+
+    for t in ("full", tier):
+        base = Path(f"data/processed/{t}") / sub if sub else Path(f"data/processed/{t}")
+        table = base / f"landscape_raw_{t}.parquet"
+        if table.exists():
+            manifest = base / f"landscape_manifest_{t}.json"
+            settings = None
+            if manifest.exists():
+                settings = json.loads(manifest.read_text()).get("calculator", {}).get("settings")
+            return table, settings
+    return None
+
+
+def run_B1_T3(reg: dict, tier: str = "verify") -> dict:
+    """Tier-3 (MACE) basal monomer versus B1 from the ``tier3`` landscape table."""
+    import pandas as pd
+
+    found = _landscape_table(tier, "tier3")
+    if found is None:
+        return {
+            "id": "B1",
+            "passed": None,
+            "summary": "Tier-3 landscape not present (run landscape build --calculator mace)",
+        }
+    table, settings = found
+    return evaluate_B1_T2(pd.read_parquet(table), reg, settings, tier_label="T3")
 
 
 def run_B1_T2(reg: dict, tier: str = "verify") -> dict:
@@ -162,14 +197,10 @@ def run_B1_T2(reg: dict, tier: str = "verify") -> dict:
 
     import pandas as pd
 
-    for t in ("full", tier):
-        table = Path(f"data/processed/{t}/landscape_raw_{t}.parquet")
-        if table.exists():
-            manifest = Path(f"data/processed/{t}/landscape_manifest_{t}.json")
-            settings = None
-            if manifest.exists():
-                settings = json.loads(manifest.read_text()).get("calculator", {}).get("settings")
-            return evaluate_B1_T2(pd.read_parquet(table), reg, settings)
+    found = _landscape_table(tier)
+    if found is not None:
+        table, settings = found
+        return evaluate_B1_T2(pd.read_parquet(table), reg, settings)
     p = Path("data/processed/verify/atomistic_verify_T2.json")
     if not p.exists():
         return {
@@ -354,23 +385,31 @@ def evaluate_B2(frame: pd.DataFrame, reg: dict) -> dict:
             "summary": "no basal monomer sticking barrier in the barrier table",
         }
     predicted: dict[str, float] = {}
+    saddle: dict[str, bool] = {}
     for _, r in rows.iterrows():
         method = str(r["identifier"]).split("@")[-1] if "@" in str(r["identifier"]) else "unknown"
-        predicted[f"{r['tier']}:{method}:{r['supercell']}"] = float(r["value_eV"])
-    t1 = {k: v for k, v in predicted.items() if k.startswith("T1:")}
+        key = f"{r['tier']}:{method}:{r['supercell']}"
+        predicted[key] = float(r["value_eV"])
+        saddle[key] = bool(r["converged"]) if "converged" in rows.columns else True
+    located = {k: v for k, v in predicted.items() if saddle[k]}
+    t1 = {k: v for k, v in located.items() if k.startswith("T1:")}
     passed = None
     if t1:
         passed = bool(all(abs(v - ref) < thr for v in t1.values()))
-    parts = "; ".join(f"{k} {v:+.3f}" for k, v in predicted.items())
+    parts = "; ".join(
+        f"{k} {v:+.3f}" + ("" if saddle[k] else " (path maximum, no saddle located)")
+        for k, v in predicted.items()
+    )
     return {
         "id": "B2",
         "passed": passed,
         "predicted": predicted,
+        "saddle_located": saddle,
         "reference": {"value_eV": ref, "threshold_T1_eV": thr},
-        "checks": {k: bool(abs(v - ref) < thr) for k, v in predicted.items()},
+        "checks": {k: bool(abs(v - ref) < thr) for k, v in located.items()},
         "metric": "absolute difference of the sticking barrier (tier T1)",
         "summary": f"H sticking barrier on the basal plane, eV from H atom + substrate: {parts} vs {ref} eV"
-        + ("" if t1 else " (no Tier-1 value; reported as calibration input)"),
+        + ("" if t1 else " (no Tier-1 saddle value; reported as calibration input)"),
     }
 
 
@@ -379,12 +418,12 @@ def run_B2(reg: dict, tier: str = "verify") -> dict:
     import pandas as pd
 
     frames = []
-    for p in (
-        Path("data/processed/full/barriers_full.parquet"),
-        Path(f"data/processed/{tier}/barriers_{tier}.parquet"),
-    ):
-        if p.exists():
-            frames.append(pd.read_parquet(p))
+    for t in ("full", tier):
+        for sub in ("", "tier3"):
+            base = Path(f"data/processed/{t}") / sub if sub else Path(f"data/processed/{t}")
+            p = base / f"barriers_{t}.parquet"
+            if p.exists():
+                frames.append(pd.read_parquet(p))
     if not frames:
         return {
             "id": "B2",
@@ -469,6 +508,7 @@ def run_all(tier: str = "verify") -> dict:
         run_B9_endpoints(reg),
         run_B10(reg),
         run_B1_T2(reg, tier),
+        run_B1_T3(reg, tier),
         run_B1_T1(reg, tier),
         run_B1_T1_convergence(reg, tier),
         run_B2(reg, tier),
@@ -484,6 +524,7 @@ __all__ = [
     "run_B9_endpoints",
     "run_B10",
     "run_B1_T2",
+    "run_B1_T3",
     "evaluate_B1_T2",
     "run_B1_T1",
     "run_B1_T1_convergence",

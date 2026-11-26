@@ -56,8 +56,10 @@
       "id": "B1",
       "passed": null,
       "predicted": {
-        "E_bind_H_atom_T2_eV": -0.8178710752151357,
-        "supercell": "graphene_9x9",
+        "E_bind_H_atom_eV": -0.7909935082195272,
+        "tier": "T2",
+        "engine": "tblite:GFN2-xTB",
+        "supercell": "graphene_12x12",
         "electronic_temperature_K": 3000.0
       },
       "reference": {
@@ -65,7 +67,24 @@
         "PBE_eV": -0.821
       },
       "metric": "absolute difference (tier T2, uncalibrated)",
-      "summary": "T2 basal monomer -0.818 eV (9x9, 3000 K smearing) vs DMC -0.691 / PBE -0.821 eV: offsets -0.13 / +0.00 eV (input to C3 calibration)"
+      "summary": "T2 basal monomer -0.791 eV (12x12, 3000 K smearing) vs DMC -0.691 / PBE -0.821 eV: offsets -0.10 / +0.03 eV (input to C3 calibration)"
+    },
+    {
+      "id": "B1",
+      "passed": null,
+      "predicted": {
+        "E_bind_H_atom_eV": -1.8466357045170265,
+        "tier": "T3",
+        "engine": "mace",
+        "supercell": "graphene_9x9",
+        "electronic_temperature_K": null
+      },
+      "reference": {
+        "DMC_eV": -0.691,
+        "PBE_eV": -0.821
+      },
+      "metric": "absolute difference (tier T3, uncalibrated)",
+      "summary": "T3 basal monomer -1.847 eV (9x9) vs DMC -0.691 / PBE -0.821 eV: offsets -1.16 / -1.03 eV (input to C3 calibration)"
     },
     {
       "id": "B1",
@@ -125,7 +144,24 @@
     {
       "id": "B2",
       "passed": null,
-      "summary": "barrier table not present (run landscape barriers)"
+      "predicted": {
+        "T2:constrained_scan:graphene_10x10": 0.2523570965331601,
+        "T3:constrained_scan:graphene_10x10": 0.23788860284662405
+      },
+      "saddle_located": {
+        "T2:constrained_scan:graphene_10x10": true,
+        "T3:constrained_scan:graphene_10x10": true
+      },
+      "reference": {
+        "value_eV": 0.2,
+        "threshold_T1_eV": 0.05
+      },
+      "checks": {
+        "T2:constrained_scan:graphene_10x10": false,
+        "T3:constrained_scan:graphene_10x10": true
+      },
+      "metric": "absolute difference of the sticking barrier (tier T1)",
+      "summary": "H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input)"
     },
     {
       "id": "B3",

@@ -33,12 +33,19 @@ class EMTCalculator:
 def test_build_landscape_writes_validated_tables(tmp_path):
     spec = LandscapeSpec(
         tier="verify",
-        classes=["basal", "monovacancy"],
-        recipes={"basal": {"supercell": 3}, "monovacancy": {"supercell": 3, "max_hydrogens": 2}},
+        classes=["basal", "monovacancy", "cnt_armchair"],
+        recipes={
+            "basal": {"supercell": 3},
+            "monovacancy": {"supercell": 3, "max_hydrogens": 2},
+            "cnt_armchair": {"diameters_nm": [0.55], "length": 2},
+        },
         fmax=0.3,
         steps=60,
     )
     out = build_landscape(spec, EMTCalculator(), tmp_path / "cache", tmp_path / "out")
+    radial = out["manifest"]["relaxation"]["tube_radius_optimization"]
+    assert set(radial) == {"swcnt_4_4_x2"}
+    assert radial["swcnt_4_4_x2"]["dE_eV"] <= 0.0 and radial["swcnt_4_4_x2"]["n_single_points"] >= 3
     frame = out["records"]
     recs = frame_to_records(frame)
     assert len(recs) == len(frame) > 0
@@ -99,3 +106,21 @@ def test_h2_reference_guard_and_spin_pairing():
     h2 = hydrogen_molecule(pbc=True)
     set_unpaired_electrons(h2, 0)
     assert h2.get_initial_magnetic_moments().sum() == 0.0
+
+
+def test_relax_tube_radius_lowers_the_energy_and_leaves_sheets_alone(tmp_path):
+    import numpy as np
+
+    from sitewindow.atomistic.workflows.adsorption import relax_tube_radius, single_point
+
+    calc = EMTCalculator()
+    t = swcnt(4, 4, length=2)
+    scaled, rec = relax_tube_radius(t, calc, tmp_path / "cache")
+    e0 = single_point(t, calc, tmp_path / "cache").energy_eV
+    e1 = single_point(scaled, calc, tmp_path / "cache").energy_eV
+    assert rec["dE_eV"] <= 0.0 and abs(e1 - e0 - rec["dE_eV"]) < 1e-9
+    assert abs(rec["scale"] - 1.0) < 0.1 and rec["n_single_points"] >= 3
+    centre = np.array([t.cell[0, 0], t.cell[1, 1]]) / 2.0
+    r0 = np.linalg.norm(t.positions[:, :2] - centre, axis=1)
+    r1 = np.linalg.norm(scaled.positions[:, :2] - centre, axis=1)
+    assert np.allclose(r1 / r0, rec["scale"])

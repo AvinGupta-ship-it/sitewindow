@@ -24,7 +24,24 @@
     "max_steps": 400,
     "spin_states": [
       0
-    ]
+    ],
+    "tube_radius_optimization": {
+      "swcnt_5_5_x6": {
+        "scale": 1.00475271,
+        "dE_eV": -0.08421689815077116,
+        "n_single_points": 7
+      },
+      "swcnt_8_8_x6": {
+        "scale": 0.99930178,
+        "dE_eV": -0.0031990316456358414,
+        "n_single_points": 7
+      },
+      "swcnt_10_10_x6": {
+        "scale": 0.99795022,
+        "dE_eV": -0.03257724304603471,
+        "n_single_points": 7
+      }
+    }
   },
   "references_eV": {
     "E_H2": -26.740252835707306,
@@ -34,10 +51,10 @@
   "n_records": 58,
   "n_configurations": 17,
   "n_excluded": 0,
-  "wall_s": 651.9490957499947,
+  "wall_s": 1325.3901215421502,
   "files": {
-    "landscape_raw_verify.parquet": "698ce620c98cbaceebf28560f37d0f3888fd46c19de01ef8e6b66e0b3b1dcf34",
-    "landscape_configurations_verify.parquet": "5ce1e93b606c9a1abe748675a7c4b5a11d343a1ad45d22a656377b248854c860",
+    "landscape_raw_verify.parquet": "75f6154ed7e021717e3d647c913e172cec95ef6b9c85a8e299f4eae677e1da10",
+    "landscape_configurations_verify.parquet": "3e1b5b7f4e210b4c58d6a893b997a988f0f3da22a6af1008e0a96f5be246e9b7",
     "landscape_raw_verify_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
   }
 }

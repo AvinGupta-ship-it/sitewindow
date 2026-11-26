@@ -1,0 +1,54 @@
+{
+  "tier": "full",
+  "package_version": "0.1.0",
+  "calculator": {
+    "name": "tblite",
+    "tier": "T2",
+    "settings": {
+      "method": "GFN2-xTB",
+      "accuracy": 1.0,
+      "electronic_temperature": 3000.0,
+      "max_iterations": 300,
+      "spin_polarized": true
+    },
+    "settings_hash": "1db062cf2e92d31d"
+  },
+  "classes": [
+    "basal",
+    "monovacancy",
+    "divacancy_585",
+    "divacancy_555777",
+    "stone_wales",
+    "edge_zigzag",
+    "edge_armchair",
+    "cnt_armchair",
+    "cnt_zigzag",
+    "epoxide",
+    "hydroxyl",
+    "carbonyl_pair",
+    "carboxyl",
+    "mixed_vacancy_cnt",
+    "mixed_sw_cnt"
+  ],
+  "relaxation": {
+    "fmax_eV_A": 0.05,
+    "max_steps": 400,
+    "spin_states": [
+      0
+    ]
+  },
+  "references_eV": {
+    "E_H2": -26.740252835707306,
+    "E_H": -11.681719145327678,
+    "H2_bond_A": 0.776685609245515
+  },
+  "n_records": 368,
+  "n_configurations": 125,
+  "n_excluded": 0,
+  "wall_s": 41623.198255333,
+  "files": {
+    "landscape_raw_full.parquet": "1c59c6ce1fa0c0d761cb75e736c2c123862abfba3c074f2c36c878d8408a02f2",
+    "landscape_configurations_full.parquet": "28385ffc32f77bf3ec091d0e4a012f4cc85cf90375dbb3b4b2f1262fff14fa6e",
+    "landscape_raw_full_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  }
+}

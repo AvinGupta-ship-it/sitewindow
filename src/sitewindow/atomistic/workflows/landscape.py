@@ -42,6 +42,7 @@ from sitewindow.atomistic.workflows.adsorption import (
     binding_energies,
     reference_energies,
     relax,
+    relax_tube_radius,
 )
 from sitewindow.io import sha256_file, write_table
 from sitewindow.landscape.classes import Configuration, catalogue, chemisorption_classes
@@ -188,10 +189,22 @@ def build_landscape(
     substrates: dict[str, tuple[Atoms, RelaxResult]] = {}
     results: dict[str, ConfigurationResult] = {}
 
+    radius_opt: dict[str, dict[str, Any]] = {}
+
     def relaxed_substrate(name: str, atoms: Atoms) -> tuple[Atoms, RelaxResult]:
         if name not in substrates:
             a0 = atoms.copy()
             set_unpaired_electrons(a0, _parity(a0))
+            if a0.info.get("geometry") == "tube":
+                a0, rad = relax_tube_radius(a0, calc, cache_dir)
+                radius_opt[name] = rad
+                log.info(
+                    "substrate %s: radial scale %.5f, dE=%.4f eV (%d single points)",
+                    name,
+                    rad["scale"],
+                    rad["dE_eV"],
+                    rad["n_single_points"],
+                )
             a, res = relax(a0, calc, cache_dir, fmax=spec.fmax, steps=spec.steps)
             a.info.update(atoms.info)
             substrates[name] = (a, res)
@@ -400,6 +413,7 @@ def build_landscape(
                 "fmax_eV_A": spec.fmax,
                 "max_steps": spec.steps,
                 "spin_states": list(spec.spin_states),
+                "tube_radius_optimization": radius_opt,
             },
             "references_eV": refs,
             "n_records": int(len(frame)),
