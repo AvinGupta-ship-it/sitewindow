@@ -80,7 +80,8 @@ Keep a Changelog, and the project adheres to Semantic Versioning.
 - Tier-3 (MACE-MP-0 medium) verify-tier landscape and barrier tables under
   `data/processed/verify/tier3/`, computed on the Tier-2 configuration set; the B1 runner reports
   the Tier-3 basal monomer and the B2 runner reports Tier-3 barriers and marks values that are
-  path maxima rather than saddle points.
+  path maxima rather than saddle points. The Tier-3 tube recombination bands do not converge
+  within twice the step budget and are recorded as flagged path maxima.
 - Validation runners for B1 (Tier-1 anchor, Tier-1 convergence series and Tier-3 report), B2 (sticking barrier
   per tier and method), B3 (pair potential on coronene) and B4 (computed basal and pore site
   energies).
