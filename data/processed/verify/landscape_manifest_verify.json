@@ -7,11 +7,11 @@
     "settings": {
       "method": "GFN2-xTB",
       "accuracy": 1.0,
-      "electronic_temperature": 3000.0,
+      "electronic_temperature": 6000.0,
       "max_iterations": 300,
       "spin_polarized": true
     },
-    "settings_hash": "1db062cf2e92d31d"
+    "settings_hash": "c04aa45448a64a66"
   },
   "classes": [
     "basal",
@@ -27,34 +27,36 @@
     ],
     "tube_radius_optimization": {
       "swcnt_5_5_x6": {
-        "scale": 1.00475271,
-        "dE_eV": -0.08421689815077116,
-        "n_single_points": 7
+        "scale": 1.00606282,
+        "dE_eV": -0.13784373726775812,
+        "n_single_points": 10
       },
       "swcnt_8_8_x6": {
-        "scale": 0.99930178,
-        "dE_eV": -0.0031990316456358414,
+        "scale": 1.00021096,
+        "dE_eV": -0.00019954277377109975,
         "n_single_points": 7
       },
       "swcnt_10_10_x6": {
-        "scale": 0.99795022,
-        "dE_eV": -0.03257724304603471,
+        "scale": 0.99878157,
+        "dE_eV": -0.011474255636130692,
         "n_single_points": 7
       }
     }
   },
+  "energy": "E0",
+  "energy_description": "zero-temperature extrapolation F + T S / 2 of the tblite free energy from the occupations of a single point on the relaxed structure",
   "references_eV": {
-    "E_H2": -26.740252835707306,
+    "E_H2": -26.74025022626308,
     "E_H": -11.681719145327678,
-    "H2_bond_A": 0.7766856000000004
+    "H2_bond_A": 0.7766862000000003
   },
   "n_records": 58,
   "n_configurations": 17,
   "n_excluded": 0,
-  "wall_s": 1325.3901215421502,
+  "wall_s": 1831.8693562920016,
   "files": {
-    "landscape_raw_verify.parquet": "75f6154ed7e021717e3d647c913e172cec95ef6b9c85a8e299f4eae677e1da10",
-    "landscape_configurations_verify.parquet": "3e1b5b7f4e210b4c58d6a893b997a988f0f3da22a6af1008e0a96f5be246e9b7",
+    "landscape_raw_verify.parquet": "89604cf73ca40078b334814ee8fc16aa178a8c8f2f15e1e75d2e83f785ba35c7",
+    "landscape_configurations_verify.parquet": "70a7307e95100cdd7cf4c0169ea51cede49bf44313cce893c85965f99d1b36f7",
     "landscape_raw_verify_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
   }
 }
