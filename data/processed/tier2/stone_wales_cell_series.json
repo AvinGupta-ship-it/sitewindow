@@ -1,0 +1,133 @@
+{
+ "quantity": "Stone-Wales defect formation energy and rotated-bond monomer binding energy versus supercell, and the out-of-plane buckling test of the clean defect",
+ "engine": "tblite:GFN2-xTB",
+ "tier": "T2",
+ "protocol": {
+  "electronic_temperature_K": 6000.0,
+  "energy": "E0 = F + TS/2",
+  "fmax_eV_A": 0.05,
+  "k_sampling": "Gamma only",
+  "reference": "pristine graphene sheet of the same supercell"
+ },
+ "cells": {
+  "6x6": {
+   "n_atoms_substrate": 72,
+   "E_formation_E0_eV": 5.127228694876976,
+   "E_bind_H_atom_rotated_bond_E0_eV": -1.8698021121587782,
+   "source": "cell series, planar relaxation"
+  },
+  "7x7": {
+   "n_atoms_substrate": 98,
+   "E_formation_E0_eV": 5.031348535273537,
+   "E_bind_H_atom_rotated_bond_E0_eV": -1.7051421441671675,
+   "source": "cell series, planar relaxation"
+  },
+  "8x8": {
+   "n_atoms_substrate": 128,
+   "E_formation_E0_eV": 4.900302357975306,
+   "E_bind_H_atom_rotated_bond_E0_eV": -1.6873400465171482,
+   "source": "cell series, planar relaxation"
+  },
+  "9x9": {
+   "n_atoms_substrate": 162,
+   "E_formation_E0_eV": 4.83607175011457,
+   "E_bind_H_atom_rotated_bond_E0_eV": -1.6956114471892771,
+   "source": "verify-tier landscape table, planar relaxation"
+  },
+  "12x12": {
+   "n_atoms_substrate": 288,
+   "E_formation_F_3000K_eV": 4.674548240145668,
+   "source": "planar relaxation of the buckling test (E0) and the full-tier landscape table under the first protocol (3000 K free energy)",
+   "E_formation_E0_eV": 4.721748678097356
+  }
+ },
+ "buckling_test": {
+  "description": "Clean Stone-Wales substrate relaxed from the planar builder structure and from out-of-plane seeds of 0.3 A on the rotated pair (0.15 A on their neighbours), antisymmetric (sine-like) and symmetric; E0 of each relaxed structure and the carbon z-range",
+  "cells": {
+   "6x6": {
+    "planar": {
+     "E0_eV": -4216.563757296276,
+     "F_eV": -4219.689103567744,
+     "converged": true,
+     "n_steps": 12,
+     "z_range_A": 0.0,
+     "E_form_E0_eV": 5.127228694876976
+    },
+    "antisymmetric": {
+     "E0_eV": -4216.553575879531,
+     "F_eV": -4219.679822375983,
+     "converged": true,
+     "n_steps": 17,
+     "z_range_A": 0.21373693889428047,
+     "E_form_E0_eV": 5.137410111621648,
+     "dE0_vs_planar_eV": 0.010181416744671878
+    },
+    "symmetric": {
+     "E0_eV": -4216.560675875746,
+     "F_eV": -4219.687574413223,
+     "converged": true,
+     "n_steps": 21,
+     "z_range_A": 0.1898363425924492,
+     "E_form_E0_eV": 5.1303101154071555,
+     "dE0_vs_planar_eV": 0.0030814205301794573
+    }
+   },
+   "9x9": {
+    "planar": {
+     "E0_eV": -9494.707428424108,
+     "F_eV": -9500.953537087538,
+     "converged": true,
+     "n_steps": 16,
+     "z_range_A": 0.0,
+     "E_form_E0_eV": 4.83607175011457
+    },
+    "antisymmetric": {
+     "E0_eV": -9494.695970707226,
+     "F_eV": -9500.944336801203,
+     "converged": true,
+     "n_steps": 19,
+     "z_range_A": 0.20833259151630923,
+     "E_form_E0_eV": 4.847529466997003,
+     "dE0_vs_planar_eV": 0.011457716882432578
+    },
+    "symmetric": {
+     "E0_eV": -9494.691399063424,
+     "F_eV": -9500.941364923063,
+     "converged": true,
+     "n_steps": 17,
+     "z_range_A": 0.20428409206161469,
+     "E_form_E0_eV": 4.852101110798685,
+     "dE0_vs_planar_eV": 0.01602936068411509
+    }
+   },
+   "12x12": {
+    "planar": {
+     "E0_eV": -16883.389883941054,
+     "F_eV": -16894.234723645888,
+     "converged": true,
+     "n_steps": 20,
+     "z_range_A": 6.217248937900877e-15,
+     "E_form_E0_eV": 4.721748678097356
+    },
+    "antisymmetric": {
+     "E0_eV": -16883.38338590383,
+     "F_eV": -16894.22989685203,
+     "converged": true,
+     "n_steps": 21,
+     "z_range_A": 0.19562319246747073,
+     "E_form_E0_eV": 4.728246715319983,
+     "dE0_vs_planar_eV": 0.0064980372226273175
+    },
+    "symmetric": {
+     "E0_eV": -16883.377710754983,
+     "F_eV": -16894.224972524866,
+     "converged": true,
+     "n_steps": 20,
+     "z_range_A": 0.17606545318779254,
+     "E_form_E0_eV": 4.733921864168224,
+     "dE0_vs_planar_eV": 0.012173186070867814
+    }
+   }
+  }
+ }
+}

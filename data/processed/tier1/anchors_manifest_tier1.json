@@ -1,13 +1,14 @@
 {
   "tier": "T1",
   "package_version": "0.1.0",
-  "n_anchors": 4,
-  "n_records": 18,
+  "n_anchors": 5,
+  "n_records": 24,
   "classes": [
     "basal",
     "cnt_armchair",
     "edge_zigzag",
-    "monovacancy"
+    "monovacancy",
+    "stone_wales"
   ],
   "anchors": [
     {
@@ -37,11 +38,18 @@
       "converged": true,
       "E_bind_H_atom_PBE_D3": -3.7967666204616384,
       "wall_s": 10238.969998125001
+    },
+    {
+      "key": "stone_wales/stone_wales_6x6/monomer_rotated_bond",
+      "n_atoms": 73,
+      "converged": true,
+      "E_bind_H_atom_PBE_D3": -2.3422038063117574,
+      "wall_s": 11218.666441334004
     }
   ],
-  "wall_s_total": 24592.30885029,
+  "wall_s_total": 35810.975291624,
   "failed": [],
   "files": {
-    "anchors_tier1.parquet": "2d246b09fcffdfcb6ffc96a7b9e4a311af2713b97f3333313adcf8c494a0f4da"
+    "anchors_tier1.parquet": "23330ed86bf7d4029653285f4fe43e384e8cc4c068e63b389734cd3f5205bd42"
   }
 }
