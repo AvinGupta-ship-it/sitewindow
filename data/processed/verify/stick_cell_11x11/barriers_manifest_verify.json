@@ -1,0 +1,55 @@
+{
+  "tier": "verify",
+  "calculator": {
+    "name": "tblite",
+    "tier": "T2",
+    "settings": {
+      "method": "GFN2-xTB",
+      "accuracy": 1.0,
+      "electronic_temperature": 3000.0,
+      "max_iterations": 300,
+      "spin_polarized": true
+    },
+    "settings_hash": "1db062cf2e92d31d"
+  },
+  "stick_calculator_settings": {
+    "electronic_temperature": 300.0
+  },
+  "stick_recipes": {
+    "basal": {
+      "supercell": 11
+    }
+  },
+  "stick_settings_hash": "1ad38283192827fb",
+  "methods": [
+    "constrained_scan",
+    "ci_neb"
+  ],
+  "primary_method": {
+    "stick": "constrained_scan",
+    "recomb": "ci_neb"
+  },
+  "grid_step_A": 0.1,
+  "refine_step_A": 0.02,
+  "fmax_eV_A": 0.05,
+  "tube_radius_optimization": {},
+  "neb_images": 7,
+  "neb_spring_eV_A": 0.1,
+  "seed_profiles": null,
+  "seed_pathways": null,
+  "reference_energies_eV": {
+    "E_H2": -26.740252835707285,
+    "E_H": -11.681719145258556,
+    "H2_bond_A": 0.7766856000000004
+  },
+  "n_records": 1,
+  "n_pathways": 1,
+  "n_excluded": 0,
+  "package_version": "0.1.0",
+  "wall_s": 3346.0483462090015,
+  "files": {
+    "barriers_verify.parquet": "ed2fe11c9a8f4988496183d6f0e889d862ae167c251fc5bbedf1a5fb65e38510",
+    "barrier_profiles_verify.json": "b783e39155dd781fbbcd5882da8e5c0c90f77b1b9ea29b59920507492c825e53",
+    "barriers_verify_excluded.csv": "9dcfdf55e8e366ffd2dcc504d24acf6deb74a82b73788fc0dcbeb6f1c4e37e6a"
+  }
+}

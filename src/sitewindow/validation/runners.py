@@ -419,13 +419,16 @@ def evaluate_B2(frame: pd.DataFrame, reg: dict) -> dict:
 
 
 def run_B2(reg: dict, tier: str = "verify") -> dict:
-    """Benchmark B2 from the barrier tables of the full and the requested tier."""
+    """Benchmark B2 from the barrier tables of the full and the requested tier, including the
+    sticking-cell and NEB image-count convergence runs kept in their own subdirectories."""
     import pandas as pd
 
     frames = []
     for t in ("full", tier):
-        for sub in ("", "tier3"):
-            base = Path(f"data/processed/{t}") / sub if sub else Path(f"data/processed/{t}")
+        root = Path(f"data/processed/{t}")
+        bases = [root, root / "tier3"]
+        bases += sorted(root.glob("stick_cell_*")) + sorted((root / "tier3").glob("neb_images_*"))
+        for base in bases:
             p = base / f"barriers_{t}.parquet"
             if p.exists():
                 frames.append(pd.read_parquet(p))

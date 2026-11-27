@@ -148,11 +148,13 @@
       "passed": null,
       "predicted": {
         "T2:constrained_scan:graphene_10x10": 0.2523570965331601,
-        "T3:constrained_scan:graphene_10x10": 0.23788860284662405
+        "T3:constrained_scan:graphene_10x10": 0.23788860284662405,
+        "T2:constrained_scan:graphene_11x11": 0.24425869170590886
       },
       "saddle_located": {
         "T2:constrained_scan:graphene_10x10": true,
-        "T3:constrained_scan:graphene_10x10": true
+        "T3:constrained_scan:graphene_10x10": true,
+        "T2:constrained_scan:graphene_11x11": true
       },
       "reference": {
         "value_eV": 0.2,
@@ -160,10 +162,11 @@
       },
       "checks": {
         "T2:constrained_scan:graphene_10x10": false,
-        "T3:constrained_scan:graphene_10x10": true
+        "T3:constrained_scan:graphene_10x10": true,
+        "T2:constrained_scan:graphene_11x11": true
       },
       "metric": "absolute difference of the sticking barrier (tier T1)",
-      "summary": "H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input)"
+      "summary": "H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238; T2:constrained_scan:graphene_11x11 +0.244 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input)"
     },
     {
       "id": "B3",

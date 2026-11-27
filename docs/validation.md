@@ -12,7 +12,7 @@ Status `reported` marks runners that report a value without a pass criterion at 
 | B1 | reported | T3 basal monomer -1.847 eV (9x9) vs DMC -0.691 / PBE -0.821 eV: offsets -1.16 / -1.03 eV (input to C3 calibration) |
 | B1 | pass | T1 PBE basal monomer -0.781 eV (5x5, 500 eV, k4x4) vs PBE ref -0.821 eV: deviation +0.040 eV |
 | B1 | pass | T1 convergence of the basal monomer PBE energy from the base (5x5, 500 eV, k4x4x1, 15 A): 6x6 cell, k3x3x1 -0.0199; k6x6x1 -0.0136; 600 eV -0.0023; 20 A vacuum -0.0011 eV; every change below 0.02 eV in magnitude |
-| B2 | reported | H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input) |
+| B2 | reported | H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238; T2:constrained_scan:graphene_11x11 +0.244 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input) |
 | B3 | fail | pair potential on coronene: steele_buch -3.22; steele_darkrim_levesque -3.34 kJ/mol vs -4.7 (tol 1.0); calibrated set eps/k=45.1 K reproduces B3 by construction |
 | B4 | fail | B3-calibrated potential: basal 5.7, slit_0.70nm 9.6, slit_1.00nm 6.1 kJ/mol vs [4.0, 8.0]; literature sets within interval: steele_buch=False, steele_darkrim_levesque=True |
 | B11 | pass | defect formation energies, eV: T2:monovacancy:monovacancy_12x12 7.59 ok; T2:stone_wales:stone_wales_12x12 4.67 ok; T3:monovacancy:monovacancy_9x9 5.69; T3:stone_wales:stone_wales_9x9 4.30 vs monovacancy [7.4, 7.7] and Stone-Wales 5.0 (thresholds T1 0.3, T2 1.0); no T1 values yet |
