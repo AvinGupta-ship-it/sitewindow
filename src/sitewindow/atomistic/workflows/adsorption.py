@@ -35,6 +35,7 @@ from sitewindow.atomistic.structures.builders import (
     scale_tube_radius,
     structure_hash,
 )
+from sitewindow.errors import ConvergenceError
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class RelaxResult:
     wall_s: float
     cached: bool
     scf_retried: bool = False
+    magmoms: list[float] | None = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +68,28 @@ def _robust(calc: Calculator) -> Calculator | None:
     """A variant of ``calc`` for retrying a failed self-consistent field, when the adapter has one."""
     robust = getattr(calc, "robust", None)
     return robust() if callable(robust) else None
+
+
+SCF_FAILURE_NAMES = frozenset(
+    {"CalculationFailed", "KohnShamConvergenceError", "ConvergenceError", "TooFewBandsError"}
+)
+
+
+def is_scf_failure(exc: BaseException) -> bool:
+    """Whether an exception reports a self-consistent field that did not converge: ASE's
+    ``CalculationFailed`` (tblite) or GPAW's convergence errors, matched by class name so that
+    the engines stay optional imports."""
+    if isinstance(exc, CalculationFailed):
+        return True
+    return any(c.__name__ in SCF_FAILURE_NAMES for c in type(exc).__mro__)
+
+
+def final_magnetic_moments(atoms: Atoms) -> list[float] | None:
+    """Converged magnetic moments of a calculation, when the calculator provides them."""
+    try:
+        return [float(m) for m in np.atleast_1d(atoms.get_magnetic_moments())]
+    except Exception:
+        return None
 
 
 def unpaired_electrons(atoms: Atoms) -> int:
@@ -153,22 +177,32 @@ def relax(
     retried = False
     try:
         converged = bool(opt.run(fmax=fmax, steps=steps))
-    except CalculationFailed:
+    except Exception as exc:
+        if not is_scf_failure(exc):
+            raise
         robust = _robust(calc)
         if robust is None:
-            raise
+            raise ConvergenceError(f"relax {key}: {exc}") from exc
         log.warning("relax %s: SCF failed, retrying with the damped mixer", key)
         retried = True
         robust.attach(a)
         done = int(opt.get_number_of_steps())
         opt = (BFGS if optimizer == "BFGS" else FIRE)(a, logfile=None)
-        converged = bool(opt.run(fmax=fmax, steps=max(steps - done, 1)))
+        try:
+            converged = bool(opt.run(fmax=fmax, steps=max(steps - done, 1)))
+        except Exception as exc2:
+            if not is_scf_failure(exc2):
+                raise
+            raise ConvergenceError(f"relax {key}: {exc2} (after the damped-mixer retry)") from exc2
     e = float(a.get_potential_energy())
     fmax_final = float(np.linalg.norm(a.get_forces(), axis=1).max()) if len(a) > 1 else 0.0
+    moments = final_magnetic_moments(a)
     a.calc = None
     # Under MPI every rank holds rank 0's result, whatever the calculator's own parallelism.
     a.positions = broadcast_array(a.positions)
     scalars = broadcast_array([e, fmax_final, float(opt.get_number_of_steps()), float(converged)])
+    if moments is not None:
+        moments = [float(m) for m in broadcast_array(moments)]
     res = RelaxResult(
         float(scalars[0]),
         float(scalars[1]),
@@ -179,6 +213,7 @@ def relax(
         time.perf_counter() - t0,
         False,
         retried,
+        moments,
     )
     log.info(
         "relax %s n=%d steps=%d fmax=%.3f converged=%s wall=%.1fs",
@@ -215,14 +250,23 @@ def single_point(
     retried = False
     try:
         e_local = a.get_potential_energy()
-    except CalculationFailed:
+    except Exception as exc:
+        if not is_scf_failure(exc):
+            raise
         robust = _robust(calc)
         if robust is None:
-            raise
+            raise ConvergenceError(f"single point {key}: {exc}") from exc
         log.warning("single point %s: SCF failed, retrying with the damped mixer", key)
         retried = True
         robust.attach(a)
-        e_local = a.get_potential_energy()
+        try:
+            e_local = a.get_potential_energy()
+        except Exception as exc2:
+            if not is_scf_failure(exc2):
+                raise
+            raise ConvergenceError(
+                f"single point {key}: {exc2} (after the damped-mixer retry)"
+            ) from exc2
     e = float(broadcast_array([e_local])[0])
     res = SinglePointResult(
         e, structure_hash(atoms), spec.settings_hash, time.perf_counter() - t0, False, retried
@@ -309,6 +353,9 @@ def relax_tube_radius(
 
 
 __all__ = [
+    "SCF_FAILURE_NAMES",
+    "is_scf_failure",
+    "final_magnetic_moments",
     "constraint_tag",
     "relax_tube_radius",
     "relax",

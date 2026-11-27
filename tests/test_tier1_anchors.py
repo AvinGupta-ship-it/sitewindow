@@ -146,3 +146,90 @@ def test_gpaw_engine_requires_gpaw_or_reports_it():
     assert engine.name() == "gpaw"
     assert engine.pw().settings()["ecut_eV"] == 500.0
     assert engine.lcao().settings()["basis"] == "dzp"
+
+
+class _FailingEngine(EMTEngine):
+    """Raises a convergence error for every structure with more than ``limit`` atoms."""
+
+    def lcao(self, txt=None):
+        return _FailingCalc(label="lcao")
+
+    def pw(self, txt=None):
+        return _FailingCalc(label="pw")
+
+
+@dataclass
+class _FailingCalc(EMTCalc):
+    limit: int = 20
+
+    def attach(self, atoms: Atoms) -> None:
+        from ase.calculators.emt import EMT
+
+        from sitewindow.errors import ConvergenceError
+
+        if len(atoms) > self.limit:
+            raise ConvergenceError("self-consistent field did not converge")
+        atoms.calc = EMT()
+
+
+def test_run_anchor_set_records_a_failed_anchor_and_continues(tmp_path):
+    registry = {
+        "anchors": [
+            {
+                "round": 1,
+                "site_class": "basal",
+                "configuration": "monomer",
+                "recipe": {"supercell": 3},
+            },
+            {
+                "round": 1,
+                "site_class": "basal",
+                "configuration": "monomer",
+                "recipe": {"supercell": 4},
+            },
+        ],
+    }
+    reg_path = tmp_path / "anchors.yaml"
+    reg_path.write_text(yaml.safe_dump(registry))
+    settings = Tier1Settings(fmax_eV_A=0.3, relax_steps=40, prerelax_tier2=False)
+    res = run_anchor_set(
+        settings, tmp_path / "cache", tmp_path / "out", reg_path, engine=_FailingEngine()
+    )
+    statuses = {p["key"]: p["status"] for p in res["plan"]}
+    assert statuses["basal/graphene_3x3/monomer"] == "done"
+    assert statuses["basal/graphene_4x4/monomer"] == "failed"
+    failed = list((tmp_path / "out" / "anchors_failed").glob("*.json"))
+    assert len(failed) == 1 and res["manifest"]["failed"][0]["key"] == "basal/graphene_4x4/monomer"
+    again = run_anchor_set(
+        settings, tmp_path / "cache", tmp_path / "out", reg_path, engine=_FailingEngine()
+    )
+    assert {p["key"]: p["status"] for p in again["plan"]} == statuses
+
+
+def test_gpaw_robust_variant_keeps_the_settings_hash():
+    from sitewindow.atomistic.calculators.base import CalculatorSpec
+    from sitewindow.atomistic.calculators.gpaw_adapter import ROBUST_MIXER, GPAWCalculator
+
+    calc = GPAWCalculator(mode="pw")
+    robust = calc.robust()
+    assert robust.extra["mixer"] == ROBUST_MIXER and robust.maxiter >= 400
+    assert (
+        CalculatorSpec("gpaw", "T1", calc.settings()).settings_hash
+        == CalculatorSpec("gpaw", "T1", robust.settings()).settings_hash
+    )
+
+
+def test_scf_failure_detection_matches_gpaw_errors_by_name():
+    from ase.calculators.calculator import CalculationFailed
+
+    from sitewindow.atomistic.workflows.adsorption import is_scf_failure
+
+    class ConvergenceError(Exception):
+        pass
+
+    class KohnShamConvergenceError(ConvergenceError):
+        pass
+
+    assert is_scf_failure(KohnShamConvergenceError())
+    assert is_scf_failure(CalculationFailed("x"))
+    assert not is_scf_failure(ValueError("x"))

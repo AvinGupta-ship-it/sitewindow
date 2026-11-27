@@ -11,7 +11,7 @@ Parallel execution uses ``mpirun -np N gpaw python --module sitewindow.workflows
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from ase import Atoms
@@ -21,6 +21,7 @@ from sitewindow.errors import CalculatorUnavailable
 
 K_REF = 4
 L_REF_A = 5 * GRAPHENE_LATTICE_A
+ROBUST_MIXER: dict[str, Any] = {"name": "pulay", "beta": 0.02, "nmaxold": 8, "weight": 100.0}
 
 
 def scaled_kmesh(
@@ -58,6 +59,19 @@ class GPAWCalculator:
     name: str = "gpaw"
     tier: str = "T1"
     extra: dict[str, Any] = field(default_factory=dict)
+    _report_settings: dict[str, Any] | None = field(default=None, repr=False, compare=False)
+
+    def robust(self) -> GPAWCalculator:
+        """The same Hamiltonian with a damped Pulay mixer, a heavier long-wavelength metric and
+        the full iteration budget, used to retry a self-consistent field that sloshes (ribbons and
+        tubes with a large vacuum cross-section); ``settings`` is unchanged so that the result is
+        cached under the original key."""
+        return replace(
+            self,
+            maxiter=max(self.maxiter, 400),
+            extra={**self.extra, "mixer": dict(ROBUST_MIXER)},
+            _report_settings=self.settings(),
+        )
 
     def kpoints(self, atoms: Atoms) -> tuple[int, int, int]:
         if self.kmesh is not None:
@@ -103,6 +117,8 @@ class GPAWCalculator:
         atoms.calc = _with_dispersion(gpaw, self.xc, self.dispersion)
 
     def settings(self) -> dict[str, Any]:
+        if self._report_settings is not None:
+            return dict(self._report_settings)
         s: dict[str, Any] = {
             "mode": self.mode,
             "xc": self.xc,
@@ -145,4 +161,11 @@ def dispersion_energy_eV(atoms: Atoms, xc: str = "PBE", damping: str = "d3bj") -
     return float(a.get_potential_energy())
 
 
-__all__ = ["GPAWCalculator", "scaled_kmesh", "dispersion_energy_eV", "K_REF", "L_REF_A"]
+__all__ = [
+    "GPAWCalculator",
+    "ROBUST_MIXER",
+    "scaled_kmesh",
+    "dispersion_energy_eV",
+    "K_REF",
+    "L_REF_A",
+]

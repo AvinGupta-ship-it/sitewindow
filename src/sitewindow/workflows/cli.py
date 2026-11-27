@@ -505,6 +505,9 @@ def tier1_anchors(
     fmax: float = typer.Option(0.02),
     relax_steps: int = typer.Option(200),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print the ordered plan and exit"),
+    retry_failed: bool = typer.Option(
+        False, "--retry-failed", help="Run anchors recorded as failed again"
+    ),
     cache: Path = typer.Option(None),
     out: Path = typer.Option(None),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
@@ -527,6 +530,7 @@ def tier1_anchors(
         keys=[k.strip() for k in keys.split(",")] if keys else None,
         log_dir=cache / "logs",
         dry_run=dry_run,
+        retry_failed=retry_failed,
     )
     if not _is_master():
         return

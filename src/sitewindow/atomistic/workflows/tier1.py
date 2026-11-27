@@ -164,6 +164,7 @@ class GPAWEngine:
 
     settings: Tier1Settings
     prerelax_temperature_K: float = PRERELAX_ELECTRONIC_TEMPERATURE_K
+    first_attempt_maxiter: int = 150
 
     def prerelax(self) -> Calculator | None:
         if not self.settings.prerelax_tier2:
@@ -171,13 +172,13 @@ class GPAWEngine:
         return _tier2_calculator(self.prerelax_temperature_K)
 
     def lcao(self, txt: str | None = None) -> Calculator:
-        return self.settings.lcao(txt)
+        return replace(self.settings.lcao(txt), maxiter=self.first_attempt_maxiter)
 
     def pw(self, txt: str | None = None) -> Calculator:
-        return self.settings.pw(txt)
+        return replace(self.settings.pw(txt), maxiter=self.first_attempt_maxiter)
 
     def molecule_pw(self, txt: str | None = None) -> Calculator:
-        return self.settings.molecule_pw(txt)
+        return replace(self.settings.molecule_pw(txt), maxiter=self.first_attempt_maxiter)
 
     def dispersion(self, atoms: Atoms) -> float:
         return 0.0 if self.settings.dispersion is None else dispersion_energy_eV(atoms)
@@ -501,6 +502,17 @@ def _relaxation_record(res: RelaxResult) -> dict[str, Any]:
     }
 
 
+def with_converged_moments(atoms: Atoms, res: RelaxResult) -> Atoms:
+    """The relaxed structure with the magnetic moments its relaxation converged to as initial
+    moments, so that the plane-wave single point starts in the magnetic state the LCAO
+    relaxation found (ribbon edges and defects can hold several states, and a self-consistent
+    field started from a one-atom guess sloshes between them)."""
+    out = atoms.copy()
+    if res.magmoms is not None and len(res.magmoms) == len(out):
+        out.set_initial_magnetic_moments(np.asarray(res.magmoms, dtype=float))
+    return out
+
+
 def _prerelaxed(
     atoms: Atoms, t2: Calculator | None, cache: Path, info: dict[str, Any]
 ) -> tuple[Atoms, dict[str, Any] | None]:
@@ -572,8 +584,16 @@ def anchor_configuration(
 
     refs = _references(settings, cache_dir, log_dir, engine)
     pw_tag = f"{tag}_{settings.ecut_eV:.0f}eV"
-    sp_sub = single_point(sub, engine.pw(_log_path(log_dir, pw_tag, "pw_substrate")), cache_dir)
-    sp_ads = single_point(ads, engine.pw(_log_path(log_dir, pw_tag, "pw_configuration")), cache_dir)
+    sp_sub = single_point(
+        with_converged_moments(sub, res_sub),
+        engine.pw(_log_path(log_dir, pw_tag, "pw_substrate")),
+        cache_dir,
+    )
+    sp_ads = single_point(
+        with_converged_moments(ads, res_ads),
+        engine.pw(_log_path(log_dir, pw_tag, "pw_configuration")),
+        cache_dir,
+    )
     d3_sub, d3_ads = engine.dispersion(sub), engine.dispersion(ads)
     d3_h2 = refs["D3"].get("H2", 0.0)
     n = cfg.n_H
@@ -597,7 +617,7 @@ def anchor_configuration(
             settings.relax_steps,
         )
         sp_pris = single_point(
-            pris,
+            with_converged_moments(pris, res_pris),
             engine.pw(
                 _log_path(
                     log_dir, f"{cfg.pristine_name or 'pristine'}_{settings.ecut_eV:.0f}eV", "pw"
@@ -686,6 +706,10 @@ def anchor_configuration(
         "relaxation": {
             "substrate": _relaxation_record(res_sub),
             "configuration": _relaxation_record(res_ads),
+        },
+        "magnetic_moments_lcao": {
+            "substrate": None if res_sub.magmoms is None else float(np.sum(res_sub.magmoms)),
+            "configuration": None if res_ads.magmoms is None else float(np.sum(res_ads.magmoms)),
         },
         "converged": bool(
             res_sub.converged
@@ -856,6 +880,11 @@ def collect_anchor_table(out_dir: Path) -> dict[str, Any]:
             for d in anchors
         ],
         "wall_s_total": float(sum(d["wall_s"] for d in anchors)),
+        "failed": [
+            json.loads(p.read_text()) for p in sorted((out_dir / "anchors_failed").glob("*.json"))
+        ]
+        if (out_dir / "anchors_failed").exists()
+        else [],
     }
     if is_master():
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -875,21 +904,29 @@ def run_anchor_set(
     log_dir: Path | None = None,
     engine: Tier1Engine | None = None,
     dry_run: bool = False,
+    retry_failed: bool = False,
 ) -> dict[str, Any]:
     """Run the anchor registry in order, skipping anchors whose record exists, rebuilding the
-    anchor table after each one; returns the plan with the status of every anchor."""
+    anchor table after each one; returns the plan with the status of every anchor.
+
+    An anchor whose self-consistent field or relaxation fails is recorded under
+    ``anchors_failed/`` with the reason and the set continues; failed anchors are skipped on
+    later runs unless ``retry_failed`` is set.
+    """
     cache_dir, out_dir = Path(cache_dir), Path(out_dir)
     plan: list[dict[str, Any]] = []
     for rnd, cfg in resolve_anchors(load_anchor_registry(registry_path)):
         selected = (rounds is None or rnd in rounds) and (keys is None or cfg.key in keys)
         record = out_dir / "anchors" / f"{anchor_tag(cfg)}.json"
+        failed = out_dir / "anchors_failed" / f"{anchor_tag(cfg)}.json"
+        status = "done" if record.exists() else ("failed" if failed.exists() else "pending")
         plan.append(
             {
                 "round": rnd,
                 "key": cfg.key,
                 "n_atoms": len(cfg.substrate) + cfg.n_H,
                 "selected": selected,
-                "status": "done" if record.exists() else "pending",
+                "status": status,
                 "record": str(record),
             }
         )
@@ -901,8 +938,27 @@ def run_anchor_set(
     for item, (_, cfg) in zip(plan, resolve_anchors(load_anchor_registry(registry_path))):
         if not item["selected"] or item["status"] == "done":
             continue
+        if item["status"] == "failed" and not retry_failed:
+            continue
         log.info("anchor %s (round %d, %d atoms) starting", cfg.key, item["round"], item["n_atoms"])
-        res = anchor_configuration(cfg, settings, cache_dir, out_dir, log_dir, engine)
+        t0 = time.perf_counter()
+        try:
+            res = anchor_configuration(cfg, settings, cache_dir, out_dir, log_dir, engine)
+        except (ConvergenceError, RuntimeError) as exc:
+            reason = str(exc).splitlines()[0]
+            log.error("anchor %s failed: %s", cfg.key, reason)
+            item["status"] = "failed"
+            item["reason"] = reason
+            if is_master():
+                (out_dir / "anchors_failed").mkdir(parents=True, exist_ok=True)
+                (out_dir / "anchors_failed" / f"{anchor_tag(cfg)}.json").write_text(
+                    json.dumps(
+                        {"key": cfg.key, "reason": reason, "wall_s": time.perf_counter() - t0},
+                        indent=2,
+                    )
+                    + "\n"
+                )
+            continue
         item["status"] = "done"
         item["wall_s"] = res["wall_s"]
         item["E_bind_H_atom_PBE_D3"] = res["binding_eV"]["E_bind_H_atom_PBE_D3"]
@@ -922,6 +978,7 @@ __all__ = [
     "resolve_anchors",
     "collect_anchor_table",
     "run_anchor_set",
+    "with_converged_moments",
     "convergence_variants",
     "convergence_series",
     "B1_PBE_EV",
