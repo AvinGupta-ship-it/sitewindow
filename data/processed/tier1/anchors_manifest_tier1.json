@@ -1,12 +1,13 @@
 {
   "tier": "T1",
   "package_version": "0.1.0",
-  "n_anchors": 3,
-  "n_records": 12,
+  "n_anchors": 4,
+  "n_records": 18,
   "classes": [
     "basal",
     "cnt_armchair",
-    "edge_zigzag"
+    "edge_zigzag",
+    "monovacancy"
   ],
   "anchors": [
     {
@@ -29,11 +30,18 @@
       "converged": true,
       "E_bind_H_atom_PBE_D3": -4.975225726484537,
       "wall_s": 0.3706728329998441
+    },
+    {
+      "key": "monovacancy/monovacancy_6x6/seq1",
+      "n_atoms": 72,
+      "converged": true,
+      "E_bind_H_atom_PBE_D3": -3.7967666204616384,
+      "wall_s": 10238.969998125001
     }
   ],
-  "wall_s_total": 14353.338852164998,
+  "wall_s_total": 24592.30885029,
   "failed": [],
   "files": {
-    "anchors_tier1.parquet": "df0d46b8cb7ffe65b3d6b49e893879cca339dd9a473b2707169d725c04c6e305"
+    "anchors_tier1.parquet": "2d246b09fcffdfcb6ffc96a7b9e4a311af2713b97f3333313adcf8c494a0f4da"
   }
 }

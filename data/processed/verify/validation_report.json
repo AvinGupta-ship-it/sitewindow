@@ -229,11 +229,13 @@
         "T2:monovacancy:monovacancy_12x12": 7.591816644795472,
         "T2:stone_wales:stone_wales_12x12": 4.674548240145668,
         "T3:monovacancy:monovacancy_9x9": 5.686967119790324,
-        "T3:stone_wales:stone_wales_9x9": 4.295730280276985
+        "T3:stone_wales:stone_wales_9x9": 4.295730280276985,
+        "T1:monovacancy:monovacancy_6x6": 7.688920353212097
       },
       "checks": {
         "T2:monovacancy:monovacancy_12x12": true,
-        "T2:stone_wales:stone_wales_12x12": true
+        "T2:stone_wales:stone_wales_12x12": true,
+        "T1:monovacancy:monovacancy_6x6": true
       },
       "reference": {
         "monovacancy_formation_eV": [
@@ -247,7 +249,7 @@
         }
       },
       "metric": "absolute deviation of defect formation energies per tier",
-      "summary": "defect formation energies, eV: T2:monovacancy:monovacancy_12x12 7.59 ok; T2:stone_wales:stone_wales_12x12 4.67 ok; T3:monovacancy:monovacancy_9x9 5.69; T3:stone_wales:stone_wales_9x9 4.30 vs monovacancy [7.4, 7.7] and Stone-Wales 5.0 (thresholds T1 0.3, T2 1.0); no T1 values yet"
+      "summary": "defect formation energies, eV: T2:monovacancy:monovacancy_12x12 7.59 ok; T2:stone_wales:stone_wales_12x12 4.67 ok; T3:monovacancy:monovacancy_9x9 5.69; T3:stone_wales:stone_wales_9x9 4.30; T1:monovacancy:monovacancy_6x6 7.69 ok vs monovacancy [7.4, 7.7] and Stone-Wales 5.0 (thresholds T1 0.3, T2 1.0)"
     }
   ]
 }
