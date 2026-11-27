@@ -630,6 +630,47 @@ def set_unpaired_electrons(atoms: Atoms, n_unpaired: int, hydrogen_first: bool =
     for k in order[: max(0, n_unpaired)]:
         magmoms[k] = 1.0
     atoms.set_initial_magnetic_moments(magmoms)
+    atoms.info["n_unpaired"] = int(n_unpaired)
+
+
+BROKEN_SYMMETRY_MOMENT = 1.0
+
+
+def undercoordinated_carbons(atoms: Atoms, cutoff: float = C_C_CUTOFF_A) -> list[int]:
+    """Carbons with fewer than three carbon neighbours within ``cutoff``: the dangling bonds of
+    vacancies and the atoms of edges, hydrogen-terminated or bare (the π edge states of a zigzag
+    edge carry its magnetism whether or not the σ bond is saturated)."""
+    return [k for k, nb in neighbor_map(atoms, cutoff).items() if len(nb) < 3]
+
+
+def broken_symmetry_moments(
+    atoms: Atoms,
+    n_unpaired: int,
+    moment: float = BROKEN_SYMMETRY_MOMENT,
+    hydrogen_first: bool = True,
+) -> list[int]:
+    """Initial magnetic moments for a spin-polarized density-functional start that can break
+    spin symmetry: the nominal ``n_unpaired`` electrons placed as :func:`set_unpaired_electrons`,
+    plus ``±moment`` on every carbon with fewer than three carbon neighbours, the sign
+    alternating with the sublattice (Lieb's theorem for the bipartite network: opposite spins on
+    the two sublattices, the antiferromagnetic coupling of the two zigzag edges, parallel moments
+    on the three same-sublattice neighbours of a monovacancy). The total moment is left free in
+    the calculation; ``atoms.info['n_unpaired']`` keeps the nominal count. Returns the indices
+    that received a guess (empty for a fully three-coordinated network, whose moments stay the
+    canonical placement). A self-consistent field started from zero moments cannot leave the
+    non-magnetic state of a system whose ground state is magnetic, and one started from a
+    one-atom guess finds the state nearest to that guess rather than the lowest.
+    """
+    set_unpaired_electrons(atoms, n_unpaired, hydrogen_first)
+    under = undercoordinated_carbons(atoms)
+    if not under:
+        return []
+    colour = sublattices(atoms)
+    magmoms = np.array(atoms.get_initial_magnetic_moments(), dtype=float)
+    for k in under:
+        magmoms[k] += moment if colour[k] == 0 else -moment
+    atoms.set_initial_magnetic_moments(magmoms)
+    return under
 
 
 def graphane_placements(atoms: Atoms) -> list[tuple[int, Side]]:
@@ -687,6 +728,9 @@ __all__ = [
     "add_hydrogen_top",
     "add_hydrogens",
     "set_unpaired_electrons",
+    "undercoordinated_carbons",
+    "broken_symmetry_moments",
+    "BROKEN_SYMMETRY_MOMENT",
     "graphane_placements",
     "structure_hash",
     "natural_cutoffs",

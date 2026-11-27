@@ -17,6 +17,12 @@ the relaxed structure. Every structure is checkpointed through the calculation c
 finished anchor is written as its own JSON record, so an interrupted set resumes where it stopped;
 the anchor table ``anchors_tier1.parquet`` is rebuilt from the records after each anchor.
 
+Spin state: the nominal number of unpaired electrons is the electron-count parity; every GPAW
+relaxation starts from the symmetry-broken guess of ``broken_symmetry_moments`` (one Bohr magneton
+on each carbon with fewer than three carbon neighbours, the sign alternating with the sublattice) with the total moment
+free, the plane-wave single point starts from the moments the LCAO relaxation converged to, and
+the converged moments of both stages are part of the record.
+
 Run under MPI with ``mpirun -np N gpaw python --module sitewindow.workflows.cli tier1 ...``.
 """
 
@@ -42,7 +48,9 @@ from sitewindow.atomistic.calculators.gpaw_adapter import GPAWCalculator, disper
 from sitewindow.atomistic.descriptors import site_descriptors
 from sitewindow.atomistic.parallel import is_master
 from sitewindow.atomistic.structures.builders import (
+    BROKEN_SYMMETRY_MOMENT,
     add_hydrogens,
+    broken_symmetry_moments,
     central_atom_index,
     graphene_supercell,
     hydrogen_atom,
@@ -448,6 +456,10 @@ def _parity(atoms: Atoms) -> int:
     return int(np.sum(atoms.numbers)) % 2
 
 
+def _total_moment(moments: list[float] | None) -> float | None:
+    return None if moments is None else float(np.sum(moments))
+
+
 def _extxyz(atoms: Atoms) -> str:
     buf = io.StringIO()
     out = atoms.copy()
@@ -559,6 +571,7 @@ def anchor_configuration(
     sub0 = cfg.substrate.copy()
     set_unpaired_electrons(sub0, _parity(sub0))
     sub0, pre_sub = _prerelaxed(sub0, t2, cache_dir, cfg.substrate.info)
+    guess_sub = broken_symmetry_moments(sub0, _parity(sub0))
     sub, res_sub = relax(
         sub0,
         engine.lcao(_log_path(log_dir, tag, "lcao_substrate")),
@@ -573,6 +586,7 @@ def anchor_configuration(
     set_unpaired_electrons(start, n_unp)
     start_hash = structure_hash(start)
     start_pre, pre_ads = _prerelaxed(start, t2, cache_dir, cfg.substrate.info)
+    guess_ads = broken_symmetry_moments(start_pre, n_unp)
     ads, res_ads = relax(
         start_pre,
         engine.lcao(_log_path(log_dir, tag, "lcao_configuration")),
@@ -609,6 +623,7 @@ def anchor_configuration(
         pris0 = cfg.pristine.copy()
         set_unpaired_electrons(pris0, _parity(pris0))
         pris0, _ = _prerelaxed(pris0, t2, cache_dir, cfg.pristine.info)
+        broken_symmetry_moments(pris0, _parity(pris0))
         pris, res_pris = relax(
             pris0,
             engine.lcao(_log_path(log_dir, cfg.pristine_name or "pristine", "lcao_pristine")),
@@ -708,8 +723,17 @@ def anchor_configuration(
             "configuration": _relaxation_record(res_ads),
         },
         "magnetic_moments_lcao": {
-            "substrate": None if res_sub.magmoms is None else float(np.sum(res_sub.magmoms)),
-            "configuration": None if res_ads.magmoms is None else float(np.sum(res_ads.magmoms)),
+            "substrate": _total_moment(res_sub.magmoms),
+            "configuration": _total_moment(res_ads.magmoms),
+        },
+        "magnetic_moments_pw": {
+            "substrate": _total_moment(sp_sub.magmoms),
+            "configuration": _total_moment(sp_ads.magmoms),
+        },
+        "spin_guess": {
+            "substrate_sites": guess_sub,
+            "configuration_sites": guess_ads,
+            "moment_muB": BROKEN_SYMMETRY_MOMENT,
         },
         "converged": bool(
             res_sub.converged

@@ -1,12 +1,11 @@
 {
   "tier": "T1",
   "package_version": "0.1.0",
-  "n_anchors": 3,
-  "n_records": 12,
+  "n_anchors": 2,
+  "n_records": 8,
   "classes": [
     "basal",
-    "cnt_armchair",
-    "edge_zigzag"
+    "cnt_armchair"
   ],
   "anchors": [
     {
@@ -22,18 +21,11 @@
       "converged": true,
       "E_bind_H_atom_PBE_D3": -1.580414302610264,
       "wall_s": 10312.420773040998
-    },
-    {
-      "key": "edge_zigzag/ribbon_zigzag_6x4_bare_edge/edge_CH",
-      "n_atoms": 56,
-      "converged": true,
-      "E_bind_H_atom_PBE_D3": -4.784138937797748,
-      "wall_s": 3269.8075289170047
     }
   ],
-  "wall_s_total": 17622.775708249002,
+  "wall_s_total": 14352.968179331998,
   "failed": [],
   "files": {
-    "anchors_tier1.parquet": "9343a7023fca5f934e2051253f7ab2e7f6fad64d11ded7d17450bcbcbeae3177"
+    "anchors_tier1.parquet": "51c0c98babe13d6c12d874e5d359e601767768b67e74324c9ffbba7737bfadeb"
   }
 }

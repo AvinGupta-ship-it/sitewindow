@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+import numpy as np
 import pytest
 import yaml
 from ase import Atoms
@@ -90,6 +91,8 @@ def test_anchor_configuration_writes_a_record_with_binding_and_formation(tmp_pat
     assert b["E_bind_H_atom_PBE_D3"] == pytest.approx(b["E_bind_H_atom_PBE"])
     assert res["formation_eV"] is not None and "E_formation_PBE_D3" in res["formation_eV"]
     assert res["descriptors"]["coordination"] >= 2
+    assert len(res["spin_guess"]["substrate_sites"]) == 3 and res["spin_guess"]["moment_muB"] == 1.0
+    assert set(res["magnetic_moments_pw"]) == {"substrate", "configuration"}
     assert (tmp_path / "out" / "anchors" / f"{res['tag']}.json").exists()
     assert res["structure"].splitlines()[0].strip() == str(res["n_atoms"])
 
@@ -233,3 +236,89 @@ def test_scf_failure_detection_matches_gpaw_errors_by_name():
     assert is_scf_failure(KohnShamConvergenceError())
     assert is_scf_failure(CalculationFailed("x"))
     assert not is_scf_failure(ValueError("x"))
+
+
+def test_final_magnetic_moments_reads_the_dft_part_of_a_sum_calculator():
+    from ase.calculators.calculator import PropertyNotImplementedError
+
+    from sitewindow.atomistic.workflows.adsorption import final_magnetic_moments
+
+    class Dft:
+        def get_property(self, name, atoms=None, allow_calculation=True):
+            assert name == "magmoms"
+            return np.array([0.7, -0.1])
+
+    class Dispersion:
+        def get_property(self, name, atoms=None, allow_calculation=True):
+            raise PropertyNotImplementedError(name)
+
+    class Mixer:
+        calcs = [Dispersion(), Dft()]
+
+    class Sum:
+        mixer = Mixer()
+
+        def get_magnetic_moments(self, atoms):
+            raise PropertyNotImplementedError("magmoms")
+
+    atoms = Atoms("CH", positions=[[0, 0, 0], [0, 0, 1.1]])
+    atoms.calc = Sum()
+    assert final_magnetic_moments(atoms) == pytest.approx([0.7, -0.1])
+    atoms.calc = None
+    assert final_magnetic_moments(atoms) is None
+
+
+def test_broken_symmetry_guess_alternates_with_the_sublattice():
+    from sitewindow.atomistic.structures.builders import (
+        broken_symmetry_moments,
+        set_unpaired_electrons,
+        sublattices,
+        undercoordinated_carbons,
+    )
+    from sitewindow.atomistic.workflows.adsorption import moment_tag, unpaired_electrons
+
+    ribbon = _config("edge_zigzag", "edge_CH", {"width": 6, "length": 4}).substrate.copy()
+    parity = int(np.sum(ribbon.numbers)) % 2
+    sites = broken_symmetry_moments(ribbon, parity)
+    edge = undercoordinated_carbons(ribbon)
+    assert sites == edge and len(edge) == 8
+    canonical = ribbon.copy()
+    set_unpaired_electrons(canonical, parity)
+    guess = ribbon.get_initial_magnetic_moments() - canonical.get_initial_magnetic_moments()
+    colour = sublattices(ribbon)
+    assert all(guess[k] == (1.0 if colour[k] == 0 else -1.0) for k in edge)
+    assert all(guess[k] == 0.0 for k in range(len(ribbon)) if k not in edge)
+    assert sum(guess[k] > 0 for k in edge) == sum(guess[k] < 0 for k in edge)
+    assert unpaired_electrons(ribbon) == parity and moment_tag(ribbon).startswith("_m")
+
+    vacancy = _config("monovacancy", "seq1", {"supercell": 3}).substrate.copy()
+    sites = broken_symmetry_moments(vacancy, 0)
+    moments = vacancy.get_initial_magnetic_moments()
+    assert len(sites) == 3 and len({np.sign(moments[k]) for k in sites}) == 1
+    assert unpaired_electrons(vacancy) == 0
+
+    basal = _config("basal", "monomer", {"supercell": 3}).substrate.copy()
+    assert broken_symmetry_moments(basal, 0) == [] and moment_tag(basal) == ""
+
+
+def test_cache_keys_separate_the_symmetry_broken_start_from_the_canonical_one():
+    from sitewindow.atomistic.calculators.base import CalculatorSpec
+    from sitewindow.atomistic.structures.builders import (
+        broken_symmetry_moments,
+        set_unpaired_electrons,
+    )
+    from sitewindow.atomistic.workflows.adsorption import (
+        _cache_key,
+        moment_tag,
+        unpaired_electrons,
+    )
+
+    vacancy = _config("monovacancy", "seq1", {"supercell": 3}).substrate.copy()
+    set_unpaired_electrons(vacancy, 0)
+    spec = CalculatorSpec("emt", "T1", {"model": "emt"})
+    key_canonical = _cache_key(vacancy, spec, 0.05, True)
+    broken_symmetry_moments(vacancy, 0)
+    key_broken = _cache_key(vacancy, spec, 0.05, True)
+    assert key_canonical.endswith("_u0")
+    assert key_broken == key_canonical + moment_tag(vacancy) and unpaired_electrons(vacancy) == 0
+    assert np.sum(vacancy.get_initial_magnetic_moments()) == pytest.approx(3.0)

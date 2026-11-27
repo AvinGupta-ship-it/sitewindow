@@ -33,6 +33,7 @@ from sitewindow.atomistic.structures.builders import (
     hydrogen_atom,
     hydrogen_molecule,
     scale_tube_radius,
+    set_unpaired_electrons,
     structure_hash,
 )
 from sitewindow.errors import ConvergenceError
@@ -62,6 +63,7 @@ class SinglePointResult:
     wall_s: float
     cached: bool
     scf_retried: bool = False
+    magmoms: list[float] | None = None
 
 
 def _robust(calc: Calculator) -> Calculator | None:
@@ -85,15 +87,47 @@ def is_scf_failure(exc: BaseException) -> bool:
 
 
 def final_magnetic_moments(atoms: Atoms) -> list[float] | None:
-    """Converged magnetic moments of a calculation, when the calculator provides them."""
+    """Converged magnetic moments of a calculation, when the calculator provides them.
+
+    A sum calculator (density functional plus dispersion) implements only the properties common
+    to its parts, so the moments are taken from the part that has them.
+    """
     try:
         return [float(m) for m in np.atleast_1d(atoms.get_magnetic_moments())]
     except Exception:
-        return None
+        pass
+    parts = getattr(getattr(atoms.calc, "mixer", None), "calcs", None) or []
+    for part in parts:
+        try:
+            moments = part.get_property("magmoms", atoms, allow_calculation=False)
+            if moments is None:
+                moments = part.get_magnetic_moments(atoms)
+            return [float(m) for m in np.atleast_1d(moments)]
+        except Exception:
+            continue
+    return None
 
 
 def unpaired_electrons(atoms: Atoms) -> int:
+    """Nominal number of unpaired electrons: the count ``set_unpaired_electrons`` recorded in
+    ``atoms.info``, otherwise the rounded sum of the initial magnetic moments."""
+    nominal = atoms.info.get("n_unpaired")
+    if nominal is not None:
+        return int(nominal)
     return int(round(float(np.sum(atoms.get_initial_magnetic_moments()))))
+
+
+def moment_tag(atoms: Atoms) -> str:
+    """Cache-key suffix for a non-canonical initial-moment distribution (a symmetry-broken start
+    or the moments of a previous stage): empty when the moments are the placement
+    ``set_unpaired_electrons`` makes for the nominal count, so that results of the canonical
+    start keep their keys."""
+    moments = np.asarray(atoms.get_initial_magnetic_moments(), dtype=float)
+    canonical = atoms.copy()
+    set_unpaired_electrons(canonical, unpaired_electrons(atoms))
+    if np.allclose(moments, canonical.get_initial_magnetic_moments(), atol=5e-3):
+        return ""
+    return "_m" + hashlib.sha256(np.round(moments, 2).tobytes()).hexdigest()[:8]
 
 
 def constraint_tag(constraints: Sequence[Any] | None) -> str:
@@ -115,7 +149,7 @@ def _cache_key(
 ) -> str:
     return (
         f"{structure_hash(atoms)}_{spec.settings_hash}_f{fmax:g}_{int(fixed_cell)}"
-        f"_u{unpaired_electrons(atoms)}{constraint_tag(constraints)}"
+        f"_u{unpaired_electrons(atoms)}{moment_tag(atoms)}{constraint_tag(constraints)}"
     )
 
 
@@ -234,7 +268,10 @@ def single_point(
 ) -> SinglePointResult:
     """Total energy of ``atoms`` with ``calc`` without relaxation, cached like :func:`relax`."""
     spec = CalculatorSpec(calc.name, calc.tier, calc.settings())
-    key = f"{structure_hash(atoms)}_{spec.settings_hash}_sp_u{unpaired_electrons(atoms)}"
+    key = (
+        f"{structure_hash(atoms)}_{spec.settings_hash}_sp_u{unpaired_electrons(atoms)}"
+        f"{moment_tag(atoms)}"
+    )
     if cache_dir is not None:
         cache_dir = Path(cache_dir)
         if is_master():
@@ -268,8 +305,17 @@ def single_point(
                 f"single point {key}: {exc2} (after the damped-mixer retry)"
             ) from exc2
     e = float(broadcast_array([e_local])[0])
+    moments = final_magnetic_moments(a)
+    if moments is not None:
+        moments = [float(m) for m in broadcast_array(moments)]
     res = SinglePointResult(
-        e, structure_hash(atoms), spec.settings_hash, time.perf_counter() - t0, False, retried
+        e,
+        structure_hash(atoms),
+        spec.settings_hash,
+        time.perf_counter() - t0,
+        False,
+        retried,
+        moments,
     )
     log.info("single point %s n=%d wall=%.1fs", key, len(a), res.wall_s)
     if cache_dir is not None:
@@ -356,6 +402,7 @@ __all__ = [
     "SCF_FAILURE_NAMES",
     "is_scf_failure",
     "final_magnetic_moments",
+    "moment_tag",
     "constraint_tag",
     "relax_tube_radius",
     "relax",
