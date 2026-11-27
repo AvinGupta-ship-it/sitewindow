@@ -1,10 +1,11 @@
 {
   "tier": "T1",
   "package_version": "0.1.0",
-  "n_anchors": 2,
-  "n_records": 8,
+  "n_anchors": 3,
+  "n_records": 12,
   "classes": [
     "basal",
+    "cnt_armchair",
     "edge_zigzag"
   ],
   "anchors": [
@@ -16,6 +17,13 @@
       "wall_s": 4040.547406291
     },
     {
+      "key": "cnt_armchair/swcnt_5_5_x3/monomer_exterior",
+      "n_atoms": 61,
+      "converged": true,
+      "E_bind_H_atom_PBE_D3": -1.580414302610264,
+      "wall_s": 10312.420773040998
+    },
+    {
       "key": "edge_zigzag/ribbon_zigzag_6x4_bare_edge/edge_CH",
       "n_atoms": 56,
       "converged": true,
@@ -23,9 +31,9 @@
       "wall_s": 3269.8075289170047
     }
   ],
-  "wall_s_total": 7310.3549352080045,
+  "wall_s_total": 17622.775708249002,
   "failed": [],
   "files": {
-    "anchors_tier1.parquet": "c08cb2a3954f41da79c94df3616e81d42f13b963508cd45b4ea1ad4ec99b7adf"
+    "anchors_tier1.parquet": "9343a7023fca5f934e2051253f7ab2e7f6fad64d11ded7d17450bcbcbeae3177"
   }
 }
