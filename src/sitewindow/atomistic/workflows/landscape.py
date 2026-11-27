@@ -12,6 +12,11 @@ requested, in higher ones, keeping the lowest energy), and the records written a
 - ``E_formation_defect``: the defect formation energy of the substrate relative to the pristine
   cell, when the class defines one.
 
+Energies enter the records either as the calculator's reported energy (``energy="F"``, the Mermin
+free energy for tblite under Fermi smearing) or as the zero-temperature extrapolation
+``energy="E0"`` (F + T S / 2 from a single point on the relaxed structure, manual C2, Tier 2),
+which applies to tblite only; the manifest records the choice.
+
 Configurations whose relaxation does not converge are excluded from the table and logged.
 """
 
@@ -44,6 +49,10 @@ from sitewindow.atomistic.workflows.adsorption import (
     relax,
     relax_tube_radius,
 )
+from sitewindow.atomistic.workflows.smearing import (
+    extrapolated_reference_energies,
+    smearing_single_point,
+)
 from sitewindow.io import sha256_file, write_table
 from sitewindow.landscape.classes import Configuration, catalogue, chemisorption_classes
 from sitewindow.schema import (
@@ -61,6 +70,12 @@ from sitewindow.schema import (
 
 log = logging.getLogger(__name__)
 
+ENERGY_KINDS = {
+    "F": "the calculator's reported energy (the Mermin free energy for tblite under Fermi smearing)",
+    "E0": "zero-temperature extrapolation F + T S / 2 of the tblite free energy from the "
+    "occupations of a single point on the relaxed structure",
+}
+
 
 @dataclass
 class LandscapeSpec:
@@ -73,6 +88,7 @@ class LandscapeSpec:
     steps: int = 400
     spin_states: tuple[int, ...] = (0,)
     numerical_sigma_eV: float = 0.05
+    energy: str = "F"
 
 
 @dataclass
@@ -180,8 +196,27 @@ def build_landscape(
     )
     settings_hash = CalculatorSpec(calc.name, calc.tier, calc.settings()).settings_hash
     sigma = spec.numerical_sigma_eV
+    if spec.energy not in ENERGY_KINDS:
+        raise ValueError(f"energy must be one of {ENERGY_KINDS}, not {spec.energy!r}")
+    if spec.energy == "E0" and calc.name != "tblite":
+        raise ValueError("the zero-temperature extrapolation E0 applies to the tblite tier only")
+
+    def energy_of(atoms: Atoms, res: RelaxResult) -> float:
+        """The energy of a relaxed structure under the selected convention."""
+        if spec.energy == "F":
+            return res.energy_eV
+        return float(smearing_single_point(atoms, calc, cache_dir)["E0_eV"])  # type: ignore[arg-type]
+
     refs = reference_energies(calc, cache_dir)
-    log.info("references E_H2=%.6f E_H=%.6f settings=%s", refs["E_H2"], refs["E_H"], settings_hash)
+    if spec.energy == "E0":
+        refs = extrapolated_reference_energies(calc, cache_dir)  # type: ignore[arg-type]
+    log.info(
+        "references E_H2=%.6f E_H=%.6f settings=%s energy=%s",
+        refs["E_H2"],
+        refs["E_H"],
+        settings_hash,
+        spec.energy,
+    )
 
     records: list[SiteEnergyRecord] = []
     exclusions: list[dict[str, Any]] = []
@@ -246,7 +281,7 @@ def build_landscape(
                 pris, pris_res = relaxed_substrate(cfg.pristine_name or "pristine", cfg.pristine)
                 n_c_sub = int(np.sum(sub.numbers == 6))
                 n_c_pris = int(np.sum(pris.numbers == 6))
-                e_form = sub_res.energy_eV - (n_c_sub / n_c_pris) * pris_res.energy_eV
+                e_form = energy_of(sub, sub_res) - (n_c_sub / n_c_pris) * energy_of(pris, pris_res)
                 h_sub = _config_hash(sub, settings_hash, _parity(sub))
                 centre = cfg.substrate.info.get("defect_center")
                 site_c = int(cfg.site.carbon_indices[0])
@@ -286,7 +321,8 @@ def build_landscape(
                 continue
             atoms.info.update(cfg.substrate.info)
             chash = _config_hash(start, settings_hash, n_unp)
-            results[cfg.key] = ConfigurationResult(cfg, chash, res.energy_eV, res, atoms, n_unp)
+            e_cfg = energy_of(atoms, res) if res.converged else res.energy_eV
+            results[cfg.key] = ConfigurationResult(cfg, chash, e_cfg, res, atoms, n_unp)
             if not res.converged:
                 exclusions.append(
                     {
@@ -298,7 +334,7 @@ def build_landscape(
                 )
                 continue
             n = cfg.n_H
-            be = binding_energies(sub_res.energy_eV, res.energy_eV, refs, "H", n)
+            be = binding_energies(energy_of(sub, sub_res), e_cfg, refs, "H", n)
             site_c = int(cfg.placements[-1][0])
             centre = cfg.substrate.info.get("defect_center")
             desc = site_descriptors(atoms, site_c, None if centre is None else np.asarray(centre))
@@ -327,7 +363,7 @@ def build_landscape(
                 parent_key = f"{cfg.site_class.value}/{cfg.substrate_name}/{cfg.parent}"
                 parent = results.get(parent_key)
                 if parent is not None and parent.relax.converged:
-                    d_e = res.energy_eV - parent.energy_eV
+                    d_e = e_cfg - parent.energy_eV
                     records.append(
                         _record(
                             cfg,
@@ -358,7 +394,9 @@ def build_landscape(
                     "n_H": n,
                     "n_atoms": len(atoms),
                     "spin_multiplicity": n_unp + 1,
-                    "energy_eV": res.energy_eV,
+                    "energy_eV": e_cfg,
+                    "energy_kind": spec.energy,
+                    "free_energy_eV": res.energy_eV,
                     "max_force_eV_A": res.max_force_eV_A,
                     "n_steps": res.n_steps,
                     "wall_s": res.wall_s,
@@ -415,6 +453,8 @@ def build_landscape(
                 "spin_states": list(spec.spin_states),
                 "tube_radius_optimization": radius_opt,
             },
+            "energy": spec.energy,
+            "energy_description": ENERGY_KINDS[spec.energy],
             "references_eV": refs,
             "n_records": int(len(frame)),
             "n_configurations": int(len(config_rows)),
@@ -429,4 +469,4 @@ def build_landscape(
     return out
 
 
-__all__ = ["LandscapeSpec", "ConfigurationResult", "build_landscape"]
+__all__ = ["ENERGY_KINDS", "LandscapeSpec", "ConfigurationResult", "build_landscape"]

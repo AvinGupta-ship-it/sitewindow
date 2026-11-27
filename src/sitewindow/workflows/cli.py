@@ -265,6 +265,11 @@ def landscape_build(
     ),
     fmax: float = typer.Option(None, help="Force tolerance (eV/A); default from the tier config"),
     spin_search: bool = typer.Option(False, help="Also relax in the next higher spin multiplicity"),
+    energy: str = typer.Option(
+        None,
+        help="F (reported energy) or E0 (zero-temperature extrapolation, tblite only); default "
+        "from the tier config key energy_<calculator>, else F",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Relax every catalogue configuration of the tier and write landscape_raw_<tier>.parquet (E1)."""
@@ -304,6 +309,7 @@ def landscape_build(
         recipes=recipes,
         fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
         spin_states=(0, 2) if spin_search else (0,),
+        energy=str(energy or cfg.get(f"energy_{calculator}", "F")),
     )
     calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
     cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
@@ -314,7 +320,7 @@ def landscape_build(
         json.dumps(
             {
                 k: m.get(k)
-                for k in ("tier", "n_records", "n_configurations", "n_excluded", "wall_s")
+                for k in ("tier", "energy", "n_records", "n_configurations", "n_excluded", "wall_s")
             },
             indent=2,
         )
@@ -391,7 +397,8 @@ def landscape_barriers(
         ),
         seed_label=seed_label,
     )
-    calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
+    barrier_cfg = {**cfg, **{k: v for k, v in (cfg.get("barriers") or {}).items() if k != "stick"}}
+    calc = make_calculator(calculator, **_calculator_settings(barrier_cfg, calculator))
     cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"
     out = out or _data_root() / "processed" / tier
     result = build_barriers(spec, calc, cache, out)

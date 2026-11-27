@@ -6,12 +6,16 @@ tier: verify
 atomistic:
   calculator: tblite
   method: GFN2-xTB
-  # Gamma-only sampling in tblite: Fermi smearing at 3000 K and 9x9 sheets (manual Section 10, Tier 2).
-  calculator_settings_tblite: { electronic_temperature: 3000.0 }
+  # Gamma-only sampling in tblite: Fermi smearing at 6000 K with the zero-temperature extrapolation
+  # E0 = F + TS/2 of the reported free energy, and 9x9 sheets (manual C2, Tier 2).
+  calculator_settings_tblite: { electronic_temperature: 6000.0 }
+  energy_tblite: E0
   supercell: 9
   # Sticking barriers are referenced to the separated reactants: integer occupations (300 K) in a cell
-  # that does not fold the Dirac point onto Gamma (manual Section 10, Tier 2).
+  # that does not fold the Dirac point onto Gamma; recombination barriers keep the 3000 K free-energy
+  # protocol until the extrapolation is applied to saddle energies (manual C2, Tier 2).
   barriers:
+    calculator_settings_tblite: { electronic_temperature: 3000.0 }
     stick: { supercell: 10, calculator_settings_tblite: { electronic_temperature: 300.0 } }
   fmax_eV_A: 0.05
   classes: [basal, monovacancy, stone_wales, cnt_armchair]

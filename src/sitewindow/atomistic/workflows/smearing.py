@@ -134,6 +134,20 @@ def _references(calc: TBLiteCalculator, cache_dir: Path, fmax: float) -> dict[st
     }
 
 
+def extrapolated_reference_energies(
+    calc: TBLiteCalculator, cache_dir: Path | None = None
+) -> dict[str, float]:
+    """Zero-temperature-extrapolated energies of the relaxed H2 molecule and the H atom, in the
+    layout of :func:`sitewindow.atomistic.workflows.adsorption.reference_energies`."""
+    h2, _ = relax(hydrogen_molecule(), calc, cache_dir, fmax=0.01)
+    h = hydrogen_atom()
+    return {
+        "E_H2": float(smearing_single_point(h2, calc, cache_dir)["E0_eV"]),
+        "E_H": float(smearing_single_point(h, calc, cache_dir)["E0_eV"]),
+        "H2_bond_A": float(h2.get_distance(0, 1)),
+    }
+
+
 def _binding(sub: dict[str, Any], ads: dict[str, Any], refs: dict[str, dict[str, Any]]) -> dict:
     out: dict[str, float] = {}
     for kind in ENERGY_KINDS:
@@ -269,6 +283,7 @@ __all__ = [
     "SmearingSpec",
     "tier2_calculator",
     "smearing_single_point",
+    "extrapolated_reference_energies",
     "far_hydrogen_series",
     "binding_series",
     "build_smearing_study",

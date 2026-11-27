@@ -137,6 +137,7 @@ def evaluate_B1_T2(
     r = rows.iloc[0]
     e = float(r["value_eV"])
     t_el = (settings or {}).get("electronic_temperature")
+    energy_kind = (settings or {}).get("energy", "F")
     cell = str(r["supercell"]).replace("graphene_", "")
     return {
         "id": "B1",
@@ -147,12 +148,14 @@ def evaluate_B1_T2(
             "engine": str(r["engine"]) if "engine" in r else None,
             "supercell": str(r["supercell"]),
             "electronic_temperature_K": t_el,
+            "energy": energy_kind,
         },
         "reference": {"DMC_eV": ref["DMC"], "PBE_eV": ref["PBE"]},
         "metric": f"absolute difference (tier {tier_label}, uncalibrated)",
         "summary": (
             f"{tier_label} basal monomer {e:.3f} eV ({cell}"
             + (f", {t_el:.0f} K smearing" if t_el else "")
+            + (", zero-temperature extrapolation" if energy_kind == "E0" else "")
             + f") vs DMC {ref['DMC']} / PBE {ref['PBE']} eV: offsets {e - ref['DMC']:+.2f} / "
             f"{e - ref['PBE']:+.2f} eV (input to C3 calibration)"
         ),
@@ -170,7 +173,9 @@ def _landscape_table(tier: str, sub: str = "") -> tuple[Path, dict | None] | Non
             manifest = base / f"landscape_manifest_{t}.json"
             settings = None
             if manifest.exists():
-                settings = json.loads(manifest.read_text()).get("calculator", {}).get("settings")
+                m = json.loads(manifest.read_text())
+                settings = dict(m.get("calculator", {}).get("settings") or {})
+                settings["energy"] = m.get("energy", "F")
             return table, settings
     return None
 

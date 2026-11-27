@@ -3,12 +3,16 @@ tier: full
 atomistic:
   tier1: { engine: gpaw, functional: PBE, dispersion: D3BJ, cutoff_eV: 500, kmesh: [4, 4, 1], vacuum_A: 15, fmax_eV_A: 0.02, anchors: 60 }
   tier2: { engine: tblite, method: GFN2-xTB, fmax_eV_A: 0.05 }
-  # Gamma-only sampling in tblite: Fermi smearing at 3000 K and 12x12 sheets (manual Section 10, Tier 2).
-  calculator_settings_tblite: { electronic_temperature: 3000.0 }
+  # Gamma-only sampling in tblite: Fermi smearing at 6000 K with the zero-temperature extrapolation
+  # E0 = F + TS/2 of the reported free energy, and 12x12 sheets (manual C2, Tier 2).
+  calculator_settings_tblite: { electronic_temperature: 6000.0 }
+  energy_tblite: E0
   supercell: 12
   # Sticking barriers are referenced to the separated reactants: integer occupations (300 K) in a cell
-  # that does not fold the Dirac point onto Gamma (manual Section 10, Tier 2).
+  # that does not fold the Dirac point onto Gamma; recombination barriers keep the 3000 K free-energy
+  # protocol until the extrapolation is applied to saddle energies (manual C2, Tier 2).
   barriers:
+    calculator_settings_tblite: { electronic_temperature: 3000.0 }
     stick: { supercell: 10, calculator_settings_tblite: { electronic_temperature: 300.0 } }
   tier3: { engine: mace, model: MACE-MP-0-medium, fmax_eV_A: 0.05, neb_images: 7 }
   classes: [basal, monovacancy, divacancy_585, divacancy_555777, stone_wales, edge_zigzag, edge_armchair, cnt_armchair, cnt_zigzag, epoxide, hydroxyl, carbonyl_pair, carboxyl, mixed_vacancy_cnt, mixed_sw_cnt]

@@ -60,7 +60,8 @@
         "tier": "T2",
         "engine": "tblite:GFN2-xTB",
         "supercell": "graphene_12x12",
-        "electronic_temperature_K": 3000.0
+        "electronic_temperature_K": 3000.0,
+        "energy": "F"
       },
       "reference": {
         "DMC_eV": -0.691,
@@ -77,7 +78,8 @@
         "tier": "T3",
         "engine": "mace",
         "supercell": "graphene_9x9",
-        "electronic_temperature_K": null
+        "electronic_temperature_K": null,
+        "energy": "F"
       },
       "reference": {
         "DMC_eV": -0.691,

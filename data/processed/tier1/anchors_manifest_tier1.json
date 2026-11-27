@@ -1,0 +1,22 @@
+{
+  "tier": "T1",
+  "package_version": "0.1.0",
+  "n_anchors": 1,
+  "n_records": 4,
+  "classes": [
+    "basal"
+  ],
+  "anchors": [
+    {
+      "key": "basal/graphene_5x5/monomer",
+      "n_atoms": 51,
+      "converged": true,
+      "E_bind_H_atom_PBE_D3": -0.8203430978185071,
+      "wall_s": 4040.547406291
+    }
+  ],
+  "wall_s_total": 4040.547406291,
+  "files": {
+    "anchors_tier1.parquet": "f217886002116ea485bc5795c39855c2921a993ab82daa047146e1dba60aeb03"
+  }
+}
