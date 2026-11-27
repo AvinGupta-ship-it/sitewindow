@@ -241,12 +241,15 @@ def test_scf_failure_detection_matches_gpaw_errors_by_name():
 def test_final_magnetic_moments_reads_the_dft_part_of_a_sum_calculator():
     from ase.calculators.calculator import PropertyNotImplementedError
 
-    from sitewindow.atomistic.workflows.adsorption import final_magnetic_moments
+    from sitewindow.atomistic.workflows.adsorption import (
+        final_magnetic_moments,
+        final_total_moment,
+    )
 
     class Dft:
         def get_property(self, name, atoms=None, allow_calculation=True):
-            assert name == "magmoms"
-            return np.array([0.7, -0.1])
+            assert name in {"magmoms", "magmom"}
+            return np.array([0.7, -0.1]) if name == "magmoms" else 0.9
 
     class Dispersion:
         def get_property(self, name, atoms=None, allow_calculation=True):
@@ -261,11 +264,31 @@ def test_final_magnetic_moments_reads_the_dft_part_of_a_sum_calculator():
         def get_magnetic_moments(self, atoms):
             raise PropertyNotImplementedError("magmoms")
 
+        def get_magnetic_moment(self, atoms):
+            raise PropertyNotImplementedError("magmom")
+
     atoms = Atoms("CH", positions=[[0, 0, 0], [0, 0, 1.1]])
     atoms.calc = Sum()
     assert final_magnetic_moments(atoms) == pytest.approx([0.7, -0.1])
+    assert final_total_moment(atoms) == pytest.approx(0.9)
     atoms.calc = None
     assert final_magnetic_moments(atoms) is None
+    assert final_total_moment(atoms) is None
+
+
+def test_moment_record_separates_the_total_from_the_atomic_moments():
+    from sitewindow.atomistic.workflows.adsorption import SinglePointResult
+    from sitewindow.atomistic.workflows.tier1 import _moment_record
+
+    afm = SinglePointResult(-1.0, "s", "t", 1.0, False, False, [0.09, -0.09, 0.02, -0.02], 0.0)
+    rec = _moment_record(afm)
+    assert rec["total_muB"] == 0.0
+    assert rec["local_sum_muB"] == pytest.approx(0.0)
+    assert rec["local_abs_sum_muB"] == pytest.approx(0.22)
+    assert rec["local_muB"] == [0.09, -0.09, 0.02, -0.02]
+    cached_before_totals = SinglePointResult(-1.0, "s", "t", 1.0, True, False, [0.3, 0.1])
+    assert _moment_record(cached_before_totals)["total_muB"] is None
+    assert _moment_record(SinglePointResult(-1.0, "s", "t", 1.0, False)) is None
 
 
 def test_broken_symmetry_guess_alternates_with_the_sublattice():

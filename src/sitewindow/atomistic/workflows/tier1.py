@@ -60,6 +60,7 @@ from sitewindow.atomistic.structures.builders import (
 )
 from sitewindow.atomistic.workflows.adsorption import (
     RelaxResult,
+    SinglePointResult,
     relax,
     relax_tube_radius,
     single_point,
@@ -456,8 +457,21 @@ def _parity(atoms: Atoms) -> int:
     return int(np.sum(atoms.numbers)) % 2
 
 
-def _total_moment(moments: list[float] | None) -> float | None:
-    return None if moments is None else float(np.sum(moments))
+def _moment_record(res: RelaxResult | SinglePointResult) -> dict[str, Any] | None:
+    """Magnetic state of a converged stage: the integrated total moment and the sum, absolute
+    sum and list of the atomic moments. The atomic moments of a projector-augmented-wave
+    calculation are integrated over the augmentation spheres, which hold part of the spin
+    density, so their sum lies below the total; their absolute sum separates an
+    antiferromagnetic state (total zero, atomic moments finite) from a non-magnetic one."""
+    if res.magmoms is None:
+        return None
+    m = np.asarray(res.magmoms, dtype=float)
+    return {
+        "total_muB": res.magmom,
+        "local_sum_muB": float(np.sum(m)),
+        "local_abs_sum_muB": float(np.sum(np.abs(m))),
+        "local_muB": [round(float(x), 4) for x in m],
+    }
 
 
 def _extxyz(atoms: Atoms) -> str:
@@ -723,12 +737,12 @@ def anchor_configuration(
             "configuration": _relaxation_record(res_ads),
         },
         "magnetic_moments_lcao": {
-            "substrate": _total_moment(res_sub.magmoms),
-            "configuration": _total_moment(res_ads.magmoms),
+            "substrate": _moment_record(res_sub),
+            "configuration": _moment_record(res_ads),
         },
         "magnetic_moments_pw": {
-            "substrate": _total_moment(sp_sub.magmoms),
-            "configuration": _total_moment(sp_ads.magmoms),
+            "substrate": _moment_record(sp_sub),
+            "configuration": _moment_record(sp_ads),
         },
         "spin_guess": {
             "substrate_sites": guess_sub,

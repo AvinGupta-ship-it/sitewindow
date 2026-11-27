@@ -53,6 +53,7 @@ class RelaxResult:
     cached: bool
     scf_retried: bool = False
     magmoms: list[float] | None = None
+    magmom: float | None = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,7 @@ class SinglePointResult:
     cached: bool
     scf_retried: bool = False
     magmoms: list[float] | None = None
+    magmom: float | None = None
 
 
 def _robust(calc: Calculator) -> Calculator | None:
@@ -103,6 +105,27 @@ def final_magnetic_moments(atoms: Atoms) -> list[float] | None:
             if moments is None:
                 moments = part.get_magnetic_moments(atoms)
             return [float(m) for m in np.atleast_1d(moments)]
+        except Exception:
+            continue
+    return None
+
+
+def final_total_moment(atoms: Atoms) -> float | None:
+    """Integrated total magnetic moment of a calculation, taken like the atomic moments from
+    the part of a sum calculator that provides it. In a projector-augmented-wave calculation it
+    integrates the whole spin density, whereas the atomic moments cover only the augmentation
+    spheres, so their sum lies below it."""
+    try:
+        return float(atoms.get_magnetic_moment())
+    except Exception:
+        pass
+    parts = getattr(getattr(atoms.calc, "mixer", None), "calcs", None) or []
+    for part in parts:
+        try:
+            moment = part.get_property("magmom", atoms, allow_calculation=False)
+            if moment is None:
+                moment = part.get_magnetic_moment(atoms)
+            return float(moment)
         except Exception:
             continue
     return None
@@ -231,12 +254,15 @@ def relax(
     e = float(a.get_potential_energy())
     fmax_final = float(np.linalg.norm(a.get_forces(), axis=1).max()) if len(a) > 1 else 0.0
     moments = final_magnetic_moments(a)
+    total = final_total_moment(a)
     a.calc = None
     # Under MPI every rank holds rank 0's result, whatever the calculator's own parallelism.
     a.positions = broadcast_array(a.positions)
     scalars = broadcast_array([e, fmax_final, float(opt.get_number_of_steps()), float(converged)])
     if moments is not None:
         moments = [float(m) for m in broadcast_array(moments)]
+    if total is not None:
+        total = float(broadcast_array([total])[0])
     res = RelaxResult(
         float(scalars[0]),
         float(scalars[1]),
@@ -248,6 +274,7 @@ def relax(
         False,
         retried,
         moments,
+        total,
     )
     log.info(
         "relax %s n=%d steps=%d fmax=%.3f converged=%s wall=%.1fs",
@@ -306,8 +333,11 @@ def single_point(
             ) from exc2
     e = float(broadcast_array([e_local])[0])
     moments = final_magnetic_moments(a)
+    total = final_total_moment(a)
     if moments is not None:
         moments = [float(m) for m in broadcast_array(moments)]
+    if total is not None:
+        total = float(broadcast_array([total])[0])
     res = SinglePointResult(
         e,
         structure_hash(atoms),
@@ -316,6 +346,7 @@ def single_point(
         False,
         retried,
         moments,
+        total,
     )
     log.info("single point %s n=%d wall=%.1fs", key, len(a), res.wall_s)
     if cache_dir is not None:
@@ -402,6 +433,7 @@ __all__ = [
     "SCF_FAILURE_NAMES",
     "is_scf_failure",
     "final_magnetic_moments",
+    "final_total_moment",
     "moment_tag",
     "constraint_tag",
     "relax_tube_radius",
