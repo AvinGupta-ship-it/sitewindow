@@ -80,6 +80,10 @@ def test_pooled_scales_weight_precise_estimates_and_leave_one_source_out():
     pooled = aed.pooled_scales(stage1)
     # The precise estimate dominates the precision-weighted mean of the logarithms.
     assert 0.04 < pooled.a_dig < 0.05 and 0.05 < pooled.b_dig < 0.06
+    # The between-material spread is floored when the medians agree within their widths.
+    assert pooled.tau_a >= 0.1 and pooled.tau_b >= 0.1
+    wide = [rec("x", 0.01, 0.01, 1.1), rec("y", 1.0, 1.0, 1.1), rec("z", 0.1, 0.1, 1.1)]
+    assert aed.pooled_scales(wide).tau_a > 1.0
     loo = aed.pooled_scales(stage1, exclude_doi="x")
     assert abs(loo.a_dig - 0.08) < 1e-9 and "excluding x" in loo.source
     assert aed.pooled_scales([]).source.startswith("manual defaults")
@@ -94,10 +98,18 @@ def test_outlier_classification_uses_metadata_features():
         "metadata": {"digitized_only": True, "generic_name": True, "max_pressure_bar": 1.0,
                      "quality_flags": ["nonmonotonic"], "material_class": "activated_carbon"},
     }
+    base["V_pore"] = {"q50": 0.5}
+    base["mean_energy"] = {"mean": 6.0}
+    base["grid_kJ"] = aed.energy_grid().tolist()
     flags = aed.classify_outlier(base)
     assert {"single_T_entropy_fixed", "digitized_only", "generic_adsorbent_name", "low_coverage_only"} <= set(flags)
     assert any(f.startswith("quality_flags") for f in flags)
     assert aed.classify_outlier({**base, "strong_fraction": {"q50": 0.05}}) == []
+    # Unphysical pore volumes or energies at the grid edge mark a degenerate fit.
+    assert aed.degenerate_fit({**base, "V_pore": {"q50": 12.0}})
+    assert aed.degenerate_fit({**base, "mean_energy": {"mean": 2.3}})
+    assert not aed.degenerate_fit(base)
+    assert "excess_branch_misfit" in aed.classify_outlier({**base, "V_pore": {"q50": 12.0}, "strong_fraction": {"q50": 0.05}})
 
 
 @pytest.mark.slow

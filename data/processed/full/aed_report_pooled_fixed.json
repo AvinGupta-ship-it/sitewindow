@@ -1,0 +1,177 @@
+{
+  "n_materials": 79,
+  "n_multi_temperature": 24,
+  "n_single_temperature_entropy_fixed": 55,
+  "pooled_error_scales": {
+    "a_tab": 0.02,
+    "b_tab": 0.02,
+    "a_dig": 0.14177269782719562,
+    "b_dig": 0.06761948920543526,
+    "dig_pressure_rel": 0.02,
+    "dig_pressure_axis": 0.01,
+    "dig_pressure_cap": 0.25,
+    "tab_pressure_rel": 0.005,
+    "source": "pooled over 79 stage-1 fits"
+  },
+  "stage1_scale_spread": {
+    "a_dig_q50_range": [
+      0.005293251800079251,
+      2.2265464160903914
+    ],
+    "b_dig_q50_range": [
+      0.0042528615170570275,
+      0.7311361683410258
+    ]
+  },
+  "ppc_p_in_[0.05,0.95]": {
+    "count": 38,
+    "fraction": 0.4810126582278481,
+    "criterion_0.80_met": false
+  },
+  "diagnostics": {
+    "rhat_max": 1.8773660327333304,
+    "n_rhat_above_1.01": 74,
+    "ess_min": 6.063272636081971,
+    "n_with_divergences": 70
+  },
+  "strong_sites": {
+    "threshold_kJ_mol": 10.0,
+    "fraction_threshold": 0.1,
+    "n_above": 14,
+    "fraction_above": 0.17721518987341772,
+    "features": [
+      {
+        "material_id": "453276ee992e__10.1002_Er.1933",
+        "adsorbent_name": "Carbon",
+        "material_class": "carbon_other",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.10504576827988937,
+        "outlier_features": "single_T_entropy_fixed;digitized_only;generic_adsorbent_name;unclassified_carbon"
+      },
+      {
+        "material_id": "0430f3ede7fd__10.1007_s10450_013_9527_2",
+        "adsorbent_name": "Norit R1 Extra",
+        "material_class": "activated_carbon",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.1399483865372576,
+        "outlier_features": "single_T_entropy_fixed"
+      },
+      {
+        "material_id": "9a40e70fe6ac__10.1007_s10450_013_9558_8",
+        "adsorbent_name": "GX31 superactivated carbon (Method V)",
+        "material_class": "activated_carbon",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.13617164607552334,
+        "outlier_features": "single_T_entropy_fixed;digitized_only"
+      },
+      {
+        "material_id": "b71c538618c1__10.1007_s10450_013_9558_8",
+        "adsorbent_name": "GX31 superactivated carbon (Method DM-V)",
+        "material_class": "activated_carbon",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.18789893664024304,
+        "outlier_features": "single_T_entropy_fixed;digitized_only"
+      },
+      {
+        "material_id": "30902499223a__10.1007_s10450_013_9558_8",
+        "adsorbent_name": "GX31 superactivated carbon (Method DM-BC)",
+        "material_class": "activated_carbon",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.13982858075571952,
+        "outlier_features": "single_T_entropy_fixed;digitized_only"
+      },
+      {
+        "material_id": "d2b3e82a885e__10.1016_j.carbon.2005.03.037",
+        "adsorbent_name": "Purified SWCNTs",
+        "material_class": "SWCNT",
+        "label": "multi_T",
+        "strong_fraction_q50": 0.7012039855437797,
+        "outlier_features": "digitized_only"
+      },
+      {
+        "material_id": "b2cbe7a27aa1__10.1016_j.carbon.2013.07.061",
+        "adsorbent_name": "Activated Carbon",
+        "material_class": "activated_carbon",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.9051870670282697,
+        "outlier_features": "single_T_entropy_fixed;digitized_only;generic_adsorbent_name"
+      },
+      {
+        "material_id": "9d7ffebc1088__10.1016_j.ijhydene.2012.01.166",
+        "adsorbent_name": "SWCNT",
+        "material_class": "SWCNT",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.5520974175818625,
+        "outlier_features": "single_T_entropy_fixed;digitized_only;posterior_predictive_misfit"
+      },
+      {
+        "material_id": "4144e097d2fa__10.1016_j.jcat.2014.07.010",
+        "adsorbent_name": "AC",
+        "material_class": "activated_carbon",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.7503197829121337,
+        "outlier_features": "single_T_entropy_fixed;digitized_only;generic_adsorbent_name;low_coverage_only"
+      },
+      {
+        "material_id": "453276ee992e__10.1021_Jp0563538",
+        "adsorbent_name": "Carbon",
+        "material_class": "carbon_other",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.17381181215001384,
+        "outlier_features": "single_T_entropy_fixed;digitized_only;generic_adsorbent_name;unclassified_carbon"
+      },
+      {
+        "material_id": "75d324fa468d__10.1021_la4004998",
+        "adsorbent_name": "Phenol-Formaldehyde Resin-based Activated Carbon",
+        "material_class": "activated_carbon",
+        "label": "multi_T",
+        "strong_fraction_q50": 0.8990499639275013,
+        "outlier_features": "digitized_only;posterior_predictive_misfit"
+      },
+      {
+        "material_id": "453276ee992e__10.1021_la4004998",
+        "adsorbent_name": "Carbon",
+        "material_class": "carbon_other",
+        "label": "multi_T",
+        "strong_fraction_q50": 0.9562343523333505,
+        "outlier_features": "digitized_only;generic_adsorbent_name;posterior_predictive_misfit;unclassified_carbon"
+      },
+      {
+        "material_id": "9e23f5f57a21__10.1166_jnn.2012.6407",
+        "adsorbent_name": "Graphite",
+        "material_class": "graphene",
+        "label": "single_T_entropy_fixed",
+        "strong_fraction_q50": 0.5772717477789839,
+        "outlier_features": "single_T_entropy_fixed;digitized_only;posterior_predictive_misfit;quality_flags:negative_loading+nonmonotonic"
+      },
+      {
+        "material_id": "1538ced0351e__10.1260_026361705776316550",
+        "adsorbent_name": "Activated carbon: D47/3",
+        "material_class": "activated_carbon",
+        "label": "multi_T",
+        "strong_fraction_q50": 0.714151415338051,
+        "outlier_features": "digitized_only"
+      }
+    ]
+  },
+  "window_occupancy_corpus": {
+    "W1": {
+      "median_of_means": 0.06932645941360988,
+      "max_q95": 0.9987899443977476
+    },
+    "W2": {
+      "median_of_means": 0.11104109802773368,
+      "max_q95": 0.9989001117244515
+    },
+    "W3": {
+      "median_of_means": 0.5941346275594283,
+      "max_q95": 0.9996632288535426
+    }
+  },
+  "mean_energy_corpus_kJ_mol": {
+    "median": 4.646027869872599,
+    "q25": 3.4381959336682755,
+    "q75": 6.102760886788442
+  },
+  "eos": "CoolProp Leachman normal hydrogen"
+}

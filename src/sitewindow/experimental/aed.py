@@ -94,6 +94,8 @@ class ErrorScales:
     dig_pressure_axis: float = 0.01
     dig_pressure_cap: float = 0.25
     tab_pressure_rel: float = 0.005
+    tau_a: float = 0.5
+    tau_b: float = 0.5
     source: str = "manual defaults"
 
 
@@ -247,8 +249,10 @@ def build_model(
         mu = pm.Deterministic("mu", n_abs - data.rho * v_pore * 1.0e-3)
         slope = n_m * pt.sum(w[None, :] * theta * (1.0 - theta), axis=1)
         if free_scales:
-            a_dig = pm.LogNormal("a_dig", mu=math.log(scales.a_dig), sigma=0.5)
-            b_dig = pm.LogNormal("b_dig", mu=math.log(scales.b_dig), sigma=0.5)
+            # Stage 1: the manual's values with a log-sd of 0.5; stage 2: the corpus estimate
+            # with its between-material spread (partial pooling, DERIVATIONS 9.3).
+            a_dig = pm.LogNormal("a_dig", mu=math.log(scales.a_dig), sigma=scales.tau_a)
+            b_dig = pm.LogNormal("b_dig", mu=math.log(scales.b_dig), sigma=scales.tau_b)
         else:
             a_dig, b_dig = scales.a_dig, scales.b_dig
         a = data.is_digitized * a_dig + (1.0 - data.is_digitized) * scales.a_tab
@@ -339,6 +343,27 @@ def summarize_posterior(
     rhat_max = float(max(float(rhat[v].max()) for v in rhat.data_vars))
     ess_min = float(min(float(ess[v].min()) for v in ess.data_vars))
     div = int(idata.sample_stats["diverging"].sum()) if "diverging" in idata.sample_stats else 0
+    # Diagnostics of the reported quantities themselves: the log-weights of saturated or
+    # unoccupied grid energies follow their prior and mix slowly without affecting them.
+    import xarray as xr
+
+    w_da = post["w"]
+    grid_da = xr.DataArray(grid, dims=w_da.dims[-1:])
+    derived = xr.Dataset(
+        {
+            "mean_energy": (w_da * grid_da).sum(w_da.dims[-1]),
+            "strong_fraction": w_da.where(grid_da > STRONG_SITE_THRESHOLD_KJ, 0.0).sum(w_da.dims[-1]),
+            "n_m": post["n_m"],
+            "V_pore": post["V_pore"],
+            "lam": post["lam"],
+        }
+    )
+    if entropy_free:
+        derived["delta_s"] = post["delta_s"]
+    rhat_d = az.rhat(derived)
+    ess_d = az.ess(derived, method="bulk")
+    rhat_derived = float(max(float(rhat_d[v].max()) for v in rhat_d.data_vars))
+    ess_derived = float(min(float(ess_d[v].min()) for v in ess_d.data_vars))
     # Posterior predictive checks.
     y = data.y
     y_rep = idata.posterior_predictive["y"].stack(s=("chain", "draw")).transpose("s", ...).values
@@ -375,6 +400,8 @@ def summarize_posterior(
         diagnostics={
             "rhat_max": rhat_max,
             "ess_min": ess_min,
+            "rhat_derived_max": rhat_derived,
+            "ess_derived_min": ess_derived,
             "divergences": div,
             "n_draws": int(len(w)),
         },
@@ -632,7 +659,7 @@ def pooled_scales(stage1: list[dict[str, Any]], exclude_doi: str | None = None) 
     rows = [r for r in stage1 if r["metadata"].get("doi") != exclude_doi and r["error_scales"].get("estimated")]
     if not rows:
         return ErrorScales(source="manual defaults (no stage-1 estimates)")
-    vals = {}
+    vals, taus = {}, {}
     for key in ("a_dig", "b_dig"):
         med = np.array([r["error_scales"][key]["q50"] for r in rows])
         q05 = np.array([r["error_scales"][key]["q05"] for r in rows])
@@ -640,17 +667,40 @@ def pooled_scales(stage1: list[dict[str, Any]], exclude_doi: str | None = None) 
         sd_log = np.maximum((np.log(q95) - np.log(q05)) / (2 * 1.645), 0.05)
         wgt = 1.0 / sd_log**2
         vals[key] = float(np.exp(np.sum(wgt * np.log(med)) / np.sum(wgt)))
+        # Between-material spread of the log scale: the variance of the medians minus the
+        # mean within-material posterior variance (method of moments), floored at 0.1.
+        between = np.var(np.log(med), ddof=1) - np.mean(sd_log**2) if len(med) > 1 else 0.0
+        taus[key] = float(np.sqrt(max(between, 0.01)))
     return ErrorScales(
         a_dig=vals["a_dig"],
         b_dig=vals["b_dig"],
+        tau_a=taus["a_dig"],
+        tau_b=taus["b_dig"],
         source=f"pooled over {len(rows)} stage-1 fits"
         + (f" excluding {exclude_doi}" if exclude_doi else ""),
+    )
+
+
+PORE_VOLUME_PHYSICAL_MAX_CM3_G = 3.0
+
+
+def degenerate_fit(res: dict[str, Any]) -> bool:
+    """A fit that explains the excess branch with an unphysical pore volume or places the mean
+    site energy at the lower grid edge: the independent-Langmuir mixture does not describe the
+    isotherm (typically cryogenic high-pressure data past the excess maximum)."""
+    grid = res["grid_kJ"]
+    step = grid[1] - grid[0] if len(grid) > 1 else 0.5
+    return bool(
+        res["V_pore"]["q50"] > PORE_VOLUME_PHYSICAL_MAX_CM3_G
+        or res["mean_energy"]["mean"] <= grid[0] + step
     )
 
 
 def classify_outlier(res: dict[str, Any]) -> list[str]:
     """Metadata features of a material whose strong-site fraction exceeds the H5 statement."""
     flags = []
+    if degenerate_fit(res):
+        flags.append("excess_branch_misfit")
     if res["strong_fraction"]["q50"] <= STRONG_FRACTION_THRESHOLD:
         return flags
     md = res["metadata"]
@@ -693,12 +743,16 @@ def run_corpus(
     grid_step: float = GRID_STEP_KJ,
     seed: int = 0,
     only: set[str] | None = None,
+    partial_pooling: bool = True,
 ) -> dict[str, Any]:
     """Two-stage inversion of every material set with per-material checkpoints.
 
-    Stage 1 (``out_dir/aed_stage1``) fits each material with free digitized error scales; stage
-    2 (``out_dir/aed``) refits with the scales pooled over the other sources. Finished materials
-    are skipped on rerun. Returns the assembled report (also written as ``aed_report.json``).
+    Stage 1 (``out_dir/aed_stage1``) fits each material with free digitized error scales under
+    the manual's prior; stage 2 (``out_dir/aed``) refits each material with its scales drawn
+    from the hierarchical prior estimated over the other sources (centre and between-material
+    spread by the method of moments; partial pooling), or, with ``partial_pooling=False``, with
+    the pooled scales fixed. Finished materials are skipped on rerun. Returns the assembled
+    report (also written as ``aed_report.json``).
     """
     out_dir = Path(out_dir)
     pore_volumes = pore_volumes or {}
@@ -730,9 +784,12 @@ def run_corpus(
                 results.append(json.loads(p.read_text()))
                 continue
             scales = pooled_scales(stage1, exclude_doi=ms.doi)
-            log.info("stage 2 %s scales a=%.3f b=%.3f", ms.material_id, scales.a_dig, scales.b_dig)
+            log.info(
+                "stage 2 %s hierarchical scales a=%.3f (tau %.2f) b=%.3f (tau %.2f)",
+                ms.material_id, scales.a_dig, scales.tau_a, scales.b_dig, scales.tau_b,
+            )
             res = fit_material(
-                ms, scales=scales, free_scales=False, pore_volume_cm3_g=pore_volumes.get(ms.material_id),
+                ms, scales=scales, free_scales=partial_pooling, pore_volume_cm3_g=pore_volumes.get(ms.material_id),
                 grid_step=grid_step, lambda0=lambda0, draws=draws, tune=tune, chains=chains, cores=cores,
                 seed=seed,
             )
@@ -781,7 +838,10 @@ def assemble_report(results: list[dict[str, Any]], stage1: list[dict[str, Any]],
                 "b_dig": r["error_scales"]["b_dig"] if not isinstance(r["error_scales"]["b_dig"], dict) else r["error_scales"]["b_dig"]["q50"],
                 "rhat_max": r["diagnostics"]["rhat_max"],
                 "ess_min": r["diagnostics"]["ess_min"],
+                "rhat_derived_max": r["diagnostics"].get("rhat_derived_max"),
+                "ess_derived_min": r["diagnostics"].get("ess_derived_min"),
                 "divergences": r["diagnostics"]["divergences"],
+                "degenerate_fit": degenerate_fit(r),
                 "ppc_p_value": r["ppc"]["chi2_p_value"],
                 "pit_coverage_90": r["ppc"]["pit_coverage_90"],
                 "outlier": bool(r["strong_fraction"]["q50"] > STRONG_FRACTION_THRESHOLD),
@@ -815,12 +875,22 @@ def assemble_report(results: list[dict[str, Any]], stage1: list[dict[str, Any]],
             "n_rhat_above_1.01": int((table["rhat_max"] > 1.01).sum()) if n else 0,
             "ess_min": float(table["ess_min"].min()) if n else None,
             "n_with_divergences": int((table["divergences"] > 0).sum()) if n else 0,
+            "rhat_derived_max": float(table["rhat_derived_max"].max()) if n and table["rhat_derived_max"].notna().any() else None,
+            "n_rhat_derived_above_1.01": int((table["rhat_derived_max"] > 1.01).sum()) if n else 0,
+            "ess_derived_min": float(table["ess_derived_min"].min()) if n and table["ess_derived_min"].notna().any() else None,
+            "n_ess_derived_below_400": int((table["ess_derived_min"] < 400).sum()) if n else 0,
+        },
+        "degenerate_fits": {
+            "n": int(table["degenerate_fit"].sum()) if n else 0,
+            "materials": table.loc[table["degenerate_fit"], ["material_id", "adsorbent_name", "V_pore_q50", "mean_energy_kJ_mol", "ppc_p_value"]].to_dict(orient="records") if n else [],
         },
         "strong_sites": {
             "threshold_kJ_mol": STRONG_SITE_THRESHOLD_KJ,
             "fraction_threshold": STRONG_FRACTION_THRESHOLD,
             "n_above": int(table["outlier"].sum()) if n else 0,
             "fraction_above": float(table["outlier"].mean()) if n else None,
+            "n_above_excluding_degenerate": int((table["outlier"] & ~table["degenerate_fit"]).sum()) if n else 0,
+            "n_above_q05": int((table["strong_fraction_q05"] > STRONG_FRACTION_THRESHOLD).sum()) if n else 0,
             "features": table.loc[table["outlier"], ["material_id", "adsorbent_name", "material_class", "label", "strong_fraction_q50", "outlier_features"]].to_dict(orient="records") if n else [],
         },
         "window_occupancy_corpus": {
@@ -850,6 +920,7 @@ __all__ = [
     "assemble_report",
     "build_model",
     "classify_outlier",
+    "degenerate_fit",
     "energy_grid",
     "fit_material",
     "log_kernel",
