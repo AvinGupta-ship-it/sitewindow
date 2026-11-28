@@ -422,3 +422,32 @@ def test_profile_seed_returns_the_located_transition_structure(tmp_path):
     assert profile_seed(p, "basal/x/ortho_recomb", 3, cache) == []
     assert profile_seed(p, "basal/x/other", 2, cache) == []
     assert profile_seed(None, "basal/x/ortho_recomb", 2) == []
+
+
+def test_refinement_single_points_add_a_refined_scan_record(tmp_path):
+    from sitewindow.atomistic.workflows.barriers import REFINED_SCAN
+
+    spec = BarrierSpec(
+        tier="verify",
+        pathways=["monomer_stick"],
+        recipes={"basal": {"supercell": 3}},
+        methods=(CONSTRAINED_SCAN,),
+        fmax=0.3,
+        steps=60,
+        grid_step_A=0.3,
+        refine_step_A=0.1,
+        far_distance_A=2.2,
+        refine_calculator=EMTCalculator(extra={"role": "refine"}),
+    )
+    out = build_barriers(spec, EMTCalculator(), tmp_path / "cache", tmp_path / "out")
+    frame = out["records"]
+    methods = frame["identifier"].str.split("@").str[1].tolist()
+    assert CONSTRAINED_SCAN in methods and REFINED_SCAN in methods
+    scan = frame[frame["identifier"].str.endswith(CONSTRAINED_SCAN)].iloc[0]
+    refined = frame[frame["identifier"].str.endswith(REFINED_SCAN)].iloc[0]
+    # the same calculator evaluates both, so the refined barrier reproduces the scan barrier
+    assert refined["value_eV"] == pytest.approx(scan["value_eV"], abs=1e-6)
+    assert refined["settings_hash"] != scan["settings_hash"]
+    profile = out["profiles"][0]["methods"][REFINED_SCAN]
+    assert profile["structures_from"] == CONSTRAINED_SCAN and "E_transition_eV" in profile
+    assert out["manifest"]["refinement"]["method"] == REFINED_SCAN

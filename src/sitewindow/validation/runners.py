@@ -432,6 +432,8 @@ def run_B2(reg: dict, tier: str = "verify") -> dict:
             p = base / f"barriers_{t}.parquet"
             if p.exists():
                 frames.append(pd.read_parquet(p))
+    for p in sorted(Path("data/processed/tier1").glob("barriers*.parquet")):
+        frames.append(pd.read_parquet(p))
     if not frames:
         return {
             "id": "B2",

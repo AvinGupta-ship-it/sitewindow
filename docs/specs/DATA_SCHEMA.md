@@ -52,7 +52,7 @@ All models are implemented as pydantic v2 classes in `sitewindow.schema` and exp
 
 ## PublishedValue
 
-`id` (PV-####), `doi`/`arxiv`, `system`, `site_class`, `site_id` (nullable), `quantity`, `value` (UncertainScalar), `unit`, `reference_state`, `method` (dict: `functional`, `dispersion`, `code`, `basis_or_cutoff`, `supercell`, `kmesh`, `spin`, `zpe`), `extraction`, `source_id`, `notes`.
+`id` (PV-####), `doi`/`arxiv`, `system`, `site_class`, `site_id` (nullable), `quantity`, `value` (UncertainScalar), `unit`, `reference_state`, `method` (dict: `functional`, `dispersion`, `code`, `basis_or_cutoff`, `supercell`, `kmesh`, `spin`, `zpe`), `extraction`, `source_id`, `notes`, `compilation` (bool, optional: the entry summarizes a range of earlier studies and is not pooled), `exclude_from_meta_analysis` (str, optional: the reason a value is registered but left out of the pooled meta-analysis). Registry files may carry a `where_read` field naming the table, figure or paragraph of the open copy in which the value appears; `level` in `method` names a correlated wavefunction method (DMC, CCSD(T)) whose values form the Tier-0 anchors.
 
 ## Isotherm (from ISODB)
 

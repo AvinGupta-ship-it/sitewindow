@@ -99,6 +99,7 @@ from sitewindow.atomistic.workflows.adsorption import (
     reference_energies,
     relax,
     relax_tube_radius,
+    single_point,
 )
 from sitewindow.io import sha256_file, write_table
 from sitewindow.landscape.classes import Configuration, catalogue
@@ -121,6 +122,7 @@ STICK = "stick"
 RECOMB = "recomb"
 CONSTRAINED_SCAN = "constrained_scan"
 CI_NEB = "ci_neb"
+REFINED_SCAN = "constrained_scan_refined"
 METHODS = (CONSTRAINED_SCAN, CI_NEB)
 H2_BOND_A = 0.75
 PRODUCT_H_H_FACTOR = 1.3
@@ -197,6 +199,11 @@ class BarrierSpec:
     seed_profiles: Path | None = None
     seed_pathways: tuple[str, ...] | None = None
     seed_label: str = "seeded"
+    refine_calculator: Any | None = None
+    """A second calculator whose single points on the stationary structures of the constrained
+    scan (substrate, initial state, maximum, final state) give the refined barrier recorded under
+    ``constrained_scan_refined``: the Tier-1 protocol relaxes in the LCAO basis and evaluates
+    energies in plane waves, as the anchors do."""
 
 
 def profile_seed(
@@ -818,6 +825,7 @@ def build_barriers(
         log.info("NEB skipped under MPI; the constrained scan is the only method")
     main = _engine(calc, cache_dir)
     engines = {RECOMB: main, STICK: main}
+    refine = None if spec.refine_calculator is None else _engine(spec.refine_calculator, cache_dir)
     if spec.stick_calculator_settings:
         if not is_dataclass(calc):
             raise ValueError("stick calculator settings require a dataclass calculator")
@@ -1016,6 +1024,53 @@ def build_barriers(
                 "" if caveat is None else ": " + caveat,
                 time.perf_counter() - t0,
             )
+            if refine is not None:
+                t1 = time.perf_counter()
+                rc: Calculator = refine["calc"]
+                rrefs: dict[str, float] = refine["refs"]
+                try:
+                    e_sub_r = single_point(sub, rc, cache_dir).energy_eV
+                    e_init_r = single_point(init, rc, cache_dir).energy_eV
+                    e_top_r = single_point(
+                        top.atoms if top.atoms is not None else init, rc, cache_dir
+                    ).energy_eV
+                    e_fin_r = (
+                        single_point(final_free, rc, cache_dir).energy_eV
+                        if final_energy is not None
+                        else None
+                    )
+                except (CalculationFailed, RuntimeError) as exc:
+                    log.warning("refinement of %s failed: %s", pw.key, str(exc).splitlines()[0])
+                else:
+                    e_ref_r = e_sub_r + rrefs["E_H"] if pw.kind == STICK else e_init_r
+                    profile["methods"][REFINED_SCAN] = {
+                        "barrier_eV": e_top_r - e_ref_r,
+                        "barrier_from_initial_eV": e_top_r - e_init_r,
+                        "barrierless": bool(e_top_r - e_ref_r <= 0.0),
+                        "transition_coordinate_A": top.coordinate_A,
+                        "E_substrate_eV": e_sub_r,
+                        "E_initial_eV": e_init_r,
+                        "E_reference_eV": e_ref_r,
+                        "E_transition_eV": e_top_r,
+                        "E_final_eV": e_fin_r,
+                        "reaction_energy_eV": None if e_fin_r is None else e_fin_r - e_init_r,
+                        "E_H_eV": rrefs["E_H"],
+                        "E_H2_eV": rrefs["E_H2"],
+                        "saddle_located": caveat is None,
+                        "saddle_caveat": caveat,
+                        "converged": all_converged,
+                        "engine": refine["engine"],
+                        "settings_hash": refine["settings_hash"],
+                        "structures_from": CONSTRAINED_SCAN,
+                        "wall_s": time.perf_counter() - t1,
+                    }
+                    log.info(
+                        "barrier %s %s E=%.3f eV (single points of %s on the scan structures)",
+                        pw.key,
+                        REFINED_SCAN,
+                        e_top_r - e_ref_r,
+                        refine["engine"],
+                    )
 
         neb_final: tuple[Atoms, RelaxResult] | None = None
         final_label = ""
@@ -1227,6 +1282,23 @@ def build_barriers(
                     sigma,
                 )
             )
+        if refine is not None and REFINED_SCAN in profile["methods"]:
+            r = profile["methods"][REFINED_SCAN]
+            records.append(
+                _record(
+                    pw,
+                    chash,
+                    REFINED_SCAN,
+                    r["barrier_eV"],
+                    refine["settings_hash"],
+                    refine["tier"],
+                    refine["engine"],
+                    bool(r["saddle_located"]),
+                    desc,
+                    len(init),
+                    sigma,
+                )
+            )
         profiles.append(profile)
 
     frame = records_to_frame(records)
@@ -1249,6 +1321,15 @@ def build_barriers(
         "tube_radius_optimization": radius_opt,
         "neb_images": spec.neb_images,
         "neb_spring_eV_A": spec.neb_spring_eV_A,
+        "refinement": None
+        if refine is None
+        else {
+            "method": REFINED_SCAN,
+            "engine": refine["engine"],
+            "tier": refine["tier"].value,
+            "settings": refine["settings"],
+            "settings_hash": refine["settings_hash"],
+        },
         "seed_profiles": None if spec.seed_profiles is None else str(spec.seed_profiles),
         "seed_pathways": None if spec.seed_pathways is None else list(spec.seed_pathways),
         "reference_energies_eV": refs,

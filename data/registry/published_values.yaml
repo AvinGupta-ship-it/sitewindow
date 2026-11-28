@@ -6,13 +6,13 @@
   arxiv: "2202.00194"
   system: graphene 5x5 supercell
   site_class: basal
-  site_id: top_monomer
+  site_id: monomer
   quantity: E_bind_H_atom
   value: -0.691
   uncertainty: 0.019
   unit: eV
   reference_state: H_atom
-  method: { level: DMC, code: QMCPACK, supercell: 5x5, notes: "diffusion Monte Carlo, trial wavefunction from DFT" }
+  method: { level: DMC, functional: DMC, dispersion: none, code: QMCPACK, basis_or_cutoff: "B-spline orbitals from 3400 eV plane waves, ccECP pseudopotentials", supercell: 5x5, kmesh: twist-averaged, spin: not stated, zpe: not included, notes: "fixed-node diffusion Monte Carlo, Slater-Jastrow trial wavefunction from PBE orbitals; Table I row DMC, -691 +/- 19 meV" }
   extraction: tabular_text
   source_id: S7
 - id: PV-0002
@@ -20,13 +20,13 @@
   arxiv: "2202.00194"
   system: graphene 5x5 supercell
   site_class: basal
-  site_id: top_monomer
+  site_id: monomer
   quantity: E_bind_H_atom
-  value: -0.821
+  value: -0.820
   uncertainty: null
   unit: eV
   reference_state: H_atom
-  method: { functional: PBE, basis_or_cutoff: plane wave, supercell: 5x5 }
+  method: { functional: PBE, dispersion: none, code: Quantum ESPRESSO 6.3, basis_or_cutoff: "plane waves 3400 eV, ccECP pseudopotentials", supercell: 5x5, kmesh: "6x6x1, 13.6 meV cold smearing", spin: not stated, zpe: not included, notes: "Table I row PBE (plane-wave basis) -820 meV; the text quotes -821 meV" }
   extraction: tabular_text
   source_id: S7
 - id: PV-0003
@@ -34,13 +34,14 @@
   arxiv: "2202.00194"
   system: graphene (literature compilation)
   site_class: basal
-  site_id: top_monomer
+  site_id: monomer
   quantity: E_bind_H_atom
   value: [-0.98, -0.79]
   uncertainty: null
   unit: eV
   reference_state: H_atom
   method: { functional: "PBE/PW91 (various)", notes: "range of previously published values as summarized in the source" }
+  compilation: true
   extraction: tabular_text
   source_id: S7
 - id: PV-0004
@@ -127,4 +128,796 @@
   reference_state: null
   method: { notes: "maximal hydrogenation depends on diameter; near-100% hydrogenation at ~2.0 nm stable at room temperature" }
   extraction: abstract_statement
+  source_id: S3
+# ---------------------------------------------------------------------------------------------
+# First-principles chemisorption values read in open-access full texts (arXiv versions unless noted;
+# source_id S3). Signs follow the schema: E_bind_H_atom negative when bound relative to the free
+# atom; E_bind_H_half_H2 positive when endothermic relative to half a hydrogen molecule.
+# where_read names the table, figure or paragraph of the open copy in which the number appears.
+# Casolo, Lovvik, Martinazzo, Tantardini, J. Chem. Phys. 130, 054704 (2009); arXiv:0808.1312.
+- id: PV-0011
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 5x5 supercell, single H on top of a carbon (coverage 0.020 ML)
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.84
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 5x5, kmesh: "6x6x1 Gamma-centred, tetrahedron with Bloechl corrections", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row 5x5, column E_chem of this work; the source reports +0.84 eV as a positive chemisorption energy"
+  source_id: S3
+- id: PV-0012
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 4x4 supercell, single H (coverage 0.031 ML)
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.79
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 4x4, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row 4x4"
+  source_id: S3
+- id: PV-0013
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 3x3 supercell, single H (coverage 0.062 ML)
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.77
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 3x3, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row 3x3"
+  source_id: S3
+- id: PV-0014
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 2x2 supercell, single H (coverage 0.125 ML)
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.75
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 2x2, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row 2x2"
+  source_id: S3
+- id: PV-0015
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 5x5, second H on the carbon adjacent to the first (ortho dimer A(0)B(1)), ground state M = 0
+  site_class: basal
+  site_id: ortho
+  quantity: E_sequential
+  value: -1.934
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 5x5, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table II, row B(1); the source reports +1.934 eV as the binding energy of the second atom"
+  source_id: S3
+- id: PV-0016
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 5x5, second H on the para carbon (dimer A(0)B(2)), M = 0
+  site_class: basal
+  site_id: para
+  quantity: E_sequential
+  value: -1.894
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 5x5, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table II, row B(2)"
+  source_id: S3
+- id: PV-0017
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene 5x5, second H on the meta carbon (same sublattice, dimer A(0)A(1)), triplet ground state
+  site_class: basal
+  site_id: meta
+  quantity: E_sequential
+  value: -0.802
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 5x5, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table II, row A(1)"
+  source_id: S3
+- id: PV-0018
+  doi: 10.1063/1.3072333
+  arxiv: "0808.1312"
+  system: graphene, sticking barrier of a hydrogen atom (single atom and sequential additions)
+  site_class: basal
+  site_id: monomer
+  quantity: E_barrier_stick
+  value: [0.0, 0.2]
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 5x5, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: abstract_statement
+  where_read: "abstract: barriers to sticking in the range 0.0 to 0.2 eV; Sec. III.B: the para site shows no barrier"
+  source_id: S3
+# Boukhvalov, Katsnelson, Lichtenstein, Phys. Rev. B 77, 035427 (2008); arXiv:0710.1971. Chemisorption
+# energy per H relative to half H2 (formula stated in the companion paper arXiv:0807.3855).
+- id: PV-0019
+  doi: 10.1103/PhysRevB.77.035427
+  arxiv: "0710.1971"
+  system: graphene, single H, 32 carbon atoms per hydrogen
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_half_H2
+  value: 1.441
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "localized numerical orbitals (SZP checked against DZP in the cited setup)", supercell: "4x4 (32 C)", kmesh: not restated, spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row A0, column E_chem"
+  source_id: S3
+- id: PV-0020
+  doi: 10.1103/PhysRevB.77.035427
+  arxiv: "0710.1971"
+  system: graphene, H pair on neighbouring carbons on the same side (A0-B1, ortho cis), per H
+  site_class: basal
+  site_id: ortho
+  quantity: E_bind_H_half_H2
+  value: 0.909
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "localized numerical orbitals", supercell: "50 C", kmesh: not restated, spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row A0-B1"
+  source_id: S3
+- id: PV-0021
+  doi: 10.1103/PhysRevB.77.035427
+  arxiv: "0710.1971"
+  system: graphene, H pair on neighbouring carbons on opposite sides (A0-B'1, ortho trans), per H
+  site_class: basal
+  site_id: ortho_trans
+  quantity: E_bind_H_half_H2
+  value: 0.540
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "localized numerical orbitals", supercell: "50 C", kmesh: not restated, spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row A0-B'1; Sec. V quotes 0.53 eV"
+  source_id: S3
+- id: PV-0022
+  doi: 10.1103/PhysRevB.77.035427
+  arxiv: "0710.1971"
+  system: graphene, H pair on next-nearest carbons of the same sublattice, same side (A0-A2, meta), per H
+  site_class: basal
+  site_id: meta
+  quantity: E_bind_H_half_H2
+  value: 1.406
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "localized numerical orbitals", supercell: "50 C", kmesh: not restated, spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row A0-A2"
+  source_id: S3
+- id: PV-0023
+  doi: 10.1103/PhysRevB.77.035427
+  arxiv: "0710.1971"
+  system: graphane (fully hydrogenated graphene, both sides), per H
+  site_class: basal
+  site_id: graphane
+  quantity: E_bind_H_half_H2
+  value: 0.42
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "localized numerical orbitals", supercell: full coverage, kmesh: not restated, spin: spin-polarized, zpe: not included, notes: "the LDA value in the same paragraph is 0.62 eV" }
+  extraction: tabular_text
+  where_read: "Sec. V: 0.42 eV (20.3 kJ/mol) per H"
+  source_id: S3
+# Boukhvalov and Katsnelson, Nano Lett. 8, 4373 (2008); arXiv:0807.3855. Formation energy
+# E(X+H) - E(X) - E(H2)/2 per H, stated explicitly in the paper.
+- id: PV-0024
+  arxiv: "0807.3855"
+  system: graphene with a Stone-Wales defect (50 C supercell), single H on the defect
+  site_class: stone_wales
+  site_id: rotated_bond
+  quantity: E_bind_H_half_H2
+  value: 0.30
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "DZP (C), DZ (H), mesh cutoff 400 Ry", supercell: "5x5 (50 C)", kmesh: "8x8x2", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 2: 0.30 eV for SW, 0.93 eV for bivacancy"
+  exclude_from_meta_analysis: "the same text later states that the single-hydrogen chemisorption energy at Stone-Wales and bivacancy sites is negative, so the sign of the quoted value is ambiguous"
+  source_id: S3
+- id: PV-0025
+  arxiv: "0807.3855"
+  system: graphene with a bivacancy (50 C supercell), single H; the ring topology of the bivacancy is not stated in the text
+  site_class: divacancy_585
+  site_id: dangling_bond
+  quantity: E_bind_H_half_H2
+  value: 0.93
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "DZP (C), DZ (H), mesh cutoff 400 Ry", supercell: "5x5 (50 C)", kmesh: "8x8x2", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 2, the same sentence as the Stone-Wales value"
+  exclude_from_meta_analysis: "sign ambiguity as for PV-0024, and the 5-8-5 assignment is conventional, not stated"
+  source_id: S3
+- id: PV-0026
+  arxiv: "0807.3855"
+  system: zigzag-edge graphene nanoribbon of width 2.20 nm, single H at a bare edge carbon
+  site_class: edge_zigzag
+  site_id: edge_CH_bare
+  quantity: E_bind_H_half_H2
+  value: -2.39
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "DZP (C), DZ (H), mesh cutoff 400 Ry", supercell: "ribbon, 22 C per cell", kmesh: "2x12x2", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 3, paragraph on the hydrogenation of graphene edges; Fig. 5b"
+  source_id: S3
+- id: PV-0027
+  arxiv: "0807.3855"
+  system: zigzag-edge graphene nanoribbon of width 4.54 nm, single H at a bare edge carbon
+  site_class: edge_zigzag
+  site_id: edge_CH_bare
+  quantity: E_bind_H_half_H2
+  value: -2.76
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "DZP (C), DZ (H), mesh cutoff 400 Ry", supercell: "ribbon, 44 C per cell", kmesh: "2x12x2", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 3, the same paragraph"
+  source_id: S3
+- id: PV-0028
+  arxiv: "0807.3855"
+  system: zigzag-edge graphene nanoribbon of width 6.88 nm, single H at a bare edge carbon
+  site_class: edge_zigzag
+  site_id: edge_CH_bare
+  quantity: E_bind_H_half_H2
+  value: -2.82
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: PBE, dispersion: none, code: SIESTA, basis_or_cutoff: "DZP (C), DZ (H), mesh cutoff 400 Ry", supercell: "ribbon, 66 C per cell", kmesh: "2x12x2", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 3, the same paragraph"
+  source_id: S3
+# Dumi et al., J. Chem. Phys. 156, 144702 (2022); arXiv:2202.00194, Table I (further rows).
+- id: PV-0029
+  doi: 10.1063/5.0085982
+  arxiv: "2202.00194"
+  system: graphene 5x5 supercell, single H, Gaussian basis with counterpoise correction
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.871
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: CRYSTAL17, basis_or_cutoff: "all-electron POB-TZVP, geometrical counterpoise correction", supercell: 5x5, kmesh: "12x12x1", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row PBE (Gaussian basis)"
+  source_id: S7
+- id: PV-0030
+  doi: 10.1063/5.0085982
+  arxiv: "2202.00194"
+  system: graphene 5x5 supercell, single H
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.851
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE0, dispersion: none, code: CRYSTAL17, basis_or_cutoff: "all-electron POB-TZVP, geometrical counterpoise correction", supercell: 5x5, kmesh: "12x12x1", spin: not stated, zpe: not included, notes: "-0.800 eV after the basis-incompleteness correction of 51 meV given in parentheses" }
+  extraction: tabular_text
+  where_read: "Table I, row PBE0"
+  source_id: S7
+- id: PV-0031
+  doi: 10.1063/5.0085982
+  arxiv: "2202.00194"
+  system: graphene 5x5 supercell, single H
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.794
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: HSE, dispersion: none, code: CRYSTAL17, basis_or_cutoff: "all-electron POB-TZVP, geometrical counterpoise correction", supercell: 5x5, kmesh: "12x12x1", spin: not stated, zpe: not included, notes: "-0.743 eV after the basis-incompleteness correction" }
+  extraction: tabular_text
+  where_read: "Table I, row HSE"
+  source_id: S7
+# Koskinen, Malola, Hakkinen, Phys. Rev. Lett. 101, 115502 (2008); arXiv:0802.2623. Adsorption energy
+# per edge atom at full edge termination relative to free H atoms (source positive).
+- id: PV-0032
+  doi: 10.1103/PhysRevLett.101.115502
+  arxiv: "0802.2623"
+  system: zigzag graphene edge, one H per edge carbon (full termination), average per H
+  site_class: edge_zigzag
+  site_id: edge_CH_average
+  quantity: E_bind_H_atom
+  value: -5.36
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: GPAW (real-space PAW), basis_or_cutoff: "grid spacing 0.2 A", supercell: "infinite ribbon, 5 A to the cell walls", kmesh: "10 k-points along the edge", spin: not stated, zpe: not included, notes: "a second H on the hydrogenated zigzag edge binds by 2.14 eV" }
+  extraction: tabular_text
+  where_read: "Table I, row eps_ads, column zz; p. 2"
+  source_id: S3
+- id: PV-0033
+  doi: 10.1103/PhysRevLett.101.115502
+  arxiv: "0802.2623"
+  system: armchair graphene edge, one H per edge carbon (full termination), average per H
+  site_class: edge_armchair
+  site_id: edge_CH_average
+  quantity: E_bind_H_atom
+  value: -4.36
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: GPAW (real-space PAW), basis_or_cutoff: "grid spacing 0.2 A", supercell: "infinite ribbon, 5 A to the cell walls", kmesh: "10 k-points along the edge", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row eps_ads, column ac; p. 2"
+  source_id: S3
+# Sljivancanin, Andersen, Hornekaer, Hammer, arXiv:1102.4984 (Phys. Rev. B 83, 2011). Binding
+# energies E(graphene) + n E(H) - E(nH/graphene), source positive; Table II reproduces the authors'
+# J. Chem. Phys. 131, 084706 (2009) values with the same set-up.
+- id: PV-0034
+  arxiv: "1102.4984"
+  system: graphene 6x6 supercell (72 C), single H
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.77
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 6x6, kmesh: "6 Chadi-Cohen points", spin: "relative stabilities non-spin-polarized; spin polarization tested", zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I (6x6, 6 k-points) and Table II, row monomer"
+  source_id: S3
+- id: PV-0035
+  arxiv: "1102.4984"
+  system: graphene 7x7 supercell (98 C), single H, 18 k-points
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_atom
+  value: -0.82
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 7x7, kmesh: "18 k-points", spin: "relative stabilities non-spin-polarized", zpe: not included }
+  extraction: tabular_text
+  where_read: "Table I, row monomer, column 7x7 with 18 k-points"
+  source_id: S3
+- id: PV-0036
+  arxiv: "1102.4984"
+  system: graphene, ortho cis dimer (both H on the same face), per H (2.73 eV per dimer)
+  site_class: basal
+  site_id: ortho
+  quantity: E_bind_H_atom
+  value: -1.365
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 6x6, kmesh: "6 Chadi-Cohen points", spin: "relative stabilities non-spin-polarized", zpe: not included }
+  extraction: tabular_text
+  where_read: "Table II, row O: 2.73 eV per dimer"
+  source_id: S3
+- id: PV-0037
+  arxiv: "1102.4984"
+  system: graphene, para cis dimer, per H (2.68 eV per dimer)
+  site_class: basal
+  site_id: para
+  quantity: E_bind_H_atom
+  value: -1.34
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 6x6, kmesh: "6 Chadi-Cohen points", spin: "relative stabilities non-spin-polarized", zpe: not included }
+  extraction: tabular_text
+  where_read: "Table II, row P: 2.68 eV per dimer"
+  source_id: S3
+- id: PV-0038
+  arxiv: "1102.4984"
+  system: graphene, meta cis dimer, per H (1.58 eV per dimer)
+  site_class: basal
+  site_id: meta
+  quantity: E_bind_H_atom
+  value: -0.79
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 6x6, kmesh: "6 Chadi-Cohen points", spin: "relative stabilities non-spin-polarized", zpe: not included }
+  extraction: tabular_text
+  where_read: "Table II, row M: 1.58 eV per dimer"
+  source_id: S3
+- id: PV-0039
+  arxiv: "1102.4984"
+  system: graphene, ortho trans dimer (H on opposite faces), per H (3.30 eV per dimer)
+  site_class: basal
+  site_id: ortho_trans
+  quantity: E_bind_H_atom
+  value: -1.65
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 6x6, kmesh: "6 Chadi-Cohen points", spin: "relative stabilities non-spin-polarized", zpe: not included }
+  extraction: tabular_text
+  where_read: "Table IV, row O-trans: 3.30 eV per dimer, 1.65 eV per H"
+  source_id: S3
+- id: PV-0040
+  arxiv: "1102.4984"
+  system: graphene, H2 desorption from the para cis dimer (nudged elastic band)
+  site_class: basal
+  site_id: para
+  quantity: E_barrier_recomb
+  value: 1.40
+  uncertainty: null
+  unit: eV
+  reference_state: adsorbed_state
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: 6x6, kmesh: "6 Chadi-Cohen points", spin: "relative stabilities non-spin-polarized", zpe: not included }
+  extraction: tabular_text
+  where_read: "Fig. 1 caption and Sec. III.A.2: direct desorption barrier of the P dimer 1.40 eV"
+  source_id: S3
+- id: PV-0041
+  arxiv: "1102.4984"
+  system: graphane (full coverage, both faces), per H
+  site_class: basal
+  site_id: graphane
+  quantity: E_bind_H_atom
+  value: -2.49
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PW91, dispersion: none, code: DACAPO (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 25 Ry (density 140 Ry)", supercell: full coverage, kmesh: "6 Chadi-Cohen points", spin: non-spin-polarized, zpe: not included, notes: "2.45 eV per H at the graphene lattice constant" }
+  extraction: tabular_text
+  where_read: "Table IV footnote on graphane"
+  source_id: S3
+# Casartelli, Casolo, Tantardini, Martinazzo, arXiv:1312.7143 (Phys. Rev. B 2014): hydrogenated
+# monovacancy, dE_n = E(VH_n) - E(V) - n E(H) and sequential energies, 6x6 cell.
+- id: PV-0042
+  arxiv: "1312.7143"
+  system: graphene 6x6 with a monovacancy, first H on the apical (dangling-bond) carbon; bare vacancy magnetic (1.56 muB)
+  site_class: monovacancy
+  site_id: dangling_bond
+  quantity: E_bind_H_atom
+  value: -4.24
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included, notes: "barrierless sticking" }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 2: dE1 = -4.24 eV, and barrierless"
+  source_id: S3
+- id: PV-0043
+  arxiv: "1312.7143"
+  system: monovacancy, second H as the anti dimer (most stable second-hydrogen isomer)
+  site_class: monovacancy
+  site_id: second_anti
+  quantity: E_sequential
+  value: -3.34
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 3: ddE2 = -2.42, -3.09 and -3.34 eV for the geminal, syn and anti dimers"
+  source_id: S3
+- id: PV-0044
+  arxiv: "1312.7143"
+  system: monovacancy, second H as the syn dimer
+  site_class: monovacancy
+  site_id: second_syn
+  quantity: E_sequential
+  value: -3.09
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 3"
+  source_id: S3
+- id: PV-0045
+  arxiv: "1312.7143"
+  system: monovacancy, second H geminal (same carbon)
+  site_class: monovacancy
+  site_id: second_geminal
+  quantity: E_sequential
+  value: -2.42
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 3"
+  source_id: S3
+- id: PV-0046
+  arxiv: "1312.7143"
+  system: monovacancy, third H (VH3 anti, most stable)
+  site_class: monovacancy
+  site_id: third
+  quantity: E_sequential
+  value: -3.82
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included, notes: "the geminal VH3 isomer gives -2.43 eV" }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 4: ddE3 = -3.82 eV vs. -2.43 eV"
+  source_id: S3
+- id: PV-0047
+  arxiv: "1312.7143"
+  system: monovacancy, fourth H (VH4 syn, most stable; anti -2.38 eV, geminal -1.57 eV)
+  site_class: monovacancy
+  site_id: fourth
+  quantity: E_sequential
+  value: -2.39
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 4; Figs. 2 and 3"
+  source_id: S3
+- id: PV-0048
+  arxiv: "1312.7143"
+  system: monovacancy, fifth H (VH5)
+  site_class: monovacancy
+  site_id: fifth
+  quantity: E_sequential
+  value: -1.69
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 4"
+  source_id: S3
+- id: PV-0049
+  arxiv: "1312.7143"
+  system: monovacancy, sixth H (VH6)
+  site_class: monovacancy
+  site_id: sixth
+  quantity: E_sequential
+  value: -1.21
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: PBE, dispersion: none, code: VASP (PAW), basis_or_cutoff: "plane waves 500 eV", supercell: 6x6, kmesh: "6x6x1 Gamma-centred", spin: spin-polarized, zpe: not included }
+  extraction: tabular_text
+  where_read: "Sec. III.A, p. 4"
+  source_id: S3
+# Thomas, Asiri, Drummond, arXiv:2112.11539 (Phys. Rev. B 2022): point-defect formation energies in
+# the dilute limit with the carbon chemical potential of graphene, static nuclei.
+- id: PV-0050
+  arxiv: "2112.11539"
+  system: graphene monovacancy (Jahn-Teller reconstructed), dilute limit from 3x3 to 7x7 supercells
+  site_class: monovacancy
+  site_id: formation
+  quantity: E_formation_defect
+  value: 7.97
+  uncertainty: null
+  unit: eV
+  reference_state: pristine_cell
+  method: { functional: PBE, dispersion: none, code: CASTEP (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 556 eV", supercell: "3x3 to 7x7 extrapolated as E(N) = E(inf) + C/N", kmesh: "about (51/sqrt N) x (51/sqrt N)", spin: non-spin-polarized, zpe: "static nuclei; vibrational correction -0.74 eV given separately" }
+  extraction: tabular_text
+  where_read: "Table II, row DFT-PBE (this work), monovacancy column"
+  source_id: S3
+- id: PV-0051
+  arxiv: "2112.11539"
+  system: graphene monovacancy, DMC-corrected formation energy (DMC-DFT difference averaged over 3x3, 4x4 and 5x5 cells)
+  site_class: monovacancy
+  site_id: formation
+  quantity: E_formation_defect
+  value: 9.0
+  uncertainty: 0.1
+  unit: eV
+  reference_state: pristine_cell
+  method: { level: DMC, functional: DMC, dispersion: none, code: CASINO with CASTEP orbitals, basis_or_cutoff: "Trail-Needs pseudopotentials, blip orbitals from 2231 to 3401 eV plane waves", supercell: "3x3, 4x4, 5x5 twist-averaged; correction applied to the extrapolated PBE value", kmesh: "24 random twists", spin: non-spin-polarized orbitals, zpe: "static nuclei; 8.3(1) eV with the vibrational correction at 298 K" }
+  extraction: tabular_text
+  where_read: "Table III, row DMC-corrected DFT, monovacancy column"
+  source_id: S3
+- id: PV-0052
+  arxiv: "2112.11539"
+  system: graphene Stone-Wales defect (sine-like buckled structure), dilute limit
+  site_class: stone_wales
+  site_id: formation
+  quantity: E_formation_defect
+  value: 4.32
+  uncertainty: null
+  unit: eV
+  reference_state: pristine_cell
+  method: { functional: PBE, dispersion: none, code: CASTEP (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 556 eV", supercell: "3x3 to 7x7 extrapolated as E(N) = E(inf) + C/N", kmesh: "about (51/sqrt N) x (51/sqrt N)", spin: non-spin-polarized, zpe: "static nuclei; vibrational correction -0.49 eV given separately" }
+  extraction: tabular_text
+  where_read: "Table II, row DFT-PBE (this work), Stone-Wales column"
+  source_id: S3
+- id: PV-0053
+  arxiv: "2112.11539"
+  system: graphene Stone-Wales defect, DMC-corrected formation energy
+  site_class: stone_wales
+  site_id: formation
+  quantity: E_formation_defect
+  value: 4.9
+  uncertainty: 0.1
+  unit: eV
+  reference_state: pristine_cell
+  method: { level: DMC, functional: DMC, dispersion: none, code: CASINO with CASTEP orbitals, basis_or_cutoff: "Trail-Needs pseudopotentials, blip orbitals", supercell: "3x3, 4x4, 5x5 twist-averaged; correction applied to the extrapolated PBE value", kmesh: "24 random twists", spin: non-spin-polarized orbitals, zpe: "static nuclei; 4.4(1) eV with the vibrational correction at 298 K" }
+  extraction: tabular_text
+  where_read: "Table III, row DMC-corrected DFT, Stone-Wales column"
+  source_id: S3
+- id: PV-0054
+  arxiv: "2112.11539"
+  system: graphene monovacancy, dilute limit
+  site_class: monovacancy
+  site_id: formation
+  quantity: E_formation_defect
+  value: 8.25
+  uncertainty: null
+  unit: eV
+  reference_state: pristine_cell
+  method: { functional: LDA, dispersion: none, code: CASTEP (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 556 eV", supercell: "3x3 to 7x7 extrapolated", kmesh: "about (51/sqrt N) x (51/sqrt N)", spin: non-spin-polarized, zpe: static nuclei }
+  extraction: tabular_text
+  where_read: "Table II, row DFT-LDA (this work), monovacancy column"
+  source_id: S3
+- id: PV-0055
+  arxiv: "2112.11539"
+  system: graphene Stone-Wales defect, dilute limit
+  site_class: stone_wales
+  site_id: formation
+  quantity: E_formation_defect
+  value: 4.86
+  uncertainty: null
+  unit: eV
+  reference_state: pristine_cell
+  method: { functional: LDA, dispersion: none, code: CASTEP (ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 556 eV", supercell: "3x3 to 7x7 extrapolated", kmesh: "about (51/sqrt N) x (51/sqrt N)", spin: non-spin-polarized, zpe: static nuclei }
+  extraction: tabular_text
+  where_read: "Table II, row DFT-LDA (this work), Stone-Wales column"
+  source_id: S3
+# Duplock, Scheffler, Lindan, Phys. Rev. Lett. 92, 225502 (2004); no arXiv version; read in the
+# publicly released Max Planck Society repository copy (pure.mpg.de, item 739379).
+- id: PV-0056
+  doi: 10.1103/PhysRevLett.92.225502
+  system: graphene 4x4 supercell (32 C), single H
+  site_class: basal
+  site_id: monomer
+  quantity: E_bind_H_half_H2
+  value: 1.53
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: RPBE, dispersion: none, code: CASTEP (Vanderbilt ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 340 eV", supercell: 4x4, kmesh: "spacing 0.03 1/A, smearing 0.1 eV", spin: spin-polarized, zpe: "neglected (H2 energy 4.57 eV)" }
+  extraction: tabular_text
+  where_read: "p. 225502-2, first paragraph: endothermic by 1.53 eV per H with respect to half H2"
+  source_id: S3
+- id: PV-0057
+  doi: 10.1103/PhysRevLett.92.225502
+  system: planar graphene, dissociative chemisorption of H2 on two adjacent carbons (ortho pair), per H (2.01 eV per H2)
+  site_class: basal
+  site_id: ortho
+  quantity: E_bind_H_half_H2
+  value: 1.005
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: RPBE, dispersion: none, code: CASTEP (Vanderbilt ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 340 eV", supercell: "32 to 98 atoms", kmesh: "spacing 0.03 1/A", spin: spin-polarized, zpe: neglected }
+  extraction: tabular_text
+  where_read: "p. 225502-3: planar perfect graphene 2.01 eV per H2 molecule"
+  source_id: S3
+- id: PV-0058
+  doi: 10.1103/PhysRevLett.92.225502
+  system: planar graphene with a Stone-Wales defect, dissociative chemisorption of H2 on the rotated-bond carbons, per H (0.67 eV per H2)
+  site_class: stone_wales
+  site_id: rotated_pair
+  quantity: E_bind_H_half_H2
+  value: 0.335
+  uncertainty: null
+  unit: eV
+  reference_state: half_H2
+  method: { functional: RPBE, dispersion: none, code: CASTEP (Vanderbilt ultrasoft pseudopotentials), basis_or_cutoff: "plane waves 340 eV", supercell: "32 to 98 atoms", kmesh: "spacing 0.03 1/A", spin: spin-polarized, zpe: neglected, notes: "the pair placement on the rotated bond is inferred from the stated stretching of that bond from 1.37 to 1.54 A" }
+  extraction: tabular_text
+  where_read: "p. 225502-3: on a SW defect in planar graphene endothermic by 0.67 eV per H2"
+  source_id: S3
+# Curvature series: the open-access tube papers give their per-tube values only in figures and
+# report one-parameter fits in the text; the fits are registered as structured values (not pooled).
+- id: PV-0059
+  doi: 10.1103/PhysRevB.64.075404
+  arxiv: cond-mat/0105244
+  system: single H on the exterior of (n,0) and (n,n) SWCNTs, fit dE = E0 + A/R_HC with R_HC the radius of the hydrogenated tube
+  site_class: cnt_zigzag
+  site_id: exterior_top
+  quantity: E_bind_H_atom
+  value: { E0_graphene_limit_eV: -1.161, A_eV_A: -4.952 }
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: "GGA (Perdew-Wang 1992)", dispersion: none, code: CASTEP, basis_or_cutoff: "plane waves 500 eV, ultrasoft pseudopotentials", supercell: "tube cells with 6 A between hydrogens", kmesh: "spacing 0.02 1/A", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 4, text below Fig. 3 and Fig. 3b; per-tube values appear only in the figure"
+  source_id: S3
+- id: PV-0060
+  doi: 10.1103/PhysRevB.64.075404
+  arxiv: cond-mat/0105244
+  system: fully exo-hydrogenated (n,0) and (n,n) SWCNTs, per-H binding fit E_B = E0 - C/R_HC
+  site_class: cnt_zigzag
+  site_id: exterior_full_coverage
+  quantity: E_bind_H_atom
+  value: { E0_graphene_limit_eV: -1.727, C_armchair_eV_A: 4.453, C_zigzag_eV_A: 4.617 }
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: "GGA (Perdew-Wang 1992)", dispersion: none, code: CASTEP, basis_or_cutoff: "plane waves 500 eV, ultrasoft pseudopotentials", supercell: "tube cells, c axis optimized", kmesh: "spacing 0.02 1/A", spin: not stated, zpe: not included }
+  extraction: tabular_text
+  where_read: "p. 3, Eq. 2 and Fig. 3a labels"
+  source_id: S3
+- id: PV-0061
+  doi: 10.1103/PhysRevLett.87.116802
+  arxiv: cond-mat/0107485
+  system: single H at the top site of (n,0) zigzag SWCNTs with n = 7 to 12, fit E_b = E0 + C/R (source positive = exothermic)
+  site_class: cnt_zigzag
+  site_id: exterior_top
+  quantity: E_bind_H_atom
+  value: { E0_graphene_limit_eV: -1.49, C_eV_A: -3.14 }
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: "GGA (Perdew-Wang 1992)", dispersion: none, code: "pseudopotential plane-wave method", basis_or_cutoff: "plane waves 500 eV, ultrasoft pseudopotentials", supercell: "tetragonal, 7.5 A tube separation", kmesh: "Monkhorst-Pack, spacing 0.02 1/A", spin: not stated, zpe: not included, notes: "n below 8 deviates from the fit" }
+  extraction: tabular_text
+  where_read: "p. 2, Eq. 2 and the following text; per-tube values only in Fig. 1"
+  source_id: S3
+- id: PV-0062
+  doi: 10.1103/PhysRevB.66.121401
+  arxiv: cond-mat/0208510
+  system: fully exo-hydrogenated (7,0) to (12,0) and (6,6), (10,10) SWCNTs, per-H binding fit E_b = E0 + C1/R
+  site_class: cnt_zigzag
+  site_id: exterior_full_coverage
+  quantity: E_bind_H_atom
+  value: { E0_graphene_limit_eV: -1.75, C1_eV_A: -3.87 }
+  uncertainty: null
+  unit: eV
+  reference_state: H_atom
+  method: { functional: "GGA (Perdew-Wang 1992)", dispersion: none, code: "pseudopotential plane-wave method", basis_or_cutoff: "plane waves 500 eV, ultrasoft pseudopotentials", supercell: "tube cells, all atoms and c relaxed", kmesh: "spacing 0.02 1/A", spin: not stated, zpe: not included, notes: "the same C1 for zigzag and armchair tubes" }
+  extraction: tabular_text
+  where_read: "Table I, row Exo theta = 1.0"
+  source_id: S3
+# Li, Reich, Robertson, Phys. Rev. B 72, 184109 (2005): abstract statement (publisher abstract text
+# obtained through the OpenAlex metadata record; full text not open).
+- id: PV-0063
+  doi: 10.1103/PhysRevB.72.184109
+  system: graphite single vacancy formation energy
+  site_class: monovacancy
+  site_id: formation
+  quantity: E_formation_defect
+  value: 7.6
+  uncertainty: null
+  unit: eV
+  reference_state: pristine_cell
+  method: { functional: "DFT (functional not stated in the abstract)", dispersion: none, code: not stated, basis_or_cutoff: not stated, supercell: not stated, kmesh: not stated, spin: not stated, zpe: not included }
+  extraction: abstract_statement
+  where_read: "abstract: the formation energy of a single vacancy is 7.6 eV"
   source_id: S3

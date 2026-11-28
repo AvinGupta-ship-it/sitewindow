@@ -159,3 +159,70 @@ references:
   doi: null
   arxiv: '0907.3361'
   verification: arXiv
+- key: BoukhvalovKatsnelsonLichtenstein2008
+  citation: D. W. Boukhvalov, M. I. Katsnelson, A. I. Lichtenstein, "Hydrogen on graphene:
+    Electronic structure, total energy, structural distortions and magnetism from first-principles
+    calculations," Phys. Rev. B 77, 035427 (2008)
+  doi: 10.1103/PhysRevB.77.035427
+  arxiv: '0710.1971'
+  verification: arXiv full text read; DOI from the arXiv record
+- key: Koskinen2008
+  citation: P. Koskinen, S. Malola, H. Häkkinen, "Self-passivating edge reconstructions of
+    graphene," Phys. Rev. Lett. 101, 115502 (2008)
+  doi: 10.1103/PhysRevLett.101.115502
+  arxiv: '0802.2623'
+  verification: arXiv full text read; DOI from the arXiv record
+- key: Wassmann2008
+  citation: T. Wassmann, A. P. Seitsonen, A. M. Saitta, M. Lazzeri, F. Mauri, "Structure,
+    stability, edge states, and aromaticity of graphene ribbons," Phys. Rev. Lett. 101, 096402 (2008)
+  doi: 10.1103/PhysRevLett.101.096402
+  arxiv: '0808.2283'
+  verification: arXiv full text read; DOI from the arXiv record
+- key: Sljivancanin2011
+  citation: Ž. Šljivančanin, M. Andersen, L. Hornekær, B. Hammer, "Structure and stability of
+    small H clusters on graphene," Phys. Rev. B 83, 205426 (2011)
+  doi: null
+  arxiv: '1102.4984'
+  verification: arXiv full text read (journal reference from the arXiv comment field)
+- key: Casartelli2014
+  citation: M. Casartelli, S. Casolo, G. F. Tantardini, R. Martinazzo, "Structure and stability
+    of hydrogenated carbon atom vacancies in graphene," Carbon 77, 165 (2014)
+  doi: null
+  arxiv: '1312.7143'
+  verification: arXiv full text read
+- key: Thomas2022
+  citation: J. A. Thomas, A. M. Asiri, N. D. Drummond, "Point defect formation energies in
+    graphene from diffusion quantum Monte Carlo and density functional theory," Phys. Rev. B 105, 214106 (2022)
+  doi: null
+  arxiv: '2112.11539'
+  verification: arXiv full text read
+- key: Duplock2004
+  citation: E. J. Duplock, M. Scheffler, P. J. D. Lindan, "Hallmark of perfect graphene,"
+    Phys. Rev. Lett. 92, 225502 (2004)
+  doi: 10.1103/PhysRevLett.92.225502
+  arxiv: null
+  verification: full text read in the public Max Planck Society repository copy (pure.mpg.de item 739379)
+- key: Yildirim2001
+  citation: T. Yildirim, O. Gülseren, S. Ciraci, "Exohydrogenated single-wall carbon nanotubes,"
+    Phys. Rev. B 64, 075404 (2001)
+  doi: 10.1103/PhysRevB.64.075404
+  arxiv: cond-mat/0105244
+  verification: arXiv full text read; DOI from the arXiv record
+- key: Gulseren2001
+  citation: O. Gülseren, T. Yildirim, S. Ciraci, "Tunable adsorption on carbon nanotubes,"
+    Phys. Rev. Lett. 87, 116802 (2001)
+  doi: 10.1103/PhysRevLett.87.116802
+  arxiv: cond-mat/0107485
+  verification: arXiv full text read; DOI from the arXiv record
+- key: Gulseren2002
+  citation: O. Gülseren, T. Yildirim, S. Ciraci, "Effects of hydrogen adsorption on single-wall
+    carbon nanotubes: Metallic hydrogen decoration," Phys. Rev. B 66, 121401 (2002)
+  doi: 10.1103/PhysRevB.66.121401
+  arxiv: cond-mat/0208510
+  verification: arXiv full text read; DOI from the arXiv record
+- key: LiReichRobertson2005
+  citation: L. Li, S. Reich, J. Robertson, "Defect energies of graphite: Density-functional
+    calculations," Phys. Rev. B 72, 184109 (2005)
+  doi: 10.1103/PhysRevB.72.184109
+  arxiv: null
+  verification: abstract text from the OpenAlex metadata record of the DOI; full text not open

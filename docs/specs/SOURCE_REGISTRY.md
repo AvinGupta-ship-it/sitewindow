@@ -36,6 +36,8 @@ Every external input of the program is listed here. "Verification" records how t
 
 Stored in `data/registry/published_values.yaml`. Each record: `id`, `doi` or `arxiv`, `system`, `site`, `quantity`, `value`, `unit`, `uncertainty`, `method` (functional, dispersion, code, basis/cutoff, supercell, k-mesh, spin), `reference_state`, `extraction` (`tabular_text`, `digitized_figure`, `abstract_statement`), `source_id`.
 
+First-principles chemisorption values enter only after the number was read in an open-access copy of the full text (arXiv version, a public institutional repository copy, or an abstract that states the number); the `where_read` field names the table, figure or paragraph. Values that a paper only cites from other work are not registered. Papers whose only open copies were unreachable (Hornekær et al. 2006; Šljivančanin et al. 2009, whose values the same authors reproduce in arXiv:1102.4984; Ivanovskaya et al. 2010; Ferro et al. 2002, 2003, 2008; Ma et al. 2009; Nikitin et al. 2008; Arellano et al. 2002; Lehtinen et al. 2004; Dobrota et al. 2016 on hydrogen beside epoxide and hydroxyl groups) are not represented, and no open-access first-principles value was found for hydrogen at the 555-777 divacancy, beside carbonyl or carboxyl groups, or on C60.
+
 ### S5. Electron knock-on cross sections for graphene (benchmark B9 data)
 
 - Source: Meyer et al., Phys. Rev. Lett. 108, 196102 (2012); open-access preprint arXiv:1203.2372 (with supplementary information).
@@ -99,5 +101,16 @@ Stored in `data/registry/published_values.yaml`. Each record: `id`, `doi` or `ar
 | Lehtinen2004 | P. O. Lehtinen et al., Phys. Rev. Lett. 93, 187202 (2004) | — | reference list of Krasheninnikov & Banhart (Nat. Mater. 2007) |
 | KrasheninnikovBanhart2007 | A. V. Krasheninnikov, F. Banhart, Nat. Mater. 6, 723 (2007) | DOI 10.1038/nmat1996 | doi.org landing |
 | Gavardi2009 | E. Gavardi, H. M. Cuppen, L. Hornekær, "A kinetic Monte Carlo study of desorption of H₂ from graphite (0001)," Chem. Phys. Lett. (2009) | arXiv:0907.3361 | arXiv |
+| BoukhvalovKatsnelsonLichtenstein2008 | D. W. Boukhvalov, M. I. Katsnelson, A. I. Lichtenstein, "Hydrogen on graphene: Electronic structure, total energy, structural distortions and magnetism from first-principles calculations," Phys. Rev. B 77, 035427 (2008) | DOI 10.1103/PhysRevB.77.035427; arXiv:0710.1971 | arXiv full text read |
+| Koskinen2008 | P. Koskinen, S. Malola, H. Häkkinen, "Self-passivating edge reconstructions of graphene," Phys. Rev. Lett. 101, 115502 (2008) | DOI 10.1103/PhysRevLett.101.115502; arXiv:0802.2623 | arXiv full text read |
+| Wassmann2008 | T. Wassmann, A. P. Seitsonen, A. M. Saitta, M. Lazzeri, F. Mauri, "Structure, stability, edge states, and aromaticity of graphene ribbons," Phys. Rev. Lett. 101, 096402 (2008) | DOI 10.1103/PhysRevLett.101.096402; arXiv:0808.2283 | arXiv full text read (edge energies per length; not a registry quantity) |
+| Sljivancanin2011 | Ž. Šljivančanin, M. Andersen, L. Hornekær, B. Hammer, "Structure and stability of small H clusters on graphene," Phys. Rev. B 83, 205426 (2011) | arXiv:1102.4984 | arXiv full text read |
+| Casartelli2014 | M. Casartelli, S. Casolo, G. F. Tantardini, R. Martinazzo, "Structure and stability of hydrogenated carbon atom vacancies in graphene," Carbon 77, 165 (2014) | arXiv:1312.7143 | arXiv full text read |
+| Thomas2022 | J. A. Thomas, A. M. Asiri, N. D. Drummond, "Point defect formation energies in graphene from diffusion quantum Monte Carlo and density functional theory," Phys. Rev. B 105, 214106 (2022) | arXiv:2112.11539 | arXiv full text read |
+| Duplock2004 | E. J. Duplock, M. Scheffler, P. J. D. Lindan, "Hallmark of perfect graphene," Phys. Rev. Lett. 92, 225502 (2004) | DOI 10.1103/PhysRevLett.92.225502 | public Max Planck Society repository copy read |
+| Yildirim2001 | T. Yildirim, O. Gülseren, S. Ciraci, "Exohydrogenated single-wall carbon nanotubes," Phys. Rev. B 64, 075404 (2001) | DOI 10.1103/PhysRevB.64.075404; arXiv:cond-mat/0105244 | arXiv full text read |
+| Gulseren2001 | O. Gülseren, T. Yildirim, S. Ciraci, "Tunable adsorption on carbon nanotubes," Phys. Rev. Lett. 87, 116802 (2001) | DOI 10.1103/PhysRevLett.87.116802; arXiv:cond-mat/0107485 | arXiv full text read |
+| Gulseren2002 | O. Gülseren, T. Yildirim, S. Ciraci, "Effects of hydrogen adsorption on single-wall carbon nanotubes: Metallic hydrogen decoration," Phys. Rev. B 66, 121401 (2002) | DOI 10.1103/PhysRevB.66.121401; arXiv:cond-mat/0208510 | arXiv full text read |
+| LiReichRobertson2005 | L. Li, S. Reich, J. Robertson, "Defect energies of graphite: Density-functional calculations," Phys. Rev. B 72, 184109 (2005) | DOI 10.1103/PhysRevB.72.184109 | abstract text from the OpenAlex metadata record; full text not open |
 
 References without a DOI in this table are cited by journal, volume, and page as confirmed in open-access reference lists; the manuscript bibliography generator requires, for each entry, either a confirmed DOI or two independent confirmations of the journal citation, recorded in `data/registry/references.yaml`.

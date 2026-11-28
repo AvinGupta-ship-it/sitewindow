@@ -94,6 +94,7 @@ def test_cell_atoms_and_unit_conversion(tmp_path):
             "unit": "eV",
             "reference_state": "H_atom",
             "method": {"functional": "PBE"},
+            "compilation": True,
             "extraction": "tabular_text",
             "source_id": "S4",
         },
@@ -221,7 +222,7 @@ def test_tier0_offset_from_the_basal_anchor():
         {
             "id": ["PV-0001"],
             "site_class": ["basal"],
-            "site_id": ["top_monomer"],
+            "site_id": ["monomer"],
             "quantity": ["E_bind_H_atom"],
             "reference_state": ["H_atom"],
             "value_eV": [-0.691],

@@ -262,20 +262,64 @@ def calibrate_table(
     return out, cal, pairs
 
 
+REGISTRY_SITE_TO_CONFIGURATION: dict[str, str] = {
+    "monomer": "monomer",
+    "ortho": "ortho",
+    "para": "para",
+    "meta": "meta",
+    "graphane": "graphane",
+    "dangling_bond": "seq1",
+    "rotated_bond": "monomer_rotated_bond",
+    "rotated_pair": "dimer_rotated_bond",
+    "edge_CH_bare": "edge_CH",
+    "edge_CH_average": "edge_CH",
+    "exterior_top": "monomer_exterior",
+}
+"""Site labels of the published-value registry mapped to the catalogue configuration they
+describe, for joining the meta-analysis site means to the landscape rows."""
+
+
 def attach_published(out: pd.DataFrame, meta_results: list[Any]) -> pd.DataFrame:
-    """Posterior class means of the meta-analysis joined to the rows of the same quantity,
-    reference state and class."""
+    """Posterior site means of the meta-analysis joined to the rows of the same quantity,
+    reference state, class and configuration (several registry sites may map to one
+    configuration; their values are pooled by count-weighted mean and the larger spread kept)."""
     out = out.copy()
     out["published_mean_eV"] = np.nan
     out["published_sd_eV"] = np.nan
     out["n_published"] = 0
+    configuration = out["identifier"].map(configuration_name)
     for res in meta_results:
-        cm = res.class_means.set_index("site_class")
+        sm = res.site_means.copy()
+        sm["configuration"] = sm["site_id"].map(REGISTRY_SITE_TO_CONFIGURATION)
+        sm = sm[sm["configuration"].notna()]
+        if sm.empty:
+            continue
+        grouped = sm.groupby(["site_class", "configuration"]).apply(
+            lambda g: pd.Series(
+                {
+                    "mean_eV": float(np.average(g["mean_eV"], weights=g["n_values"])),
+                    "sd_eV": float(
+                        np.sqrt(
+                            np.max(
+                                g["sd_eV"] ** 2
+                                + (g["mean_eV"] - np.average(g["mean_eV"], weights=g["n_values"]))
+                                ** 2
+                            )
+                        )
+                    ),
+                    "n_values": int(g["n_values"].sum()),
+                }
+            ),
+            include_groups=False,
+        )
         mask = (out["quantity"] == res.quantity) & (out["reference_state"] == res.reference_state)
-        cls = out.loc[mask, "site_class"]
-        out.loc[mask, "published_mean_eV"] = cls.map(cm["mean_eV"]).to_numpy()
-        out.loc[mask, "published_sd_eV"] = cls.map(cm["sd_eV"]).to_numpy()
-        out.loc[mask, "n_published"] = cls.map(cm["n_values"]).fillna(0).astype(int).to_numpy()
+        keys = list(zip(out.loc[mask, "site_class"], configuration[mask], strict=True))
+        means = [grouped["mean_eV"].get(k, np.nan) for k in keys]
+        sds = [grouped["sd_eV"].get(k, np.nan) for k in keys]
+        ns = [int(grouped["n_values"].get(k, 0)) for k in keys]
+        out.loc[mask, "published_mean_eV"] = means
+        out.loc[mask, "published_sd_eV"] = sds
+        out.loc[mask, "n_published"] = ns
     return out
 
 

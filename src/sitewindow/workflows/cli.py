@@ -624,6 +624,82 @@ def tier1_anchors(
         )
 
 
+@tier1_app.command("barriers")
+def tier1_barriers(
+    registry: Path = typer.Option(
+        None,
+        help="Anchor registry holding the barrier_anchors section (default: tier1_anchors.yaml)",
+    ),
+    pathways: str = typer.Option(
+        None, help="Comma-separated pathway names (default: the registry's)"
+    ),
+    ecut: float = typer.Option(
+        500.0, help="Plane-wave cutoff of the refinement single points (eV)"
+    ),
+    vacuum: float = typer.Option(15.0),
+    fmax: float = typer.Option(0.02, help="Force tolerance of the constrained relaxations (eV/A)"),
+    grid_step: float = typer.Option(0.1, help="Scan step along the C-H distance (A)"),
+    cache: Path = typer.Option(None, help="Cache directory (default: the Tier-1 anchor cache)"),
+    out: Path = typer.Option(
+        None, help="Output directory (default: $SITEWINDOW_DATA/processed/tier1)"
+    ),
+    dry_run: bool = typer.Option(False, help="List the pathways and exit"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Tier-1 barrier anchors (manual C2 and C3; benchmark B2): constrained scans along the C-H
+    distance in the LCAO basis with plane-wave single points on the stationary structures, for
+    the pathways listed under barrier_anchors in the anchor registry."""
+    import yaml
+
+    from sitewindow.atomistic.workflows.barriers import (
+        CONSTRAINED_SCAN,
+        BarrierSpec,
+        build_barriers,
+    )
+    from sitewindow.atomistic.workflows.barriers import pathways as list_pathways
+    from sitewindow.atomistic.workflows.tier1 import Tier1Settings, _require_gpaw
+
+    _configure_logging(verbose)
+    registry = registry or _data_root() / "registry" / "tier1_anchors.yaml"
+    reg = yaml.safe_load(Path(registry).read_text()) or {}
+    section = reg.get("barrier_anchors") or {}
+    names = (
+        [p.strip() for p in pathways.split(",")] if pathways else list(section.get("pathways", []))
+    )
+    recipes = {k: dict(v) for k, v in (section.get("recipes") or {}).items()}
+    stick_recipes = {k: dict(v) for k, v in (section.get("stick_recipes") or {}).items()}
+    diameters = tuple(float(d) for d in section.get("tube_diameters_nm", [0.68]))
+    settings = Tier1Settings(vacuum_A=vacuum, ecut_eV=ecut, fmax_eV_A=fmax)
+    spec = BarrierSpec(
+        tier="full",
+        pathways=names or None,
+        recipes=recipes,
+        methods=(CONSTRAINED_SCAN,),
+        fmax=fmax,
+        steps=settings.relax_steps,
+        grid_step_A=grid_step,
+        stick_recipes=stick_recipes,
+        tube_diameters_nm=diameters,
+    )
+    if dry_run:
+        for pw in list_pathways(spec):
+            typer.echo(
+                f"{pw.key}  kind={pw.kind}  atoms={len(pw.config.substrate) + pw.config.n_H}"
+            )
+        return
+    _require_gpaw()
+    cache = cache or _data_root() / "raw" / "cache_tier1_gpaw"
+    out = out or _data_root() / "processed" / "tier1"
+    spec.refine_calculator = settings.pw()
+    result = build_barriers(spec, settings.lcao(), cache, out)
+    if not _is_master():
+        return
+    frame = result["records"]
+    typer.echo(
+        frame[["identifier", "tier", "engine", "value_eV", "converged"]].to_string(index=False)
+    )
+
+
 @tier1_app.command("converge")
 def tier1_converge(
     supercell: int = typer.Option(5),

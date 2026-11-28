@@ -254,6 +254,10 @@ class PublishedValue(_Model):
     extraction: Extraction
     source_id: str
     notes: str | None = None
+    compilation: bool = False
+    """The entry summarizes a range of earlier studies rather than reporting one study's value."""
+    exclude_from_meta_analysis: str | None = None
+    """Reason the value is kept in the registry but left out of the pooled meta-analysis."""
 
     @model_validator(mode="after")
     def _identifier_present(self) -> PublishedValue:

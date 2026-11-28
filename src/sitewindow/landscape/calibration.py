@@ -42,11 +42,15 @@ TIER_SIGMA_EV: dict[str, float] = {"T2": 0.03, "T3": 0.05, "T1": T1_SIGMA_EV}
 """Per-configuration numerical uncertainty of each tier's energies (manual C2): the Tier-2
 extrapolated protocol converges across cell families within 0.03 eV; Tier 3 carries the
 tolerance default."""
-T2_EXTRAPOLATION_SPREAD_EV: dict[str, float] = {"basal": 0.08, "monovacancy": 0.13}
+T2_EXTRAPOLATION_SPREAD_EV: dict[str, float] = {
+    "basal": 0.08,
+    "monovacancy": 0.13,
+    "epoxide": 0.06,
+}
 """Spread of the Tier-2 zero-temperature extrapolation between 4500 and 6000 K in the 12x12 cell
-(manual C2, Convergence and sensitivity): a class-level systematic of the Tier-2 protocol, which
-the class offsets of the calibration absorb for anchored classes and the between-class variance
-carries for the others; it is not a per-configuration noise."""
+(manual C2, Convergence and sensitivity), the Tier-2 protocol uncertainty: a class-level
+systematic, which the class offsets of the calibration absorb for anchored classes and the
+between-class variance carries for the others; it is not a per-configuration noise."""
 POOLED = "__pooled__"
 MIN_ANCHORS_FOR_SLOPE = 3
 PRIOR_OFFSET_SD_EV = 0.5
@@ -790,7 +794,7 @@ def synthetic_recovery(
 # --------------------------------------------------------------------------- Tier-0 offset
 
 TIER0_SITE_MAP: dict[tuple[str, str], tuple[str, int]] = {
-    ("basal", "top_monomer"): ("monomer", 1),
+    ("basal", "monomer"): ("monomer", 1),
 }
 """Published site identifiers of Tier-0 anchors mapped to the catalogue configuration and
 hydrogen count they correspond to."""

@@ -46,7 +46,7 @@ def load_registry(path: Path = REGISTRY) -> list[dict[str, Any]]:
 
 def _scalar(entry: dict[str, Any]) -> tuple[UncertainScalar, bool] | None:
     """The value of an entry as an uncertain scalar in the entry's unit, with a flag marking a
-    range (compilation) entry; ``None`` for structured values."""
+    range (a uniform distribution between two bounds); ``None`` for structured values."""
     value = entry.get("value")
     unc = entry.get("uncertainty")
     if isinstance(value, bool):
@@ -86,14 +86,15 @@ def published_value(entry: dict[str, Any]) -> PublishedValue:
     scalar = _scalar(entry)
     if scalar is None:
         raise ValueError(f"{entry.get('id')}: value is not a scalar or a range")
-    us, compilation = scalar
+    us, _is_range = scalar
     unit = str(entry.get("unit", "eV"))
     value_eV = float(energy_to_ev(us.value, unit))
     sigma_eV = float(energy_to_ev(us.sigma, unit))
     cls = entry.get("site_class")
     notes = entry.get("notes")
-    if compilation:
-        notes = (notes + "; " if notes else "") + "range of earlier values (compilation)"
+    where = entry.get("where_read")
+    if where:
+        notes = (notes + "; " if notes else "") + f"read at: {where}"
     arxiv = entry.get("arxiv")
     return PublishedValue(
         id=str(entry["id"]),
@@ -110,6 +111,8 @@ def published_value(entry: dict[str, Any]) -> PublishedValue:
         extraction=Extraction(entry.get("extraction", "tabular_text")),
         source_id=str(entry.get("source_id", "S4")),
         notes=notes,
+        compilation=bool(entry.get("compilation", False)),
+        exclude_from_meta_analysis=entry.get("exclude_from_meta_analysis"),
     )
 
 
@@ -153,8 +156,9 @@ def registry_frame(
     descriptors, standard error (stated, else ``default_sigma_eV``) and study identifier."""
     rows: list[dict[str, Any]] = []
     for v in values:
-        compilation = v.value.distribution == Distribution.uniform
-        if compilation and not include_compilations:
+        compilation = v.compilation
+        excluded = v.exclude_from_meta_analysis
+        if (compilation or excluded) and not include_compilations:
             continue
         method = v.method
         level = str(method.get("level") or "DFT")
@@ -182,6 +186,8 @@ def registry_frame(
                 "spin": method.get("spin"),
                 "extraction": v.extraction.value,
                 "compilation": compilation,
+                "excluded_reason": excluded,
+                "is_range": v.value.distribution == Distribution.uniform,
             }
         )
     return pd.DataFrame(rows)
