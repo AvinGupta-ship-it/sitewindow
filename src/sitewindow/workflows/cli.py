@@ -270,6 +270,14 @@ def landscape_build(
         help="F (reported energy) or E0 (zero-temperature extrapolation, tblite only); default "
         "from the tier config key energy_<calculator>, else F",
     ),
+    restarts: Path = typer.Option(
+        None,
+        help="Configurations table of an earlier landscape run whose relaxed structures are "
+        "relaxed as second starting points; the lower minimum enters the table",
+    ),
+    restart_keys: str = typer.Option(
+        None, help="Comma-separated configuration keys the restart applies to (default: all)"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Relax every catalogue configuration of the tier and write landscape_raw_<tier>.parquet (E1)."""
@@ -310,6 +318,10 @@ def landscape_build(
         fmax=float(fmax if fmax is not None else cfg.get("fmax_eV_A", 0.05)),
         spin_states=(0, 2) if spin_search else (0,),
         energy=str(energy or cfg.get(f"energy_{calculator}", "F")),
+        restarts=restarts,
+        restart_keys=None
+        if restart_keys is None
+        else tuple(k.strip() for k in restart_keys.split(",") if k.strip()),
     )
     calc = make_calculator(calculator, **_calculator_settings(cfg, calculator))
     cache = cache or _data_root() / "raw" / f"cache_{tier}_{calculator}"

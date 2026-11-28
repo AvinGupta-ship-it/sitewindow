@@ -64,6 +64,48 @@ def test_build_landscape_writes_validated_tables(tmp_path):
     assert rerun["configurations"]["cached"].all()
 
 
+def test_lower_energy_prefers_converged_then_lower_energy():
+    from sitewindow.atomistic.workflows.adsorption import RelaxResult
+    from sitewindow.atomistic.workflows.landscape import _lower_energy
+
+    def result(energy: float, converged: bool) -> RelaxResult:
+        return RelaxResult(energy, 0.01, 1, converged, "s", "t", 0.0, False)
+
+    a = (Atoms("H"), result(-1.0, True), 0)
+    b = (Atoms("H"), result(-2.0, True), 0)
+    c = (Atoms("H"), result(-5.0, False), 0)
+    assert _lower_energy(a, b) is b and _lower_energy(b, a) is b
+    assert _lower_energy(a, c) is a and _lower_energy(c, a) is a
+    assert _lower_energy(a, (Atoms("H"), result(-1.0, True), 0)) is a
+
+
+def test_restart_table_gives_a_second_start(tmp_path):
+    spec = LandscapeSpec(
+        tier="verify", classes=["basal"], recipes={"basal": {"supercell": 3}}, fmax=0.3, steps=60
+    )
+    build_landscape(spec, EMTCalculator(), tmp_path / "cache", tmp_path / "out")
+    table = tmp_path / "out" / "landscape_configurations_verify.parquet"
+    key = "basal/graphene_3x3/monomer"
+    spec2 = LandscapeSpec(
+        tier="verify",
+        classes=["basal"],
+        recipes={"basal": {"supercell": 3}},
+        fmax=0.3,
+        steps=60,
+        restarts=table,
+        restart_keys=(key,),
+    )
+    second = build_landscape(spec2, EMTCalculator(), tmp_path / "cache", tmp_path / "out2")
+    cfgs = second["configurations"]
+    assert set(cfgs["start"]) <= {"builder", "restart"}
+    assert (cfgs[cfgs.configuration != "monomer"]["start"] == "builder").all()
+    restarts = second["manifest"]["relaxation"]["restarts"]
+    assert restarts["source"] == str(table) and restarts["keys"] == [key]
+    assert list(restarts["chosen"]) == [key]
+    assert abs(restarts["chosen"][key]["dE_restart_minus_builder_eV"]) < 1e-3
+    assert restarts["chosen"][key]["restart_converged"]
+
+
 def test_scaled_kmesh_reproduces_manual_protocol():
     assert scaled_kmesh(graphene_supercell(5)) == (4, 4, 1)
     assert scaled_kmesh(graphene_supercell(6)) == (3, 3, 1)

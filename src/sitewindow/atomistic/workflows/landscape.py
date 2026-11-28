@@ -35,6 +35,7 @@ import numpy as np
 import pandas as pd
 from ase import Atoms
 from ase.calculators.calculator import CalculationFailed
+from ase.io import read as ase_read
 from ase.io import write as ase_write
 
 from sitewindow import __version__
@@ -79,7 +80,13 @@ ENERGY_KINDS = {
 
 @dataclass
 class LandscapeSpec:
-    """What to compute: tier, classes, recipe overrides and relaxation settings."""
+    """What to compute: tier, classes, recipe overrides and relaxation settings.
+
+    ``restarts`` names the configurations table of an earlier landscape run; the relaxed structure
+    it holds for a configuration is relaxed as a second starting point and the lower minimum of
+    the two enters the table (restricted to ``restart_keys`` when given). A relaxation from the
+    builder placement can stop in a higher minimum, which another protocol's minimum exposes.
+    """
 
     tier: str = "verify"
     classes: list[str] | None = None
@@ -89,6 +96,8 @@ class LandscapeSpec:
     spin_states: tuple[int, ...] = (0,)
     numerical_sigma_eV: float = 0.05
     energy: str = "F"
+    restarts: Path | None = None
+    restart_keys: tuple[str, ...] | None = None
 
 
 @dataclass
@@ -113,6 +122,30 @@ def _config_hash(start: Atoms, settings_hash: str, n_unpaired: int) -> str:
     ).hexdigest()[:16]
 
 
+def _lower_energy(
+    best: tuple[Atoms, RelaxResult, int], candidate: tuple[Atoms, RelaxResult, int]
+) -> tuple[Atoms, RelaxResult, int]:
+    """The relaxation of lower reported energy, a converged one taking precedence over an
+    unconverged one; ties keep ``best``."""
+    res, cand = best[1], candidate[1]
+    if (cand.converged and not res.converged) or (
+        cand.converged == res.converged and cand.energy_eV < res.energy_eV
+    ):
+        return candidate
+    return best
+
+
+def restart_structures(path: Path) -> dict[str, Atoms]:
+    """Relaxed configurations of an earlier landscape run, keyed like
+    :attr:`Configuration.key`, read from its configurations table as second starting points."""
+    table = pd.read_parquet(path, columns=["site_class", "substrate", "configuration", "structure"])
+    out: dict[str, Atoms] = {}
+    for row in table.itertuples(index=False):
+        atoms = ase_read(io.StringIO(str(row.structure)), format="extxyz")
+        out[f"{row.site_class}/{row.substrate}/{row.configuration}"] = atoms
+    return out
+
+
 def _relax_spin_states(
     start: Atoms, calc: Calculator, cache: Path, spec: LandscapeSpec
 ) -> tuple[Atoms, RelaxResult, int]:
@@ -124,13 +157,7 @@ def _relax_spin_states(
         a0 = start.copy()
         set_unpaired_electrons(a0, n_unp)
         a, res = relax(a0, calc, cache, fmax=spec.fmax, steps=spec.steps)
-        if best is None:
-            best = (a, res, n_unp)
-            continue
-        if (res.converged and not best[1].converged) or (
-            res.converged == best[1].converged and res.energy_eV < best[1].energy_eV
-        ):
-            best = (a, res, n_unp)
+        best = (a, res, n_unp) if best is None else _lower_energy(best, (a, res, n_unp))
     assert best is not None
     return best
 
@@ -245,6 +272,9 @@ def build_landscape(
             substrates[name] = (a, res)
         return substrates[name]
 
+    restarts = restart_structures(spec.restarts) if spec.restarts is not None else {}
+    restart_log: dict[str, dict[str, Any]] = {}
+
     for cls in classes:
         if cls not in cat:
             raise KeyError(f"unknown site class {cls!r}")
@@ -319,6 +349,31 @@ def build_landscape(
                 )
                 log.warning("%s excluded: %s", cfg.key, str(exc).splitlines()[0])
                 continue
+            start_kind = "builder"
+            second = restarts.get(cfg.key)
+            if second is not None and spec.restart_keys is not None:
+                second = second if cfg.key in spec.restart_keys else None
+            if second is not None:
+                try:
+                    alt = _relax_spin_states(second, calc, cache_dir, spec)
+                except (CalculationFailed, RuntimeError) as exc:
+                    log.warning("%s restart failed: %s", cfg.key, str(exc).splitlines()[0])
+                else:
+                    d_restart = alt[1].energy_eV - res.energy_eV
+                    if _lower_energy((atoms, res, n_unp), alt) is alt:
+                        atoms, res, n_unp = alt
+                        start_kind = "restart"
+                    restart_log[cfg.key] = {
+                        "start": start_kind,
+                        "dE_restart_minus_builder_eV": d_restart,
+                        "restart_converged": alt[1].converged,
+                    }
+                    log.info(
+                        "%s restart from the earlier minimum: %+.3f eV, %s kept",
+                        cfg.key,
+                        d_restart,
+                        start_kind,
+                    )
             atoms.info.update(cfg.substrate.info)
             chash = _config_hash(start, settings_hash, n_unp)
             e_cfg = energy_of(atoms, res) if res.converged else res.energy_eV
@@ -394,6 +449,7 @@ def build_landscape(
                     "n_H": n,
                     "n_atoms": len(atoms),
                     "spin_multiplicity": n_unp + 1,
+                    "start": start_kind,
                     "energy_eV": e_cfg,
                     "energy_kind": spec.energy,
                     "free_energy_eV": res.energy_eV,
@@ -452,6 +508,11 @@ def build_landscape(
                 "max_steps": spec.steps,
                 "spin_states": list(spec.spin_states),
                 "tube_radius_optimization": radius_opt,
+                "restarts": {
+                    "source": None if spec.restarts is None else str(spec.restarts),
+                    "keys": None if spec.restart_keys is None else list(spec.restart_keys),
+                    "chosen": restart_log,
+                },
             },
             "energy": spec.energy,
             "energy_description": ENERGY_KINDS[spec.energy],
