@@ -1,0 +1,3 @@
+key,reason,max_force_eV_A,n_steps
+monovacancy/monovacancy_12x12/seq5,"relaxation did not converge (fmax 0.05 eV/A, 400 steps)",0.14477333966800254,400
+monovacancy/monovacancy_12x12/seq6,"relaxation did not converge (fmax 0.05 eV/A, 400 steps)",0.35981646791977473,400

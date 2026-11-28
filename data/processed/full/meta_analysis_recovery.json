@@ -1,0 +1,23 @@
+{
+ "n_replicates": 100,
+ "level": 0.9,
+ "coverage_of_planted_site_contrasts": 0.9566666666666667,
+ "coverage_by_site": {
+  "basal:graphane": 0.93,
+  "basal:meta": 0.95,
+  "basal:monomer": 0.98,
+  "basal:ortho": 0.91,
+  "basal:ortho_trans": 0.96,
+  "basal:para": 0.92,
+  "edge_armchair:edge_CH_average": 0.98,
+  "edge_zigzag:edge_CH_average": 0.99,
+  "monovacancy:dangling_bond": 0.99
+ },
+ "passes_0.90": true,
+ "draws": 500,
+ "chains": 2,
+ "seed": 0,
+ "quantity": "E_bind_H_atom",
+ "reference_state": "H_atom",
+ "n_values": 19
+}

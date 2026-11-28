@@ -1,0 +1,167 @@
+{
+  "tier": "full",
+  "package_version": "0.1.0",
+  "calculator": {
+    "name": "mace",
+    "tier": "T3",
+    "settings": {
+      "model": "medium",
+      "device": "cpu",
+      "default_dtype": "float64",
+      "dispersion": false
+    },
+    "settings_hash": "0001941085bd4d81"
+  },
+  "classes": [
+    "basal",
+    "monovacancy",
+    "divacancy_585",
+    "divacancy_555777",
+    "stone_wales",
+    "edge_zigzag",
+    "edge_armchair",
+    "cnt_armchair",
+    "cnt_zigzag",
+    "epoxide",
+    "hydroxyl",
+    "carbonyl_pair",
+    "carboxyl",
+    "mixed_vacancy_cnt",
+    "mixed_sw_cnt"
+  ],
+  "relaxation": {
+    "fmax_eV_A": 0.05,
+    "max_steps": 400,
+    "spin_states": [
+      0
+    ],
+    "tube_radius_optimization": {
+      "swcnt_4_4_x6": {
+        "scale": 1.01790421,
+        "dE_eV": -0.6133284591910524,
+        "n_single_points": 12
+      },
+      "swcnt_6_6_x6": {
+        "scale": 1.01226232,
+        "dE_eV": -0.49597316251924894,
+        "n_single_points": 9
+      },
+      "swcnt_7_7_x6": {
+        "scale": 1.01062384,
+        "dE_eV": -0.443890460831426,
+        "n_single_points": 9
+      },
+      "swcnt_9_9_x6": {
+        "scale": 1.00884461,
+        "dE_eV": -0.40550420081967786,
+        "n_single_points": 10
+      },
+      "swcnt_10_10_x6": {
+        "scale": 1.0083293,
+        "dE_eV": -0.4025872107081341,
+        "n_single_points": 10
+      },
+      "swcnt_13_13_x6": {
+        "scale": 1.00743053,
+        "dE_eV": -0.42210863038053503,
+        "n_single_points": 10
+      },
+      "swcnt_15_15_x6": {
+        "scale": 1.00710496,
+        "dE_eV": -0.4474974119661965,
+        "n_single_points": 10
+      },
+      "swcnt_18_18_x6": {
+        "scale": 1.00680392,
+        "dE_eV": -0.4946959532667279,
+        "n_single_points": 10
+      },
+      "swcnt_8_0_x4": {
+        "scale": 1.02154349,
+        "dE_eV": -1.3303980608798156,
+        "n_single_points": 11
+      },
+      "swcnt_10_0_x4": {
+        "scale": 1.01603208,
+        "dE_eV": -0.9572440877459485,
+        "n_single_points": 9
+      },
+      "swcnt_13_0_x4": {
+        "scale": 1.01194269,
+        "dE_eV": -0.7117183468803887,
+        "n_single_points": 9
+      },
+      "swcnt_15_0_x4": {
+        "scale": 1.01048026,
+        "dE_eV": -0.6386951778258663,
+        "n_single_points": 9
+      },
+      "swcnt_18_0_x4": {
+        "scale": 1.00913557,
+        "dE_eV": -0.5881185223774992,
+        "n_single_points": 10
+      },
+      "swcnt_22_0_x4": {
+        "scale": 1.008131,
+        "dE_eV": -0.5737561986138644,
+        "n_single_points": 10
+      },
+      "swcnt_26_0_x4": {
+        "scale": 1.0075549,
+        "dE_eV": -0.5880034319252445,
+        "n_single_points": 10
+      },
+      "swcnt_32_0_x4": {
+        "scale": 1.00706202,
+        "dE_eV": -0.6347917792527369,
+        "n_single_points": 10
+      },
+      "swcnt_10_0_x6_vacancy": {
+        "scale": 1.01569883,
+        "dE_eV": -1.3660350506811483,
+        "n_single_points": 9
+      },
+      "swcnt_10_0_x6": {
+        "scale": 1.01603208,
+        "dE_eV": -1.4358661316186954,
+        "n_single_points": 9
+      },
+      "swcnt_8_8_x6_vacancy": {
+        "scale": 1.00922851,
+        "dE_eV": -0.38459659832597026,
+        "n_single_points": 10
+      },
+      "swcnt_8_8_x6": {
+        "scale": 1.009566,
+        "dE_eV": -0.4173610552563787,
+        "n_single_points": 10
+      },
+      "swcnt_10_0_x6_stone_wales": {
+        "scale": 1.01821407,
+        "dE_eV": -1.8287208217889201,
+        "n_single_points": 12
+      },
+      "swcnt_8_8_x6_stone_wales": {
+        "scale": 1.01100698,
+        "dE_eV": -0.5462724546632671,
+        "n_single_points": 9
+      }
+    }
+  },
+  "energy": "F",
+  "energy_description": "the calculator's reported energy (the Mermin free energy for tblite under Fermi smearing)",
+  "references_eV": {
+    "E_H2": -6.524490106774508,
+    "E_H": -1.1589879653522108,
+    "H2_bond_A": 0.7472067724191547
+  },
+  "n_records": 360,
+  "n_configurations": 123,
+  "n_excluded": 2,
+  "wall_s": 18450.375717791,
+  "files": {
+    "landscape_raw_full.parquet": "ebca1b1541a1034b467ef68abbf3fabc773c8cd64137529857495938e5c24e8d",
+    "landscape_configurations_full.parquet": "f67e09c34ba6a47a46b9c3e22764b97b56cc918736cdf206b5c0d8cd0e0dafdc",
+    "landscape_raw_full_excluded.csv": "997049a10df9e13debfe936ed44bef75e4ec344d5971af46e8e3967083e47351"
+  }
+}

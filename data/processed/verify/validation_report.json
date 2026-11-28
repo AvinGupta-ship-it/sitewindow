@@ -74,10 +74,10 @@
       "id": "B1",
       "passed": null,
       "predicted": {
-        "E_bind_H_atom_eV": -1.8466357045170265,
+        "E_bind_H_atom_eV": -1.844756419429174,
         "tier": "T3",
         "engine": "mace",
-        "supercell": "graphene_9x9",
+        "supercell": "graphene_12x12",
         "electronic_temperature_K": null,
         "energy": "F"
       },
@@ -86,7 +86,7 @@
         "PBE_eV": -0.821
       },
       "metric": "absolute difference (tier T3, uncalibrated)",
-      "summary": "T3 basal monomer -1.847 eV (9x9) vs DMC -0.691 / PBE -0.821 eV: offsets -1.16 / -1.03 eV (input to C3 calibration)"
+      "summary": "T3 basal monomer -1.845 eV (12x12) vs DMC -0.691 / PBE -0.821 eV: offsets -1.15 / -1.02 eV (input to C3 calibration)"
     },
     {
       "id": "B1",
@@ -228,8 +228,8 @@
       "predicted": {
         "T2:monovacancy:monovacancy_12x12": 7.694251609122148,
         "T2:stone_wales:stone_wales_12x12": 4.72176052670693,
-        "T3:monovacancy:monovacancy_9x9": 5.686967119790324,
-        "T3:stone_wales:stone_wales_9x9": 4.295730280276985,
+        "T3:monovacancy:monovacancy_12x12": 5.680376708951826,
+        "T3:stone_wales:stone_wales_12x12": 4.217493388322964,
         "T1:monovacancy:monovacancy_6x6": 7.688920353212097,
         "T1:stone_wales:stone_wales_6x6": 5.408441444175537
       },
@@ -251,7 +251,7 @@
         }
       },
       "metric": "absolute deviation of defect formation energies per tier",
-      "summary": "defect formation energies, eV: T2:monovacancy:monovacancy_12x12 7.69 ok; T2:stone_wales:stone_wales_12x12 4.72 ok; T3:monovacancy:monovacancy_9x9 5.69; T3:stone_wales:stone_wales_9x9 4.30; T1:monovacancy:monovacancy_6x6 7.69 ok; T1:stone_wales:stone_wales_6x6 5.41 off vs monovacancy [7.4, 7.7] and Stone-Wales 5.0 (thresholds T1 0.3, T2 1.0)"
+      "summary": "defect formation energies, eV: T2:monovacancy:monovacancy_12x12 7.69 ok; T2:stone_wales:stone_wales_12x12 4.72 ok; T3:monovacancy:monovacancy_12x12 5.68; T3:stone_wales:stone_wales_12x12 4.22; T1:monovacancy:monovacancy_6x6 7.69 ok; T1:stone_wales:stone_wales_6x6 5.41 off vs monovacancy [7.4, 7.7] and Stone-Wales 5.0 (thresholds T1 0.3, T2 1.0)"
     }
   ]
 }

@@ -344,6 +344,326 @@
    }
   ]
  },
+ "T3": {
+  "calibration": {
+   "tier": "T3",
+   "n_anchor_pairs": 7,
+   "classes": {
+    "basal": {
+     "site_class": "basal",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": 0.17374612426682934,
+     "status": "offset_calibrated"
+    },
+    "cnt_armchair": {
+     "site_class": "cnt_armchair",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": 0.2187707100472559,
+     "status": "offset_calibrated"
+    },
+    "edge_zigzag": {
+     "site_class": "edge_zigzag",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": 0.005416913351742999,
+     "status": "offset_calibrated"
+    },
+    "epoxide": {
+     "site_class": "epoxide",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": -0.07581412510380192,
+     "status": "offset_calibrated"
+    },
+    "hydroxyl": {
+     "site_class": "hydroxyl",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": -0.28222044954009695,
+     "status": "offset_calibrated"
+    },
+    "monovacancy": {
+     "site_class": "monovacancy",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": -0.05851805532673116,
+     "status": "offset_calibrated"
+    },
+    "stone_wales": {
+     "site_class": "stone_wales",
+     "tier": "T3",
+     "n_anchors": 1,
+     "a_eV": 1.4870531331079455,
+     "b": 1.441603239839349,
+     "sigma_a_eV": 0.4399398221949381,
+     "sigma_b": 0.1536378437248586,
+     "residual_sd_eV": 0.37053737312629154,
+     "b_fixed": false,
+     "dof": 5,
+     "note": "pooled transfer; the discrepancy process interpolates the class anchors",
+     "class_offset_eV": 0.018618882304808813,
+     "status": "offset_calibrated"
+    }
+   },
+   "pooled_transfer": {
+    "site_class": "__pooled__",
+    "tier": "T3",
+    "n_anchors": 7,
+    "a_eV": 1.4870531331079455,
+    "b": 1.441603239839349,
+    "sigma_a_eV": 0.4399398221949381,
+    "sigma_b": 0.1536378437248586,
+    "residual_sd_eV": 0.37053737312629154,
+    "b_fixed": false,
+    "dof": 5,
+    "note": null
+   },
+   "gp": {
+    "amplitude_eV": 0.3339385483430205,
+    "lengthscales_standardized": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "noise_eV": 0.05385164807134505,
+    "kernel": "matern52",
+    "log_marginal_likelihood": NaN,
+    "optimized": false
+   }
+  },
+  "loo": {
+   "level": 0.9,
+   "n": 7,
+   "coverage": 1.0,
+   "rmse_eV": 0.40114264534766403,
+   "standardized_residual_sd": 0.7695460453364961,
+   "passes_0.85_0.95": false,
+   "anchors": [
+    {
+     "site_class": "basal",
+     "configuration": "monomer",
+     "E_T1": -0.8203430978185071,
+     "predicted": -1.3044820528746346,
+     "sd": 0.6505630076940766,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    },
+    {
+     "site_class": "cnt_armchair",
+     "configuration": "monomer_exterior",
+     "E_T1": -1.580414302610264,
+     "predicted": -2.1057329936357654,
+     "sd": 0.578990527188183,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    },
+    {
+     "site_class": "edge_zigzag",
+     "configuration": "edge_CH",
+     "E_T1": -4.975225726484537,
+     "predicted": -5.010066744752713,
+     "sd": 1.040541393637598,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    },
+    {
+     "site_class": "epoxide",
+     "configuration": "monomer_adjacent",
+     "E_T1": -1.4698163482179172,
+     "predicted": -1.2664316813898226,
+     "sd": 0.7242878214089313,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    },
+    {
+     "site_class": "hydroxyl",
+     "configuration": "monomer_adjacent",
+     "E_T1": -1.9986721876440317,
+     "predicted": -1.2604441258006323,
+     "sd": 0.4528746458015397,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    },
+    {
+     "site_class": "monovacancy",
+     "configuration": "seq1",
+     "E_T1": -3.7967666204616384,
+     "predicted": -3.6337935576257845,
+     "sd": 0.7405229867069086,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    },
+    {
+     "site_class": "stone_wales",
+     "configuration": "monomer_rotated_bond",
+     "E_T1": -2.3422038063117574,
+     "predicted": -2.3862218561796,
+     "sd": 0.7094227614054728,
+     "covered": true,
+     "status_without": "awaiting_anchors"
+    }
+   ]
+  },
+  "held_out_classes": {
+   "curvature": {
+    "n_held_out": 1,
+    "classes": [
+     "cnt_armchair"
+    ],
+    "rmse_eV": 0.5253186910255023,
+    "mean_error_eV": -0.5253186910255023,
+    "coverage_90": 1.0,
+    "errors_eV": [
+     -0.5253186910255023
+    ]
+   },
+   "oxygen": {
+    "n_held_out": 2,
+    "classes": [
+     "epoxide",
+     "hydroxyl"
+    ],
+    "rmse_eV": 0.7098352161369632,
+    "mean_error_eV": 0.6803011369526604,
+    "coverage_90": 0.5,
+    "errors_eV": [
+     0.4776773547129467,
+     0.882924919192374
+    ]
+   }
+  },
+  "anchor_pairs": [
+   {
+    "site_class": "basal",
+    "substrate_family": "graphene",
+    "configuration": "monomer",
+    "n_H": 1,
+    "E_T1": -0.8203430978185071,
+    "E_t": -1.844756419429174,
+    "supercell_T1": "graphene_5x5",
+    "supercell_t": "graphene_12x12",
+    "tier": "T3"
+   },
+   {
+    "site_class": "cnt_armchair",
+    "substrate_family": "swcnt_5_5",
+    "configuration": "monomer_exterior",
+    "n_H": 1,
+    "E_T1": -1.580414302610264,
+    "E_t": -2.435273448545828,
+    "supercell_T1": "swcnt_5_5_x3",
+    "supercell_t": "swcnt_5_5_x6",
+    "tier": "T3"
+   },
+   {
+    "site_class": "edge_zigzag",
+    "substrate_family": "ribbon_zigzag_bare_edge",
+    "configuration": "edge_CH",
+    "n_H": 1,
+    "E_T1": -4.975225726484537,
+    "E_t": -4.490315626963806,
+    "supercell_T1": "ribbon_zigzag_6x4_bare_edge",
+    "supercell_t": "ribbon_zigzag_6x4_bare_edge",
+    "tier": "T3"
+   },
+   {
+    "site_class": "epoxide",
+    "substrate_family": "epoxide",
+    "configuration": "monomer_adjacent",
+    "n_H": 1,
+    "E_T1": -1.4698163482179172,
+    "E_t": -1.944550047386016,
+    "supercell_T1": "epoxide_6x6",
+    "supercell_t": "epoxide_12x12",
+    "tier": "T3"
+   },
+   {
+    "site_class": "hydroxyl",
+    "substrate_family": "hydroxyl",
+    "configuration": "monomer_adjacent",
+    "n_H": 1,
+    "E_T1": -1.9986721876440317,
+    "E_t": -2.0213225543991906,
+    "supercell_T1": "hydroxyl_6x6",
+    "supercell_t": "hydroxyl_12x12",
+    "tier": "T3"
+   },
+   {
+    "site_class": "monovacancy",
+    "substrate_family": "monovacancy",
+    "configuration": "seq1",
+    "n_H": 1,
+    "E_T1": -3.7967666204616384,
+    "E_t": -3.582998227255572,
+    "supercell_T1": "monovacancy_6x6",
+    "supercell_t": "monovacancy_12x12",
+    "tier": "T3"
+   },
+   {
+    "site_class": "stone_wales",
+    "substrate_family": "stone_wales",
+    "configuration": "monomer_rotated_bond",
+    "n_H": 1,
+    "E_T1": -2.3422038063117574,
+    "E_t": -2.682415514997771,
+    "supercell_T1": "stone_wales_6x6",
+    "supercell_t": "stone_wales_12x12",
+    "tier": "T3"
+   }
+  ]
+ },
  "meta_analysis": [
   {
    "quantity": "E_barrier_recomb",
@@ -1439,9 +1759,9 @@
    "n_published": 4
   }
  ],
- "wall_s": 272.46317112499673,
+ "wall_s": 207.67698429099983,
  "files": {
-  "landscape_calibrated.parquet": "ed966f802a3f1adb7ec53483c3676430ceeebea6ce69b40ae49eebf0b5de9b6f",
-  "calibration_report.json": "9ab5e4be40bcdb0b514dbd45e30a6b9145321510645761084621dad7ab49a957"
+  "landscape_calibrated.parquet": "93ac3b2f763bb13d2e1621ef90506233bad769a0241abd07c7fb81f66d4012bd",
+  "calibration_report.json": "78603ded283d7f639e86188380b2ef07d931488d6f24ed5fb365d21768149677"
  }
 }
