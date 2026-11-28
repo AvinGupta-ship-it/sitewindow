@@ -1,13 +1,14 @@
 {
   "tier": "T1",
   "package_version": "0.1.0",
-  "n_anchors": 6,
-  "n_records": 28,
+  "n_anchors": 7,
+  "n_records": 32,
   "classes": [
     "basal",
     "cnt_armchair",
     "edge_zigzag",
     "epoxide",
+    "hydroxyl",
     "monovacancy",
     "stone_wales"
   ],
@@ -41,6 +42,13 @@
       "wall_s": 15488.174456333
     },
     {
+      "key": "hydroxyl/hydroxyl_6x6/monomer_adjacent",
+      "n_atoms": 75,
+      "converged": true,
+      "E_bind_H_atom_PBE_D3": -1.9986721876440317,
+      "wall_s": 17750.530925208004
+    },
+    {
       "key": "monovacancy/monovacancy_6x6/seq1",
       "n_atoms": 72,
       "converged": true,
@@ -55,9 +63,9 @@
       "wall_s": 11218.666441334004
     }
   ],
-  "wall_s_total": 51299.149747957,
+  "wall_s_total": 69049.68067316501,
   "failed": [],
   "files": {
-    "anchors_tier1.parquet": "49202757f108fa18a75480fefd70523309f41b7b28cbc277154efce16a7b636b"
+    "anchors_tier1.parquet": "01a79c76b1ffd4054981fc2d7d21ca5d1411aee144adc2800c6800f10d21ed72"
   }
 }
