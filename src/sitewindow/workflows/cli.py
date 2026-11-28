@@ -339,6 +339,70 @@ def landscape_build(
     )
 
 
+@landscape_app.command("calibrate")
+def landscape_calibrate(
+    tier: str = typer.Option("full", help="Landscape tier whose tables are calibrated"),
+    processed: Path = typer.Option(
+        None, help="Directory of the landscape tables (default: $SITEWINDOW_DATA/processed/<tier>)"
+    ),
+    anchors: Path = typer.Option(
+        None,
+        help="Tier-1 anchor table (default: $SITEWINDOW_DATA/processed/tier1/anchors_tier1.parquet)",
+    ),
+    registry: Path = typer.Option(
+        None,
+        help="Published-value registry (default: $SITEWINDOW_DATA/registry/published_values.yaml)",
+    ),
+    out: Path = typer.Option(None, help="Output directory (default: the processed directory)"),
+    meta: bool = typer.Option(
+        True, help="Fit the hierarchical meta-analysis of the published values (PyMC)"
+    ),
+    meta_draws: int = typer.Option(1000, help="Posterior draws per chain of the meta-analysis"),
+    meta_chains: int = typer.Option(4, help="Chains of the meta-analysis"),
+    recovery: int = typer.Option(
+        100, help="Replicates of the synthetic recovery test of the calibration (0 to skip)"
+    ),
+    kernel: str = typer.Option("matern52", help="Discrepancy kernel: matern52 or matern32"),
+    sigma_t2: float = typer.Option(
+        None, help="Tier-2 numerical uncertainty (eV); default from the calibration module"
+    ),
+    seed: int = typer.Option(0),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Assemble landscape_calibrated.parquet from the anchors that exist and report the
+    calibration status of every class (C3); rerun as anchors land."""
+    from sitewindow.landscape.assemble import assemble_calibrated
+
+    _configure_logging(verbose)
+    processed = processed or _data_root() / "processed" / tier
+    anchors = anchors or _data_root() / "processed" / "tier1" / "anchors_tier1.parquet"
+    registry = registry or _data_root() / "registry" / "published_values.yaml"
+    result = assemble_calibrated(
+        processed,
+        tier=tier,
+        anchors_path=anchors,
+        registry_path=registry,
+        out_dir=out,
+        meta=meta,
+        meta_draws=meta_draws,
+        meta_chains=meta_chains,
+        recovery_replicates=recovery,
+        kernel=kernel,
+        sigma_t2=sigma_t2,
+        seed=seed,
+    )
+    status = result["status"]
+    typer.echo(status.to_string(index=False))
+    rep = result["report"]
+    offset = rep["tier0_offset"]
+    typer.echo(
+        f"Tier-0 offset {offset['offset_eV']:+.3f} eV (carried sigma {offset['sigma_carried_eV']:.3f} eV, "
+        f"{offset['n_pairs']} pair(s)); LOO coverage "
+        f"{rep['T2']['loo'].get('coverage', float('nan')):.2f} over {rep['T2']['loo'].get('n', 0)} anchors; "
+        f"records {len(result['table'])}"
+    )
+
+
 @landscape_app.command("barriers")
 def landscape_barriers(
     tier: str = typer.Option("verify", help="verify or full (configs/tiers/<tier>.yaml)"),
