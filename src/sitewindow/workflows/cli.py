@@ -922,37 +922,56 @@ def corpus_aed_recovery(
     chains: int = typer.Option(4),
     cores: int = typer.Option(2),
     seed: int = typer.Option(11),
+    sensitivity: bool = typer.Option(
+        False, help="Run the smoothness-scale and grid-spacing variants instead of the designs"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Synthetic recovery tests of the AED inversion (planted single-site and bimodal
-    distributions under several temperature designs; acceptance criterion F2)."""
+    distributions under several temperature designs; acceptance criterion F2). With
+    --sensitivity, the 77 and 298 K designs are repeated with the smoothness hyperprior scale
+    at 0.5 and 2 and the grid spacing at 1.0 and 0.25 kJ/mol."""
     from sitewindow.experimental.aed import recovery_test
 
     _configure_logging(verbose)
-    out = out or _data_root() / "processed" / "full" / "aed_recovery.json"
+    name = "aed_recovery_sensitivity.json" if sensitivity else "aed_recovery.json"
+    out = out or _data_root() / "processed" / "full" / name
     out.parent.mkdir(parents=True, exist_ok=True)
-    configs = [
-        ("single", (77.0, 87.0), None), ("bimodal", (77.0, 87.0), None),
-        ("single", (77.0, 87.0), False), ("bimodal", (77.0, 87.0), False),
-        ("single", (77.0, 298.0), None), ("bimodal", (77.0, 298.0), None),
-        ("single", (77.0,), None), ("bimodal", (77.0,), None),
-        ("single", (298.0, 318.0), None), ("bimodal", (298.0, 318.0), None),
-    ]
+    if sensitivity:
+        configs = [
+            ("bimodal", (77.0, 298.0), None, 0.5, 0.5), ("bimodal", (77.0, 298.0), None, 2.0, 0.5),
+            ("single", (77.0, 298.0), None, 0.5, 0.5), ("single", (77.0, 298.0), None, 2.0, 0.5),
+            ("single", (77.0, 298.0), None, 1.0, 1.0), ("single", (77.0, 298.0), None, 1.0, 0.25),
+            ("bimodal", (77.0, 298.0), None, 1.0, 1.0), ("bimodal", (77.0, 298.0), None, 1.0, 0.25),
+        ]
+    else:
+        configs = [
+            ("single", (77.0, 87.0), None, 1.0, 0.5), ("bimodal", (77.0, 87.0), None, 1.0, 0.5),
+            ("single", (77.0, 87.0), False, 1.0, 0.5), ("bimodal", (77.0, 87.0), False, 1.0, 0.5),
+            ("single", (77.0, 298.0), None, 1.0, 0.5), ("bimodal", (77.0, 298.0), None, 1.0, 0.5),
+            ("single", (77.0,), None, 1.0, 0.5), ("bimodal", (77.0,), None, 1.0, 0.5),
+            ("single", (298.0, 318.0), None, 1.0, 0.5), ("bimodal", (298.0, 318.0), None, 1.0, 0.5),
+        ]
     results = json.loads(out.read_text()) if out.exists() else []
-    done = {(r["kind"], tuple(r["temperatures_K"]), r["entropy"]) for r in results}
-    for kind, temps, ef in configs:
+    done = {
+        (r["kind"], tuple(r["temperatures_K"]), r["entropy"], r.get("lambda0", 1.0), r.get("grid_step_kJ", 0.5))
+        for r in results
+    }
+    for kind, temps, ef, lam0, step in configs:
         entropy = "free" if (len(temps) >= 2 if ef is None else ef) else "fixed"
-        if (kind, temps, entropy) in done:
+        if (kind, temps, entropy, lam0, step) in done:
             continue
         r = recovery_test(
             kind, replicates=replicates, draws=draws, tune=tune, chains=chains, cores=cores,
-            temperatures=temps, entropy_free=ef, seed=seed,
+            temperatures=temps, entropy_free=ef, seed=seed, lambda0=lam0, grid_step=step,
         )
         results.append(r)
         out.write_text(json.dumps(results, indent=1, default=float))
-        typer.echo(f"{kind} {temps} entropy {entropy}: pass fraction {r['pass_fraction']:.2f}")
+        typer.echo(
+            f"{kind} {temps} entropy {entropy} lambda0 {lam0} grid {step}: pass fraction "
+            f"{r['pass_fraction']:.2f} (resolvable modes {r['pass_fraction_resolvable']:.2f})"
+        )
     typer.echo(f"written {out}")
-
 
 @schema_app.command("export")
 def schema_export(

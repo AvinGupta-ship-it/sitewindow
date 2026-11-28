@@ -1,0 +1,1505 @@
+[
+ {
+  "kind": "single",
+  "temperatures_K": [
+   77.0,
+   87.0
+  ],
+  "entropy": "free",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.850738232539183
+    ],
+    "p_within_tolerance": [
+     0.6
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.0138076241868474,
+    "divergences": 0,
+    "ppc_p_value": 0.5235,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.657644456486307
+    ],
+    "p_within_tolerance": [
+     0.73
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.0141289328853158,
+    "divergences": 2,
+    "ppc_p_value": 0.653,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.315674461739636
+    ],
+    "p_within_tolerance": [
+     0.865
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.025240938706949,
+    "divergences": 1,
+    "ppc_p_value": 0.17125,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.305142223668608
+    ],
+    "p_within_tolerance": [
+     0.825
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.0056654815226715,
+    "divergences": 0,
+    "ppc_p_value": 0.0125,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.336665929314238
+    ],
+    "p_within_tolerance": [
+     0.885
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.0081651670102587,
+    "divergences": 1,
+    "ppc_p_value": 0.255,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true
+  ],
+  "pass_fraction_resolvable": 0.0
+ },
+ {
+  "kind": "bimodal",
+  "temperatures_K": [
+   77.0,
+   87.0
+  ],
+  "entropy": "free",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.362291906691501,
+     25.434666808095486
+    ],
+    "p_within_tolerance": [
+     0.665,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.22316932678222656
+    ],
+    "passed": false,
+    "rhat_max": 1.0688549126949654,
+    "divergences": 20,
+    "ppc_p_value": 0.4485,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.128172192388035,
+     25.679058990890358
+    ],
+    "p_within_tolerance": [
+     0.56,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.22733692824840546
+    ],
+    "passed": false,
+    "rhat_max": 1.0437708610515282,
+    "divergences": 2,
+    "ppc_p_value": 0.46025,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     3.4191849353995867,
+     25.834740583456778
+    ],
+    "p_within_tolerance": [
+     0.315,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.25554147362709045
+    ],
+    "passed": false,
+    "rhat_max": 1.198506474012926,
+    "divergences": 40,
+    "ppc_p_value": 0.04825,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.644938248085062,
+     26.09276202468311
+    ],
+    "p_within_tolerance": [
+     0.77,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.2626090347766876
+    ],
+    "passed": false,
+    "rhat_max": 1.051397053145562,
+    "divergences": 160,
+    "ppc_p_value": 0.0095,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.128256689435896,
+     25.985158642552783
+    ],
+    "p_within_tolerance": [
+     0.495,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.19584530591964722
+    ],
+    "passed": false,
+    "rhat_max": 1.014858235409328,
+    "divergences": 7,
+    "ppc_p_value": 0.41275,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true,
+   false
+  ],
+  "pass_fraction_resolvable": 0.0
+ },
+ {
+  "kind": "single",
+  "temperatures_K": [
+   77.0,
+   87.0
+  ],
+  "entropy": "fixed",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.873674535976104
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0089712621640108,
+    "divergences": 0,
+    "ppc_p_value": 0.45975,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.890776224934131
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0155261357983938,
+    "divergences": 0,
+    "ppc_p_value": 0.59875,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.080236357557781
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0261864151447369,
+    "divergences": 0,
+    "ppc_p_value": 0.18625,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.9639291866271105
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0089650179941057,
+    "divergences": 0,
+    "ppc_p_value": 0.01525,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.831542127267007
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0109065690014918,
+    "divergences": 0,
+    "ppc_p_value": 0.26625,
+    "passed_resolvable": true
+   }
+  ],
+  "pass_fraction": 1.0,
+  "passed": true,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true
+  ],
+  "pass_fraction_resolvable": 1.0
+ },
+ {
+  "kind": "bimodal",
+  "temperatures_K": [
+   77.0,
+   87.0
+  ],
+  "entropy": "fixed",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.543672279132378,
+     26.311606469423687
+    ],
+    "p_within_tolerance": [
+     0.965,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.2266516089439392
+    ],
+    "passed": false,
+    "rhat_max": 1.0101577905769732,
+    "divergences": 0,
+    "ppc_p_value": 0.552,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.426109987446419,
+     25.524805699924745
+    ],
+    "p_within_tolerance": [
+     0.96,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.23194265365600586
+    ],
+    "passed": false,
+    "rhat_max": 1.0208159869248663,
+    "divergences": 0,
+    "ppc_p_value": 0.59,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.583892389860336,
+     25.829513901117323
+    ],
+    "p_within_tolerance": [
+     0.965,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.2558249533176422
+    ],
+    "passed": false,
+    "rhat_max": 1.043300715765255,
+    "divergences": 0,
+    "ppc_p_value": 0.102,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.816947848671506,
+     25.95380189965714
+    ],
+    "p_within_tolerance": [
+     1.0,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.26181861758232117
+    ],
+    "passed": false,
+    "rhat_max": 1.018183736692174,
+    "divergences": 3,
+    "ppc_p_value": 0.0115,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.30617371159208,
+     25.676592115388882
+    ],
+    "p_within_tolerance": [
+     0.835,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.19646568596363068
+    ],
+    "passed": false,
+    "rhat_max": 1.0603438544594008,
+    "divergences": 0,
+    "ppc_p_value": 0.5,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true,
+   false
+  ],
+  "pass_fraction_resolvable": 0.8
+ },
+ {
+  "kind": "single",
+  "temperatures_K": [
+   77.0,
+   298.0
+  ],
+  "entropy": "free",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.937906165646684
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0103576086905524,
+    "divergences": 0,
+    "ppc_p_value": 0.94775,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.877369346761468
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0239266377510128,
+    "divergences": 0,
+    "ppc_p_value": 0.8155,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.124916697893282
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0384399852684192,
+    "divergences": 0,
+    "ppc_p_value": 0.20625,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.890488806121156
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.002899099145618,
+    "divergences": 0,
+    "ppc_p_value": 0.039,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.82779044518769
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0206413967002048,
+    "divergences": 0,
+    "ppc_p_value": 0.77425,
+    "passed_resolvable": true
+   }
+  ],
+  "pass_fraction": 1.0,
+  "passed": true,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true
+  ],
+  "pass_fraction_resolvable": 1.0
+ },
+ {
+  "kind": "bimodal",
+  "temperatures_K": [
+   77.0,
+   298.0
+  ],
+  "entropy": "free",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.864674324807937,
+     12.368329043851697
+    ],
+    "p_within_tolerance": [
+     0.995,
+     0.72
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.2721704840660095
+    ],
+    "passed": false,
+    "rhat_max": 1.0145580490804917,
+    "divergences": 2,
+    "ppc_p_value": 0.691,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.464316008748604,
+     10.681321854317154
+    ],
+    "p_within_tolerance": [
+     0.945,
+     0.24
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.2439412623643875
+    ],
+    "passed": false,
+    "rhat_max": 1.0212169382338914,
+    "divergences": 5,
+    "ppc_p_value": 0.54725,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.40839545793137,
+     11.483719228041805
+    ],
+    "p_within_tolerance": [
+     0.875,
+     0.885
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.1715220957994461
+    ],
+    "passed": false,
+    "rhat_max": 1.2371358554129448,
+    "divergences": 3,
+    "ppc_p_value": 0.06425,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.886510325673683,
+     11.150521047640257
+    ],
+    "p_within_tolerance": [
+     1.0,
+     0.57
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.24291057884693146
+    ],
+    "passed": false,
+    "rhat_max": 1.02389410267937,
+    "divergences": 1,
+    "ppc_p_value": 0.058,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.128679576622675,
+     11.232679929014859
+    ],
+    "p_within_tolerance": [
+     0.635,
+     0.705
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.12749630212783813
+    ],
+    "passed": false,
+    "rhat_max": 1.196050296307018,
+    "divergences": 134,
+    "ppc_p_value": 0.30725,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true,
+   true
+  ],
+  "pass_fraction_resolvable": 0.0
+ },
+ {
+  "kind": "single",
+  "temperatures_K": [
+   77.0
+  ],
+  "entropy": "fixed",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.061860210267931
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0157098022167856,
+    "divergences": 0,
+    "ppc_p_value": 0.4005,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.998532768345817
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0097841070843325,
+    "divergences": 0,
+    "ppc_p_value": 0.2465,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.132066442903599
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.011852666851011,
+    "divergences": 2,
+    "ppc_p_value": 0.0285,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     6.008893207851684
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0056154144807328,
+    "divergences": 0,
+    "ppc_p_value": 0.00125,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.933871031226116
+    ],
+    "p_within_tolerance": [
+     1.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": true,
+    "rhat_max": 1.0305096089881078,
+    "divergences": 0,
+    "ppc_p_value": 0.16525,
+    "passed_resolvable": true
+   }
+  ],
+  "pass_fraction": 1.0,
+  "passed": true,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true
+  ],
+  "pass_fraction_resolvable": 1.0
+ },
+ {
+  "kind": "bimodal",
+  "temperatures_K": [
+   77.0
+  ],
+  "entropy": "fixed",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.27898008678096,
+     25.275203862541574
+    ],
+    "p_within_tolerance": [
+     0.755,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.2045912742614746
+    ],
+    "passed": false,
+    "rhat_max": 1.121660298510269,
+    "divergences": 11,
+    "ppc_p_value": 0.1765,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     3.9269980526866677,
+     24.90634697894184
+    ],
+    "p_within_tolerance": [
+     0.455,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.1751348078250885
+    ],
+    "passed": false,
+    "rhat_max": 1.175373608467323,
+    "divergences": 8,
+    "ppc_p_value": 0.1295,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.00789534548243,
+     23.543695334381113
+    ],
+    "p_within_tolerance": [
+     0.45,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.16091005504131317
+    ],
+    "passed": false,
+    "rhat_max": 1.1878922855031089,
+    "divergences": 23,
+    "ppc_p_value": 0.01925,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     4.801387584204239,
+     25.516592862889162
+    ],
+    "p_within_tolerance": [
+     0.99,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.222239688038826
+    ],
+    "passed": false,
+    "rhat_max": 1.0422565342082737,
+    "divergences": 1,
+    "ppc_p_value": 0.00525,
+    "passed_resolvable": true
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     3.957012429991318,
+     23.503971593613624
+    ],
+    "p_within_tolerance": [
+     0.425,
+     0.0
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.14017954468727112
+    ],
+    "passed": false,
+    "rhat_max": 1.1033710675556647,
+    "divergences": 54,
+    "ppc_p_value": 0.423,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true,
+   false
+  ],
+  "pass_fraction_resolvable": 0.2
+ },
+ {
+  "kind": "single",
+  "temperatures_K": [
+   298.0,
+   318.0
+  ],
+  "entropy": "free",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     14.752853844465179
+    ],
+    "p_within_tolerance": [
+     0.015
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 2.0197899901115384,
+    "divergences": 243,
+    "ppc_p_value": 0.99925,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     16.155315821611243
+    ],
+    "p_within_tolerance": [
+     0.015
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.3330625176808701,
+    "divergences": 56,
+    "ppc_p_value": 0.9915,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     16.34755216884686
+    ],
+    "p_within_tolerance": [
+     0.01
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.7145462064580337,
+    "divergences": 997,
+    "ppc_p_value": 0.88925,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     16.857108118521708
+    ],
+    "p_within_tolerance": [
+     0.01
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.1559646436506383,
+    "divergences": 38,
+    "ppc_p_value": 0.97575,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      6.0,
+      1.0
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     17.00970781453396
+    ],
+    "p_within_tolerance": [
+     0.005
+    ],
+    "strong_mode_weight_posterior_mean": [
+     1.0
+    ],
+    "passed": false,
+    "rhat_max": 1.5824145140521486,
+    "divergences": 101,
+    "ppc_p_value": 0.99225,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true
+  ],
+  "pass_fraction_resolvable": 0.0
+ },
+ {
+  "kind": "bimodal",
+  "temperatures_K": [
+   298.0,
+   318.0
+  ],
+  "entropy": "free",
+  "tolerance_kJ_mol": 1.0,
+  "level": 0.9,
+  "replicates": [
+   {
+    "replicate": 0,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.417400851445644,
+     17.969971686388348
+    ],
+    "p_within_tolerance": [
+     0.48,
+     0.07
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.9260626435279846
+    ],
+    "passed": false,
+    "rhat_max": 1.103629388763934,
+    "divergences": 6,
+    "ppc_p_value": 0.90025,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 1,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.40610367422797,
+     18.464733177280685
+    ],
+    "p_within_tolerance": [
+     0.545,
+     0.02
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.9367480278015137
+    ],
+    "passed": false,
+    "rhat_max": 1.1134073800177031,
+    "divergences": 30,
+    "ppc_p_value": 0.6915,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 2,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.799709750726475,
+     15.53884476247769
+    ],
+    "p_within_tolerance": [
+     0.36,
+     0.195
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.8905911445617676
+    ],
+    "passed": false,
+    "rhat_max": 1.080598908848754,
+    "divergences": 12,
+    "ppc_p_value": 0.52175,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 3,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.543016721075875,
+     18.634273684710905
+    ],
+    "p_within_tolerance": [
+     0.51,
+     0.045
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.9109805226325989
+    ],
+    "passed": false,
+    "rhat_max": 1.0292884474251558,
+    "divergences": 4,
+    "ppc_p_value": 0.32175,
+    "passed_resolvable": false
+   },
+   {
+    "replicate": 4,
+    "planted": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      12.0,
+      0.3
+     ]
+    ],
+    "mode_energy_posterior_mean": [
+     5.4970256223253555,
+     17.70951299348969
+    ],
+    "p_within_tolerance": [
+     0.475,
+     0.08
+    ],
+    "strong_mode_weight_posterior_mean": [
+     0.937430739402771
+    ],
+    "passed": false,
+    "rhat_max": 1.0797353302460673,
+    "divergences": 6,
+    "ppc_p_value": 0.788,
+    "passed_resolvable": false
+   }
+  ],
+  "pass_fraction": 0.0,
+  "passed": false,
+  "lambda0": 1.0,
+  "grid_step_kJ": 0.5,
+  "resolvable_modes": [
+   true,
+   true
+  ],
+  "pass_fraction_resolvable": 0.0
+ }
+]

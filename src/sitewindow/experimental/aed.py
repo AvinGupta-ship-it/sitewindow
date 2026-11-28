@@ -531,6 +531,18 @@ def mode_energies(draws: np.ndarray, grid_kJ: np.ndarray, splits: list[float]) -
     return out
 
 
+def resolvable(eps_kJ: float, temperatures, pressures_bar, delta_s_J: float = 0.0) -> bool:
+    """Whether a measurement design resolves a site energy: some measured point has an
+    occupancy between 0.05 and 0.95 at that energy, so that the data see the Langmuir step of
+    the site rather than a constant (saturated) or vanishing contribution."""
+    P = np.asarray(pressures_bar, float)
+    for T in temperatures:
+        th = occupancy_matrix(np.array([eps_kJ]), np.full(len(P), float(T)), effective_pressures_bar(T, P), delta_s_J)[:, 0]
+        if np.any((th > 0.05) & (th < 0.95)):
+            return True
+    return False
+
+
 def recovery_test(
     kind: str = "single",
     *,
@@ -544,6 +556,8 @@ def recovery_test(
     temperatures: tuple[float, ...] = (77.0, 87.0),
     entropy_free: bool | None = None,
     seed: int = 0,
+    lambda0: float = LAMBDA0_DEFAULT,
+    grid_step: float = GRID_STEP_KJ,
 ) -> dict[str, Any]:
     """Synthetic recovery of planted single-site or bimodal distributions.
 
@@ -551,7 +565,7 @@ def recovery_test(
     weight-mean energy lies within ``tolerance_kJ`` of the planted energy is at least ``level``
     (the planted energy within 1 kJ mol^-1 at 90 % posterior, acceptance criterion F2).
     """
-    grid = energy_grid()
+    grid = energy_grid(grid_step)
     if kind == "single":
         modes = [(6.0, 1.0)]
         splits: list[float] = []
@@ -561,12 +575,15 @@ def recovery_test(
     else:
         raise ValueError(kind)
     w0 = planted_weights(grid, modes)
+    pressures = np.logspace(-2, np.log10(50.0), 20)
+    resolvable_modes = [resolvable(e, temperatures, pressures) for e, _ in modes]
     results = []
     for r in range(replicates):
         ms = synthetic_material(w0, grid, temperatures=temperatures, seed=seed + r, name=f"{kind}_{r}")
         res = fit_material(
             ms, scales=ErrorScales(), free_scales=False, draws=draws, tune=tune, chains=chains,
-            cores=cores, seed=seed + r, entropy_free=entropy_free,
+            cores=cores, seed=seed + r, entropy_free=entropy_free, lambda0=lambda0,
+            grid_step=grid_step,
         )
         assert res.draws is not None
         energies = mode_energies(res.draws, grid, splits)
@@ -584,6 +601,7 @@ def recovery_test(
                 "p_within_tolerance": probs,
                 "strong_mode_weight_posterior_mean": fracs,
                 "passed": bool(all(passes)),
+                "passed_resolvable": bool(all(p for p, ok in zip(passes, resolvable_modes, strict=True) if ok)),
                 "rhat_max": res.diagnostics["rhat_max"],
                 "divergences": res.diagnostics["divergences"],
                 "ppc_p_value": res.ppc["chi2_p_value"],
@@ -593,11 +611,15 @@ def recovery_test(
         "kind": kind,
         "temperatures_K": list(temperatures),
         "entropy": "free" if (len(temperatures) >= 2 if entropy_free is None else entropy_free) else "fixed",
+        "lambda0": lambda0,
+        "grid_step_kJ": grid_step,
         "tolerance_kJ_mol": tolerance_kJ,
         "level": level,
+        "resolvable_modes": resolvable_modes,
         "replicates": results,
         "pass_fraction": float(np.mean([r["passed"] for r in results])),
         "passed": bool(all(r["passed"] for r in results)),
+        "pass_fraction_resolvable": float(np.mean([r["passed_resolvable"] for r in results])),
     }
 
 
@@ -837,6 +859,7 @@ __all__ = [
     "planted_weights",
     "pooled_scales",
     "recovery_test",
+    "resolvable",
     "run_corpus",
     "synthetic_material",
     "window_mask",

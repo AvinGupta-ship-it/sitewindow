@@ -1,10 +1,11 @@
 {
   "tier": "T1",
   "package_version": "0.1.0",
-  "n_anchors": 7,
-  "n_records": 32,
+  "n_anchors": 8,
+  "n_records": 36,
   "classes": [
     "basal",
+    "carboxyl",
     "cnt_armchair",
     "edge_zigzag",
     "epoxide",
@@ -19,6 +20,13 @@
       "converged": true,
       "E_bind_H_atom_PBE_D3": -0.8203430978185071,
       "wall_s": 4040.547406291
+    },
+    {
+      "key": "carboxyl/carboxyl_6x6/monomer_adjacent",
+      "n_atoms": 77,
+      "converged": true,
+      "E_bind_H_atom_PBE_D3": -1.9000343691651398,
+      "wall_s": 29087.390240166
     },
     {
       "key": "cnt_armchair/swcnt_5_5_x3/monomer_exterior",
@@ -63,9 +71,9 @@
       "wall_s": 11218.666441334004
     }
   ],
-  "wall_s_total": 69049.68067316501,
+  "wall_s_total": 98137.070913331,
   "failed": [],
   "files": {
-    "anchors_tier1.parquet": "01a79c76b1ffd4054981fc2d7d21ca5d1411aee144adc2800c6800f10d21ed72"
+    "anchors_tier1.parquet": "48c341ccb66ca9ebcedb5af03894637c0b37d5f10a6c8c48f75329e21be0545c"
   }
 }

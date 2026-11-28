@@ -114,3 +114,13 @@ def test_single_site_recovery_with_pymc():
     assert res.strong_fraction["q50"] < 0.05 and abs(res.n_m["q50"] - 10.0) < 1.5
     assert res.diagnostics["divergences"] <= 5 and 0.0 <= res.ppc["chi2_p_value"] <= 1.0
     assert set(res.window_occupancy) == {"W1", "W2", "W3"}
+
+
+def test_resolvability_of_planted_energies_by_design():
+    P = np.logspace(-2, np.log10(50.0), 20)
+    # A 12 kJ/mol site is saturated at every cryogenic point but steps within reach at 298 K.
+    assert not aed.resolvable(12.0, (77.0, 87.0), P)
+    assert aed.resolvable(12.0, (77.0, 298.0), P)
+    assert aed.resolvable(6.0, (77.0,), P)
+    # A 40 kJ/mol site is saturated at every point of the 77 and 298 K design.
+    assert not aed.resolvable(40.0, (77.0, 298.0), P)
