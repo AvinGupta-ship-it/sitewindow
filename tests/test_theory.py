@@ -120,14 +120,28 @@ def test_virial_fugacity_fallback_reasonable():
 
 
 def test_deliverable_homogeneous_site_at_optimum_recovers_bound():
-    """G4 negative control: a homogeneous landscape at eps* with the monolayer site count hits D_max."""
+    """G4 negative control: a homogeneous landscape at the mass-accounted optimum eps_D with the
+    monolayer site count hits D_max, and one at the swing optimum eps* stays within 1e-3 of it."""
     from sitewindow.constants import M_C_AMU
     from sitewindow.theory.deliverable import monolayer_capacity_mol_per_kg
 
     b = bound_wt_percent(W1, "molecular")
+    assert abs(b["eps_D_eV"] - b["eps_star_eV"]) < 0.01
     n_sites_per_C = monolayer_capacity_mol_per_kg() / 1000.0 * M_C_AMU
-    t = SiteTable(
+    t_star = SiteTable(
         np.array([b["eps_star_eV"]]),
+        np.array([np.nan]),
+        np.array([1e13]),
+        np.array([1]),
+        np.array([n_sites_per_C]),
+        np.array([1.0]),
+        np.array([0.0]),
+        np.array([0]),
+    )
+    d_star = deliverable(t_star, W1).D_wt_percent
+    assert 0.0 <= b["D_max_wt_percent"] - d_star < 1e-3 * b["D_max_wt_percent"]
+    t = SiteTable(
+        np.array([b["eps_D_eV"]]),
         np.array([np.nan]),
         np.array([1e13]),
         np.array([1]),

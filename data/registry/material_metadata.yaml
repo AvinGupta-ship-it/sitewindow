@@ -1,0 +1,106 @@
+# Material metadata of corpus materials (manual C6, data source S2 role): BET areas, pore
+# volumes and source types that the ISODB records do not carry. Every value was read in the
+# source publication; `where_read` names the place (abstract, table, paragraph) and `access`
+# how the text was reached (the publishers' pages refuse automated clients, so abstracts were
+# read through the OpenAlex index of the publisher abstract; full texts only where an open copy
+# exists). `sample_identity: ambiguous` marks a database record whose name does not identify
+# which of several carbons in the paper it belongs to; such records keep their isotherms but
+# receive no surface area. `simulated: true` marks isotherms the paper computed rather than
+# measured; they are excluded from the experimental inference with the reason logged.
+#
+# Fields: doi, adsorbent_hashkey, adsorbent_name, bet_area_m2_g, bet_area_sd_m2_g,
+# pore_volume_cm3_g, sample_identity, simulated, value_source (primary: read in the paper or an
+# open copy of it; secondary: read in another paper's table citing it, kept for the record and
+# not used by B7), where_read, access, notes.
+materials:
+  - doi: 10.1134/s0033173208020070
+    adsorbent_hashkey: NIST-MATDB-453276ee992ed07dc207ed08b2b221ce
+    adsorbent_name: Carbon
+    simulated: true
+    sample_identity: ambiguous
+    where_read: "abstract (OpenAlex record of the publisher abstract): Fomkin et al., Protection of Metals 2008, Hydrogen adsorption on model nanoporous carbon adsorbents; slit-like micropores of 0.538, 0.878 and 1.218 nm modelled from graphite, isotherms calculated at 20 to 400 K up to 20 MPa by the Dubinin theory"
+    access: abstract
+    notes: "model calculation, not a measurement; the 33 K record also carries a pressure axis to 1.7e5 bar"
+  - doi: 10.1016/j.micromeso.2012.09.002
+    adsorbent_hashkey: NIST-MATDB-991c43e0e74ac35df08c8e21787e5afd
+    adsorbent_name: Carbon Slit
+    simulated: true
+    where_read: "title (OpenAlex record): Thornton et al., Microporous and Mesoporous Materials 2012, Analytical representation of micropores for predicting gas adsorption in porous materials; the adsorbent names of this paper's records (Carbon Slit, Carbon Tube, Carbon Sphere, Carbon Nanotube) are the model pore geometries of the method, not samples"
+    access: title and record metadata
+  - doi: 10.1016/j.micromeso.2012.09.002
+    adsorbent_hashkey: NIST-MATDB-9c832bf00638ed5155387177cba6a0a2
+    adsorbent_name: Carbon Sphere
+    simulated: true
+    where_read: "as for Carbon Slit of the same paper"
+    access: title and record metadata
+  - doi: 10.1016/j.micromeso.2012.09.002
+    adsorbent_hashkey: NIST-MATDB-6cbfabab3e8b598f6915304dccc8f7d8
+    adsorbent_name: Carbon Tube
+    simulated: true
+    where_read: "as for Carbon Slit of the same paper"
+    access: title and record metadata
+  - doi: 10.1016/j.micromeso.2012.09.002
+    adsorbent_hashkey: NIST-MATDB-5eeb37664de08b731baed19524bb8469
+    adsorbent_name: Carbon Nanotube
+    simulated: true
+    where_read: "as for Carbon Slit of the same paper"
+    access: title and record metadata
+  - doi: 10.1016/j.fluid.2013.11.029
+    adsorbent_hashkey: NIST-MATDB-9e23f5f57a219d77d81a9193c8cc2e2c
+    adsorbent_name: Graphite
+    sample_identity: ambiguous
+    where_read: "title (OpenAlex record): Dundar, Zacharia, Chahine, Benard, Fluid Phase Equilibria 2014, Performance comparison of adsorption isotherm models for supercritical hydrogen sorption on MOFs; no abstract available"
+    access: title only
+    notes: "nine isotherms at 30 to 300 K on a graphite in a paper on isotherm models for MOFs; whether the graphite data are measured or modelled could not be resolved from the accessible record, so the material is kept with this flag"
+  - doi: 10.1021/La302050m
+    adsorbent_hashkey: NIST-MATDB-453276ee992ed07dc207ed08b2b221ce
+    adsorbent_name: Carbon
+    sample_identity: ambiguous
+    where_read: "abstract (OpenAlex record): Stadie et al., Langmuir 2012, Zeolite-Templated Carbon Materials for High-Pressure Hydrogen Storage; several zeolite-templated carbons with BET surface areas up to about 3600 m2/g, maximum Gibbs excess uptake 28.6 mmol/g (5.5 wt%) at 77 K"
+    access: abstract
+    notes: "the database name Carbon does not say which of the paper's carbons the isotherms belong to; the abstract's area is an upper bound over the set, not a sample value"
+  - doi: 10.1063/1.1621073
+    adsorbent_hashkey: NIST-MATDB-453276ee992ed07dc207ed08b2b221ce
+    adsorbent_name: Carbon
+    sample_identity: ambiguous
+    where_read: "abstract (Crossref and OpenAlex records): Kadono, Kajiura, Shiraishi, Applied Physics Letters 2003, Dense hydrogen adsorption on carbon subnanopores at 77 K; two types of carbon nanomaterials measured at 77 K up to 2 MPa, uptake exceeding 2 wt%"
+    access: abstract
+  - doi: 10.1016/j.carbon.2010.04.025
+    adsorbent_hashkey: NIST-MATDB-453276ee992ed07dc207ed08b2b221ce
+    adsorbent_name: Carbon
+    sample_identity: ambiguous
+    where_read: "title (Semantic Scholar and OpenAlex records): Juan-Juan et al., Carbon 2010, A comparison of hydrogen storage in activated carbons and a metal-organic framework (MOF-5); several activated carbons"
+    access: title only
+  - doi: 10.1016/j.ijhydene.2011.11.023
+    adsorbent_hashkey: NIST-MATDB-453276ee992ed07dc207ed08b2b221ce
+    adsorbent_name: Carbon
+    sample_identity: ambiguous
+    where_read: "title (Semantic Scholar and OpenAlex records): Marco-Lozar et al., International Journal of Hydrogen Energy 2012, MOF-5 and activated carbons as adsorbents for gas storage; several activated carbons"
+    access: title only
+  - doi: 10.1021/La061149c
+    adsorbent_hashkey: NIST-MATDB-9cd97617ea2dc9025921c647ed538c12
+    adsorbent_name: SWNTs-Pr
+    bet_area_m2_g: 801
+    pore_volume_cm3_g: 0.33
+    value_source: primary
+    where_read: "Poirier, Chahine, Benard et al., Langmuir 22 (2006) 8784, Table 1 (Mass and BET Surface Area of the Investigated Samples: SWNTs-Pr 0.1126 g, 801 m2/g) and Table 2 (Calculated Parameters for the DA Model: SWNTs-Pr Wo 0.33 cm3/g, E 3560 J/mol), read in the paper as reproduced in E. Poirier's doctoral thesis, Universite du Quebec a Trois-Rivieres, https://depot-e.uqtr.ca/id/eprint/1412/1/030000698.pdf, PDF pages 68 and 70"
+    access: "open full text (author's thesis reproducing the paper, text layer checked)"
+    notes: "pristine single-walled nanotubes; the pore volume is the Dubinin-Astakhov limiting micropore volume fitted to the hydrogen isotherms (77 to 98 K), the paper reports no nitrogen pore volume, so it enters only as the centre of the pore-volume prior"
+  - doi: 10.1021/La061149c
+    adsorbent_hashkey: NIST-MATDB-4427d7c1e998d6de7305e5fb0fa4541f
+    adsorbent_name: SWNTs-700
+    bet_area_m2_g: 957
+    pore_volume_cm3_g: 0.40
+    value_source: primary
+    where_read: "Poirier et al., Langmuir 22 (2006) 8784, Table 1 (SWNTs-700 0.1103 g, 957 m2/g) and Table 2 (SWNTs-700 Wo 0.40 cm3/g, E 3400 J/mol), read in the reproduction in E. Poirier's doctoral thesis, https://depot-e.uqtr.ca/id/eprint/1412/1/030000698.pdf, PDF pages 68 and 70"
+    access: "open full text (author's thesis reproducing the paper, text layer checked)"
+    notes: "the pristine sample heat-treated at 973 K under argon for 1.5 h; pore volume as for SWNTs-Pr"
+  - doi: 10.1016/j.micromeso.2008.09.029
+    adsorbent_hashkey: NIST-MATDB-453276ee992ed07dc207ed08b2b221ce
+    adsorbent_name: Carbon
+    bet_area_m2_g: 1500
+    pore_volume_cm3_g: 0.78
+    value_source: secondary
+    where_read: "Wijiyanti et al., Indonesian Journal of Chemistry 20 (2020) 29, Table 2 (Physical properties and hydrogen adsorption capacity for different carbon-based materials), row attributed to Guan, Wang, Yang and Zhao 2009: sucrose on NH4Y zeolite, specific surface area 1500 m2/g, micropore volume 0.78 cm3/g, mesopore volume 0.52 cm3/g, 2.4 wt% at -196 C and 10 bar; https://journal.ugm.ac.id/ijc/article/download/38978/23983"
+    access: "secondary source (open); the paper itself and its abstract were not reachable"
+    notes: "the paper characterizes one zeolite-templated carbon (title), so the database record Carbon is attributed to it; the values are those another paper reproduces and do not enter B7"

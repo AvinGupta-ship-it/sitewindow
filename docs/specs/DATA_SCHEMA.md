@@ -74,6 +74,16 @@ All models are implemented as pydantic v2 classes in `sitewindow.schema` and exp
 
 `Material`: `name`, `registry_id` (nullable), `material_class` (enum: `graphene`, `rGO`, `GO`, `SWCNT`, `MWCNT`, `activated_carbon`, `templated_carbon`, `carbon_other`, `non_carbon`), `bet_area_m2_g` (UncertainScalar, nullable), `pore_volume_cm3_g` (nullable), `oxygen_content_at` (nullable), `conflict_group` (nullable).
 
+## Corpus inference tables (C6)
+
+Materials are keyed by `material_id`, formed from the ISODB adsorbent hashkey and the DOI, because the database assigns one hashkey to the generic comparison carbons of unrelated papers.
+
+`isosteric_heats` (one row per material and loading): `material_id`, `material_class`, `loading_mol_kg`, `q_st_kJ_mol` (Clausius–Clapeyron over the temperatures covering the loading), `q_st_sd_kJ_mol`, `q_st_q05_kJ_mol`, `q_st_q95_kJ_mol` (nonparametric bootstrap over the points of every isotherm), `n_bootstrap_finite`, `n_temperatures`. `isosteric_heats_summary` (one row per material): `temperatures_K`, `loading_range_mol_kg`, `q_st_low_kJ_mol` (median over the lowest quarter of the common loading range, the B4 statistic), its bootstrap `sd`, `q05`, `q95`, `q_st_mean_kJ_mol`, `q_st_at_max_loading_kJ_mol`, `graphitic`, `digitized`, `generic_name`.
+
+`aed_corpus` (one row per material): `label` (`multi_T` or `single_T_entropy_fixed`), `n_points`, `n_temperatures`, `mean_energy_kJ_mol` with its 90 % band, `strong_fraction_q50/q05/q95` (site capacity above 10 kJ mol⁻¹), `occupancy_<W>_mean/q95` for W1 to W3 (weight at energies whose swing is at least half the window's optimum swing), `n_m_q50` (mol kg⁻¹), `V_pore_q50/q05/q95` (cm³ g⁻¹), `delta_s_q50/sd` (J mol⁻¹ K⁻¹), `a_dig`, `b_dig` (error scales used), `rhat_max`, `ess_min`, `divergences`, `ppc_p_value`, `pit_coverage_90`, `outlier`, `outlier_features`. `aed_distributions` (one row per material and grid energy): `eps_kJ_mol`, `w_mean`, `w_q05`, `w_q95`. The per-material checkpoint JSON holds the same summaries with the metadata and sampler settings, and the companion `.npz` 200 posterior draws of the weights (float32) for propagation.
+
+`material_metadata.yaml` (registry, S2 role): `doi`, `adsorbent_hashkey`, `adsorbent_name`, `bet_area_m2_g`, `bet_area_sd_m2_g`, `pore_volume_cm3_g`, `sample_identity` (`unambiguous` or `ambiguous`), `simulated`, `where_read`, `access`, `notes`; a value enters only with the place where it was read.
+
 ## DefectPopulation
 
 `material`, `beam_energy_keV`, `fluence_e_nm2`, `temperature_K`, `densities` (dict class → UncertainScalar, per C), `x_total`, `admissible` (bool with reason), `raman` (dict: `ID_IG` by excitation, `ID_IDp`), `provenance`.

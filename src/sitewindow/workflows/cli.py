@@ -17,10 +17,12 @@ landscape_app = typer.Typer(help="Site-energy landscape construction (C2).")
 tier1_app = typer.Typer(help="Tier-1 density-functional anchors and convergence (C2, B1).")
 tier2_app = typer.Typer(help="Tier-2 (GFN2-xTB) protocol studies (C2).")
 schema_app = typer.Typer(help="Canonical data schema.")
+corpus_app = typer.Typer(help="Experimental corpus inference: isosteric heats and AED inversion (C6).")
 app.add_typer(landscape_app, name="landscape")
 app.add_typer(tier1_app, name="tier1")
 app.add_typer(tier2_app, name="tier2")
 app.add_typer(schema_app, name="schema")
+app.add_typer(corpus_app, name="corpus")
 
 
 def _data_root() -> Path:
@@ -403,6 +405,49 @@ def landscape_calibrate(
     )
 
 
+@landscape_app.command("sensitivity")
+def landscape_sensitivity(
+    tier: str = typer.Option("full", help="Landscape tier whose calibration is studied"),
+    processed: Path = typer.Option(None, help="Directory of the landscape tables"),
+    anchors: Path = typer.Option(None, help="Tier-1 anchor table"),
+    registry: Path = typer.Option(None, help="Published-value registry"),
+    out: Path = typer.Option(None, help="Output JSON (default: <processed>/calibration_sensitivity.json)"),
+    prior: bool = typer.Option(True, help="Prior-scale study of the meta-analysis (PyMC)"),
+    kernel: bool = typer.Option(True, help="Kernel study of the calibration (Matérn-3/2 against 5/2)"),
+    draws: int = typer.Option(1000),
+    tune: int = typer.Option(1000),
+    chains: int = typer.Option(4),
+    cores: int = typer.Option(None, help="Parallel chains of the meta-analysis (default: PyMC's)"),
+    seed: int = typer.Option(0),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Prior and kernel sensitivity studies of the C3 meta-analysis and calibration."""
+    from sitewindow.landscape.sensitivity import run_sensitivity
+
+    _configure_logging(verbose)
+    processed = processed or _data_root() / "processed" / tier
+    anchors = anchors or _data_root() / "processed" / "tier1" / "anchors_tier1.parquet"
+    registry = registry or _data_root() / "registry" / "published_values.yaml"
+    out = out or processed / "calibration_sensitivity.json"
+    rep = run_sensitivity(
+        processed, anchors, registry, out, tier=tier, prior=prior, kernel=kernel, draws=draws,
+        tune=tune, chains=chains, seed=seed, cores=cores,
+    )
+    if "kernel" in rep:
+        for t, v in rep["kernel"].get("tiers", {}).items():
+            if "max_class_offset_shift_eV" in v:
+                typer.echo(
+                    f"{t}: kernel change shifts class offsets by at most {v['max_class_offset_shift_eV']:.3f} eV, "
+                    f"predictive sd ratio {v['predictive_sd_ratio_mean']:.3f}, LOO coverage {v['loo_coverage']}"
+                )
+    if "prior" in rep:
+        typer.echo(
+            f"prior scales {rep['prior']['scales']}: largest site-mean shift {rep['prior']['max_site_shift_eV']:.3f} eV "
+            f"({rep['prior']['max_site_shift_over_sd']:.2f} posterior sd)"
+        )
+    typer.echo(f"written {out}")
+
+
 @landscape_app.command("barriers")
 def landscape_barriers(
     tier: str = typer.Option("verify", help="verify or full (configs/tiers/<tier>.yaml)"),
@@ -780,6 +825,133 @@ def tier2_smearing(
         "delta_TS_eV",
     ]
     typer.echo(b[cols].round(3).to_string(index=False))
+
+
+def _corpus_sets(processed: Path, metadata: Path):
+    from sitewindow.experimental.corpus import apply_metadata, load_corpus, material_sets
+    from sitewindow.experimental.metadata import load_metadata, simulated_ids
+
+    table = load_corpus(processed / "isodb_carbon_h2.parquet")
+    sets, excluded = material_sets(table)
+    meta = load_metadata(metadata)
+    sets, excluded = apply_metadata(sets, excluded, simulated_ids(meta))
+    return sets, excluded, meta
+
+
+@corpus_app.command("isosteric")
+def corpus_isosteric(
+    processed: Path = typer.Option(None, help="Directory holding isodb_carbon_h2.parquet"),
+    metadata: Path = typer.Option(None, help="Material metadata registry"),
+    out: Path = typer.Option(None, help="Output directory (default: <processed>/full)"),
+    grid: int = typer.Option(25, help="Loadings of the common grid"),
+    boot: int = typer.Option(200, help="Bootstrap replicates"),
+    seed: int = typer.Option(0),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Isosteric heats versus loading for every material with isotherms at two or more
+    temperatures (Clausius-Clapeyron with bootstrap uncertainty); feeds benchmark B4."""
+    from sitewindow.experimental.isosteric import corpus_isosteric_heats
+    from sitewindow.io.tables import write_table
+
+    _configure_logging(verbose)
+    processed = processed or _data_root() / "processed"
+    metadata = metadata or _data_root() / "registry" / "material_metadata.yaml"
+    out = out or processed / "full"
+    out.mkdir(parents=True, exist_ok=True)
+    sets, excluded, _ = _corpus_sets(processed, metadata)
+    curves, summary, log = corpus_isosteric_heats(sets, n_grid=grid, n_boot=boot, seed=seed)
+    write_table(curves, out / "isosteric_heats.parquet")
+    summary.to_parquet(out / "isosteric_heats_summary.parquet", index=False)
+    log.to_csv(out / "isosteric_heats_log.csv", index=False)
+    excluded.to_csv(out / "corpus_excluded_isotherms.csv", index=False)
+    multi = sum(1 for s in sets if s.n_temperatures >= 2)
+    typer.echo(
+        f"{len(sets)} material sets ({multi} with two or more temperatures); isosteric heats for "
+        f"{len(summary)} materials, {len(log)} without a common loading range; "
+        f"{len(excluded)} isotherms excluded with reasons"
+    )
+    if len(summary):
+        cols = ["adsorbent_name", "material_class", "n_temperatures", "q_st_low_kJ_mol", "q_st_low_sd_kJ_mol"]
+        typer.echo(summary[cols].to_string(index=False, float_format=lambda x: f"{x:.2f}"))
+
+
+@corpus_app.command("aed")
+def corpus_aed(
+    processed: Path = typer.Option(None, help="Directory holding isodb_carbon_h2.parquet"),
+    metadata: Path = typer.Option(None, help="Material metadata registry"),
+    out: Path = typer.Option(None, help="Output directory (default: <processed>/full)"),
+    stage: str = typer.Option("both", help="1 (free error scales), 2 (pooled scales) or both"),
+    draws: int = typer.Option(1000),
+    tune: int = typer.Option(1000),
+    chains: int = typer.Option(4),
+    cores: int = typer.Option(2),
+    stage1_draws: int = typer.Option(500),
+    lambda0: float = typer.Option(1.0, help="Scale of the smoothness hyperprior"),
+    grid_step: float = typer.Option(0.5, help="Energy grid spacing (kJ/mol)"),
+    material: list[str] = typer.Option(None, help="Restrict to these material ids"),
+    seed: int = typer.Option(0),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Bayesian adsorption-energy-distribution inversion of every material set with per-material
+    checkpoints (two-stage error-scale estimation); writes aed_corpus.parquet,
+    aed_distributions.parquet and aed_report.json."""
+    from sitewindow.experimental.aed import run_corpus
+    from sitewindow.experimental.metadata import pore_volumes
+
+    _configure_logging(verbose)
+    processed = processed or _data_root() / "processed"
+    metadata = metadata or _data_root() / "registry" / "material_metadata.yaml"
+    out = out or processed / "full"
+    out.mkdir(parents=True, exist_ok=True)
+    sets, excluded, meta = _corpus_sets(processed, metadata)
+    excluded.to_csv(out / "corpus_excluded_isotherms.csv", index=False)
+    report = run_corpus(
+        sets, out, pore_volumes=pore_volumes(meta), stage=stage, draws=draws, tune=tune, chains=chains,
+        cores=cores, stage1_draws=stage1_draws, lambda0=lambda0, grid_step=grid_step, seed=seed,
+        only=set(material) if material else None,
+    )
+    typer.echo(json.dumps({k: report[k] for k in ("n_materials", "pooled_error_scales", "ppc_p_in_[0.05,0.95]", "strong_sites") if k in report}, indent=2, default=float))
+
+
+@corpus_app.command("aed-recovery")
+def corpus_aed_recovery(
+    out: Path = typer.Option(None, help="Output JSON (default: $SITEWINDOW_DATA/processed/full/aed_recovery.json)"),
+    replicates: int = typer.Option(5),
+    draws: int = typer.Option(1000),
+    tune: int = typer.Option(1000),
+    chains: int = typer.Option(4),
+    cores: int = typer.Option(2),
+    seed: int = typer.Option(11),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Synthetic recovery tests of the AED inversion (planted single-site and bimodal
+    distributions under several temperature designs; acceptance criterion F2)."""
+    from sitewindow.experimental.aed import recovery_test
+
+    _configure_logging(verbose)
+    out = out or _data_root() / "processed" / "full" / "aed_recovery.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    configs = [
+        ("single", (77.0, 87.0), None), ("bimodal", (77.0, 87.0), None),
+        ("single", (77.0, 87.0), False), ("bimodal", (77.0, 87.0), False),
+        ("single", (77.0, 298.0), None), ("bimodal", (77.0, 298.0), None),
+        ("single", (77.0,), None), ("bimodal", (77.0,), None),
+        ("single", (298.0, 318.0), None), ("bimodal", (298.0, 318.0), None),
+    ]
+    results = json.loads(out.read_text()) if out.exists() else []
+    done = {(r["kind"], tuple(r["temperatures_K"]), r["entropy"]) for r in results}
+    for kind, temps, ef in configs:
+        entropy = "free" if (len(temps) >= 2 if ef is None else ef) else "fixed"
+        if (kind, temps, entropy) in done:
+            continue
+        r = recovery_test(
+            kind, replicates=replicates, draws=draws, tune=tune, chains=chains, cores=cores,
+            temperatures=temps, entropy_free=ef, seed=seed,
+        )
+        results.append(r)
+        out.write_text(json.dumps(results, indent=1, default=float))
+        typer.echo(f"{kind} {temps} entropy {entropy}: pass fraction {r['pass_fraction']:.2f}")
+    typer.echo(f"written {out}")
 
 
 @schema_app.command("export")

@@ -15,6 +15,8 @@ Status `reported` marks runners that report a value without a pass criterion at 
 | B2 | reported | H sticking barrier on the basal plane, eV from H atom + substrate: T2:constrained_scan:graphene_10x10 +0.252; T3:constrained_scan:graphene_10x10 +0.238; T2:constrained_scan:graphene_11x11 +0.244 vs 0.2 eV (no Tier-1 saddle value; reported as calibration input) |
 | B3 | fail | pair potential on coronene: steele_buch -3.22; steele_darkrim_levesque -3.34 kJ/mol vs -4.7 (tol 1.0); calibrated set eps/k=45.1 K reproduces B3 by construction |
 | B4 | fail | B3-calibrated potential: basal 5.7, slit_0.70nm 9.6, slit_1.00nm 6.1 kJ/mol vs [4.0, 8.0]; literature sets within interval: steele_buch=False, steele_darkrim_levesque=True |
+| B4-corpus | fail | activated_carbon: n=6, median 10.8 kJ/mol; activated_carbon_cryogenic: n=2, median 6.2 kJ/mol; graphitic: n=5, median 4.4 kJ/mol; graphitic_cryogenic: n=5, median 4.4 kJ/mol; all_carbons: n=21, median 5.5 kJ/mol; all_carbons_cryogenic: n=16, median 4.8 kJ/mol vs [4.0, 8.0] |
+| B7 | reported | 2 material(s) with a verified BET area and a 77 K isotherm reaching the plateau pressure; three are needed |
 | B11 | fail | defect formation energies, eV: T2:monovacancy:monovacancy_12x12 7.69 ok; T2:stone_wales:stone_wales_12x12 4.72 ok; T3:monovacancy:monovacancy_12x12 5.68; T3:stone_wales:stone_wales_12x12 4.22; T1:monovacancy:monovacancy_6x6 7.69 ok; T1:stone_wales:stone_wales_6x6 5.41 off vs monovacancy [7.4, 7.7] and Stone-Wales 5.0 (thresholds T1 0.3, T2 1.0) |
 
-Benchmarks B5, B6, B7, B12 require components not yet executed and are not listed.
+Benchmarks B5, B6, B12 require components not yet executed and are not listed.

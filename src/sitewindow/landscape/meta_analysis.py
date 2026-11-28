@@ -162,6 +162,7 @@ def fit_meta_analysis(
     prior_scale: float = 1.0,
     loso: bool = False,
     loso_draws: int = 400,
+    cores: int | None = None,
 ) -> MetaAnalysisResult:
     """Fit the hierarchical model to one quantity and reference state of the registry frame."""
     pm, az = _require_pymc()
@@ -178,6 +179,7 @@ def fit_meta_analysis(
             draws=draws,
             tune=tune,
             chains=chains,
+            cores=cores,
             random_seed=seed,
             target_accept=target_accept,
             progressbar=False,

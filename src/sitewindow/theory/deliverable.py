@@ -214,23 +214,45 @@ def bound_wt_percent(
 ) -> dict[str, float]:
     """Variational bound D_max(W) (DERIVATIONS 5.4) for one channel.
 
-    Molecular: N_max from the monolayer capacity on ``ssa_m2_g``; eta from the swing optimum.
+    Molecular: N_max from the monolayer capacity on ``ssa_m2_g``; the bound is the supremum over
+    the site energy of the mass-accounted deliverable fraction of a homogeneous saturated
+    landscape, attained at ``eps_D`` close to the swing optimum ``eps_star`` (the two differ by
+    the mass of the charged hydrogen in the denominator, about 1e-3 eV).
     Atomic: N_max = 1 H per C (graphane) and eta given by the kinetic release fraction
     ``release_fraction`` (thermodynamic swing is ~1 for saturated charging).
     """
     entropy = entropy or ConstantEntropy()
     if channel == "molecular":
+        from scipy.optimize import minimize_scalar
+
         eta, eps_star = window_efficiency(window, entropy)
         n_mol_per_kg = monolayer_capacity_mol_per_kg(areal_density_nm2, ssa_m2_g)
         m_h_per_kg = n_mol_per_kg * M_H2_AMU / 1000.0  # kg H2 per kg C
-        charged = m_h_per_kg * occupancy(
-            eps_star, window.T_c, window.P_c, entropy, use_fugacity=window.fugacity
+
+        def deliverable_fraction(eps: float) -> float:
+            # Mass-accounted deliverable fraction of a homogeneous saturated landscape (5.4):
+            # the bound is its supremum over eps, which the mass of the charged hydrogen shifts
+            # slightly off the swing optimum eps*.
+            th_c = float(
+                occupancy(eps, window.T_c, window.P_c, entropy, use_fugacity=window.fugacity)
+            )
+            th_r = float(
+                occupancy(eps, window.T_r, window.P_r, entropy, use_fugacity=window.fugacity)
+            )
+            return m_h_per_kg * (th_c - th_r) / (1.0 + m_h_per_kg * th_c)
+
+        res = minimize_scalar(
+            lambda e: -deliverable_fraction(e),
+            bracket=(eps_star - 0.05, eps_star, eps_star + 0.05),
+            tol=1e-12,
         )
-        D = 100.0 * m_h_per_kg * eta / (1.0 + float(charged))
+        eps_d = float(res.x) if res.success else float(eps_star)
+        D = 100.0 * max(deliverable_fraction(eps_d), deliverable_fraction(float(eps_star)))
         return {
             "D_max_wt_percent": float(D),
             "eta": float(eta),
             "eps_star_eV": float(eps_star),
+            "eps_D_eV": eps_d,
             "N_max_mol_per_kg": float(n_mol_per_kg),
         }
     # atomic

@@ -54,6 +54,8 @@ _CARBON_PATTERNS = [
     r"hydrochar",
     r"xerogel",
     r"ordered mesoporous carbon",
+    r"\bcoal\b",
+    r"\bbpl\b",
 ]
 _NON_CARBON_PATTERNS = [
     r"mof",
@@ -100,6 +102,17 @@ _NON_CARBON_PATTERNS = [
     r"iron",
     r"ruthen",
     r"spillover",
+    r"\bmil-?\d",
+    r"\bpcn-?\d",
+    r"\bmof",
+    r"cubtc",
+    r"\bzn\d*\b",
+    r"ti\d*o\b",
+    r"\bbdc\b",
+    r"\(bdc\)",
+    r"\bkc\d+",
+    r"\blic\d+",
+    r"sicnt",
 ]
 
 
@@ -148,6 +161,8 @@ def _is_h2(d: dict) -> bool:
 def classify_material(name: str) -> tuple[str, bool]:
     """Return (material_class, is_carbon_only) from an adsorbent name."""
     n = name.lower()
+    if re.search(r"zeolite[- ]templated carbon|\bztc\b", n) and not re.search(r"/|@|doped|loaded", n):
+        return "templated_carbon", True
     carbon = any(re.search(p, n) for p in _CARBON_PATTERNS)
     non = any(re.search(p, n) for p in _NON_CARBON_PATTERNS)
     if not carbon:

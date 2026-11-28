@@ -1,0 +1,4 @@
+material_id,adsorbent_name,doi,temperatures_K,reason
+b2cbe7a27aa1__10.1016_j.carbon.2005.03.037,Activated Carbon,10.1016/j.carbon.2005.03.037,"[77.0, 298.0]",no overlapping loading range
+d2b3e82a885e__10.1016_j.carbon.2005.03.037,Purified SWCNTs,10.1016/j.carbon.2005.03.037,"[77.0, 298.0]",no overlapping loading range
+0d2683dad466__10.1016_j.ijhydene.2011.03.109,SWNT,10.1016/j.ijhydene.2011.03.109,"[77.0, 298.0]",no overlapping loading range

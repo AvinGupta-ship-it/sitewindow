@@ -223,6 +223,78 @@
       "summary": "B3-calibrated potential: basal 5.7, slit_0.70nm 9.6, slit_1.00nm 6.1 kJ/mol vs [4.0, 8.0]; literature sets within interval: steele_buch=False, steele_darkrim_levesque=True"
     },
     {
+      "id": "B4-corpus",
+      "passed": false,
+      "predicted": {
+        "activated_carbon": {
+          "n": 6,
+          "median_kJ_mol": 10.803275489422305,
+          "q25_kJ_mol": 7.766094411146396,
+          "q75_kJ_mol": 14.266816552583862,
+          "within_interval": false
+        },
+        "activated_carbon_cryogenic": {
+          "n": 2,
+          "median_kJ_mol": 6.227526711678597,
+          "q25_kJ_mol": 5.586360490775546,
+          "q75_kJ_mol": 6.868692932581648,
+          "within_interval": true
+        },
+        "graphitic": {
+          "n": 5,
+          "median_kJ_mol": 4.371370695002375,
+          "q25_kJ_mol": 3.352498754959405,
+          "q75_kJ_mol": 4.424011725832456,
+          "within_interval": true
+        },
+        "graphitic_cryogenic": {
+          "n": 5,
+          "median_kJ_mol": 4.371370695002375,
+          "q25_kJ_mol": 3.352498754959405,
+          "q75_kJ_mol": 4.424011725832456,
+          "within_interval": true
+        },
+        "all_carbons": {
+          "n": 21,
+          "median_kJ_mol": 5.54672243026608,
+          "q25_kJ_mol": 4.371370695002375,
+          "q75_kJ_mol": 8.060360283061847,
+          "within_interval": true
+        },
+        "all_carbons_cryogenic": {
+          "n": 16,
+          "median_kJ_mol": 4.844778585633869,
+          "q25_kJ_mol": 3.9007618846757026,
+          "q75_kJ_mol": 5.677501073664886,
+          "within_interval": true
+        }
+      },
+      "reference": {
+        "interval_kJ_mol": [
+          4.0,
+          8.0
+        ],
+        "AX21_average": 5.8
+      },
+      "metric": "corpus median of the low-loading isosteric heat (activated carbons) within the interval",
+      "summary": "activated_carbon: n=6, median 10.8 kJ/mol; activated_carbon_cryogenic: n=2, median 6.2 kJ/mol; graphitic: n=5, median 4.4 kJ/mol; graphitic_cryogenic: n=5, median 4.4 kJ/mol; all_carbons: n=21, median 5.5 kJ/mol; all_carbons_cryogenic: n=16, median 4.8 kJ/mol vs [4.0, 8.0]"
+    },
+    {
+      "id": "B7",
+      "passed": null,
+      "predicted": {
+        "n_materials": 2
+      },
+      "reference": {
+        "interval_wt_percent_per_1000m2_g": [
+          1.5,
+          2.5
+        ]
+      },
+      "metric": "through-origin slope with bootstrap 95 % interval overlapping the interval",
+      "summary": "2 material(s) with a verified BET area and a 77 K isotherm reaching the plateau pressure; three are needed"
+    },
+    {
       "id": "B11",
       "passed": false,
       "predicted": {

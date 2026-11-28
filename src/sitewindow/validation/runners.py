@@ -598,6 +598,164 @@ def run_B4_computed(reg: dict) -> dict:
     }
 
 
+def _corpus_summary(path: Path = Path("data/processed/full/isosteric_heats_summary.parquet")):
+    import pandas as pd
+
+    return pd.read_parquet(path) if path.exists() else None
+
+
+def evaluate_B4_corpus(summary, reg: dict) -> dict:
+    """Corpus medians of the low-loading isosteric heat by material group against the B4 interval.
+
+    The pass criterion is the registry's: the median over activated carbons lies inside the
+    interval. The graphitic group (graphene, graphite, nanotubes) and the subsets with cryogenic
+    data (a temperature at or below 100 K) are reported beside it, since Clausius-Clapeyron heats
+    from room-temperature pairs of digitized isotherms are poorly conditioned.
+    """
+    import numpy as np
+
+    lo, hi = reg["B4"]["reference"]["interval"]
+    q = summary["q_st_low_kJ_mol"].astype(float)
+    cryo = summary["temperatures_K"].apply(lambda t: min(t) <= 100.0)
+    groups = {
+        "activated_carbon": summary["material_class"] == "activated_carbon",
+        "graphitic": summary["graphitic"].astype(bool),
+        "all_carbons": np.ones(len(summary), dtype=bool),
+    }
+    out: dict[str, dict] = {}
+    for name, mask in groups.items():
+        for label, m in ((name, mask), (name + "_cryogenic", mask & cryo)):
+            vals = q[m]
+            out[label] = {
+                "n": int(len(vals)),
+                "median_kJ_mol": float(vals.median()) if len(vals) else None,
+                "q25_kJ_mol": float(vals.quantile(0.25)) if len(vals) else None,
+                "q75_kJ_mol": float(vals.quantile(0.75)) if len(vals) else None,
+                "within_interval": bool(lo <= vals.median() <= hi) if len(vals) else None,
+            }
+    ac = out["activated_carbon"]
+    passed = ac["within_interval"] if ac["n"] >= 3 else None
+    return {
+        "id": "B4-corpus",
+        "passed": passed,
+        "predicted": out,
+        "reference": {"interval_kJ_mol": [lo, hi], "AX21_average": reg["B4"]["reference"]["AX21_average"]},
+        "metric": "corpus median of the low-loading isosteric heat (activated carbons) within the interval",
+        "summary": "; ".join(
+            f"{k}: n={v['n']}, median {v['median_kJ_mol']:.1f} kJ/mol"
+            for k, v in out.items()
+            if v["n"]
+        )
+        + f" vs [{lo}, {hi}]"
+        + ("" if ac["n"] >= 3 else "; fewer than three activated carbons, not decided"),
+    }
+
+
+def run_B4_corpus(reg: dict) -> dict:
+    """Benchmark B4 from the corpus isosteric heats (``sitewindow corpus isosteric``)."""
+    summary = _corpus_summary()
+    if summary is None or summary.empty:
+        return {
+            "id": "B4-corpus",
+            "passed": None,
+            "summary": "isosteric-heat table not present (run corpus isosteric)",
+        }
+    return evaluate_B4_corpus(summary, reg)
+
+
+def evaluate_B7(points, reg: dict, n_boot: int = 2000, seed: int = 0) -> dict:
+    """Slope of the maximum 77 K excess uptake (wt%) against the BET area (per 1000 m2/g).
+
+    The Chahine-type rule is a proportionality, so the statistic is the through-origin
+    least-squares slope with a bootstrap over materials; the free-intercept fit is reported
+    beside it. ``points`` holds one row per material with ``bet_area_m2_g`` and
+    ``uptake_wt_percent``.
+    """
+    import numpy as np
+
+    lo, hi = reg["B7"]["reference"]["interval"]
+    x = points["bet_area_m2_g"].to_numpy(dtype=float) / 1000.0
+    y = points["uptake_wt_percent"].to_numpy(dtype=float)
+    n = len(x)
+    if n < 3:
+        return {
+            "id": "B7",
+            "passed": None,
+            "predicted": {"n_materials": n},
+            "reference": {"interval_wt_percent_per_1000m2_g": [lo, hi]},
+            "metric": "through-origin slope with bootstrap 95 % interval overlapping the interval",
+            "summary": f"{n} material(s) with a verified BET area and a 77 K isotherm reaching the plateau pressure; three are needed",
+        }
+    slope = float(np.sum(x * y) / np.sum(x * x))
+    rng = np.random.default_rng(seed)
+    boots = []
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, n)
+        xb, yb = x[idx], y[idx]
+        boots.append(np.sum(xb * yb) / np.sum(xb * xb))
+    ci = [float(np.quantile(boots, 0.025)), float(np.quantile(boots, 0.975))]
+    a1, a0 = np.polyfit(x, y, 1)
+    passed = bool(ci[0] <= hi and ci[1] >= lo)
+    return {
+        "id": "B7",
+        "passed": passed,
+        "predicted": {
+            "n_materials": n,
+            "slope_through_origin_wt_percent_per_1000m2_g": slope,
+            "bootstrap_95_interval": ci,
+            "free_intercept_fit": {"slope": float(a1), "intercept_wt_percent": float(a0)},
+            "materials": points.to_dict(orient="records"),
+        },
+        "reference": {"interval_wt_percent_per_1000m2_g": [lo, hi]},
+        "metric": "through-origin slope with bootstrap 95 % interval overlapping the interval",
+        "summary": f"slope {slope:.2f} wt% per 1000 m2/g (95 % bootstrap [{ci[0]:.2f}, {ci[1]:.2f}], n={n}; free-intercept slope {a1:.2f}) vs [{lo}, {hi}]",
+    }
+
+
+def b7_points(plateau_pressure_bar: float = 20.0):
+    """Materials with a verified, unambiguous BET area whose 77 K isotherm reaches the plateau
+    pressure, with the maximum reported (excess) uptake in wt%."""
+    import pandas as pd
+
+    from sitewindow.experimental.corpus import load_corpus, material_id
+    from sitewindow.experimental.metadata import load_metadata
+    from sitewindow.units import mol_per_kg_to_wt_percent
+
+    path = Path("data/processed/isodb_carbon_h2.parquet")
+    meta = load_metadata()
+    if not path.exists() or not meta:
+        return pd.DataFrame(columns=["material_id", "bet_area_m2_g", "uptake_wt_percent"])
+    t = load_corpus(path)
+    rows = []
+    t = t[(t["temperature_K"] - 77.0).abs() < 1.5]
+    for (hk, doi), g in t.groupby(["adsorbent_hashkey", "doi"]):
+        mid = material_id(hk, doi)
+        m = meta.get(mid)
+        if m is None or not m.usable_area:
+            continue
+        pmax = max(float(p.max()) for p in g["pressure_bar"])
+        if pmax < plateau_pressure_bar:
+            continue
+        nmax = max(float(n.max()) for n in g["loading_mol_kg"])
+        rows.append(
+            {
+                "material_id": mid,
+                "adsorbent_name": g["adsorbent_name"].iloc[0],
+                "doi": doi,
+                "bet_area_m2_g": m.bet_area_m2_g,
+                "max_pressure_bar": pmax,
+                "uptake_wt_percent": float(mol_per_kg_to_wt_percent(nmax)),
+                "where_read": m.where_read,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def run_B7(reg: dict) -> dict:
+    """Benchmark B7 from the corpus and the material metadata registry."""
+    return evaluate_B7(b7_points(), reg)
+
+
 def run_all(tier: str = "verify") -> dict:
     reg = _registry()
     results = [
@@ -611,6 +769,8 @@ def run_all(tier: str = "verify") -> dict:
         run_B2(reg, tier),
         run_B3_pair_potential(reg),
         run_B4_computed(reg),
+        run_B4_corpus(reg),
+        run_B7(reg),
         run_B11(reg, tier),
     ]
     return {"tier": tier, "benchmarks": results}
@@ -631,6 +791,11 @@ __all__ = [
     "evaluate_B2",
     "run_B3_pair_potential",
     "run_B4_computed",
+    "evaluate_B4_corpus",
+    "run_B4_corpus",
+    "evaluate_B7",
+    "b7_points",
+    "run_B7",
     "evaluate_B11",
     "run_B11",
 ]
