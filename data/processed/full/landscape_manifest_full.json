@@ -7,11 +7,11 @@
     "settings": {
       "method": "GFN2-xTB",
       "accuracy": 1.0,
-      "electronic_temperature": 3000.0,
+      "electronic_temperature": 6000.0,
       "max_iterations": 300,
       "spin_polarized": true
     },
-    "settings_hash": "1db062cf2e92d31d"
+    "settings_hash": "c04aa45448a64a66"
   },
   "classes": [
     "basal",
@@ -38,129 +38,131 @@
     ],
     "tube_radius_optimization": {
       "swcnt_4_4_x6": {
-        "scale": 1.00982694,
-        "dE_eV": -0.28887285921518924,
-        "n_single_points": 10
+        "scale": 1.0114701,
+        "dE_eV": -0.39305878189861687,
+        "n_single_points": 9
       },
       "swcnt_6_6_x6": {
-        "scale": 1.00203429,
-        "dE_eV": -0.01855358672401053,
+        "scale": 1.00312425,
+        "dE_eV": -0.04472229159728158,
         "n_single_points": 7
       },
       "swcnt_7_7_x6": {
-        "scale": 1.0004058,
-        "dE_eV": -0.0007448604119417723,
+        "scale": 1.00138897,
+        "dE_eV": -0.009988577096009976,
         "n_single_points": 7
       },
       "swcnt_9_9_x6": {
-        "scale": 0.99850083,
-        "dE_eV": -0.015884589109191438,
+        "scale": 0.99935947,
+        "dE_eV": -0.0030770349858357804,
         "n_single_points": 7
       },
       "swcnt_10_10_x6": {
-        "scale": 0.99795022,
-        "dE_eV": -0.03257724304057774,
+        "scale": 0.99878157,
+        "dE_eV": -0.011474255636130692,
         "n_single_points": 7
       },
       "swcnt_13_13_x6": {
-        "scale": 0.99696199,
-        "dE_eV": -0.09158610298254644,
+        "scale": 0.99770149,
+        "dE_eV": -0.05467737999060773,
         "n_single_points": 7
       },
       "swcnt_15_15_x6": {
-        "scale": 0.99656494,
-        "dE_eV": -0.13450567156178295,
+        "scale": 0.99729653,
+        "dE_eV": -0.084477684864396,
         "n_single_points": 7
       },
       "swcnt_18_18_x6": {
-        "scale": 0.99627358,
-        "dE_eV": -0.1914199087950692,
+        "scale": 0.99696771,
+        "dE_eV": -0.12754319347368437,
         "n_single_points": 7
       },
       "swcnt_8_0_x4": {
-        "scale": 1.00819397,
-        "dE_eV": -0.267968828075027,
+        "scale": 1.00972487,
+        "dE_eV": -0.36836752296039776,
         "n_single_points": 10
       },
       "swcnt_10_0_x4": {
-        "scale": 1.00294432,
-        "dE_eV": -0.044011827625581645,
+        "scale": 1.00464094,
+        "dE_eV": -0.10597248484373267,
         "n_single_points": 7
       },
       "swcnt_13_0_x4": {
-        "scale": 1.0,
-        "dE_eV": 0.0,
+        "scale": 1.00115231,
+        "dE_eV": -0.010705279386456823,
         "n_single_points": 7
       },
       "swcnt_15_0_x4": {
-        "scale": 0.99868704,
-        "dE_eV": -0.013581093186076032,
+        "scale": 0.99979578,
+        "dE_eV": -0.0003692450718517648,
         "n_single_points": 7
       },
       "swcnt_18_0_x4": {
-        "scale": 0.9976441,
-        "dE_eV": -0.05320226690309937,
+        "scale": 0.99865884,
+        "dE_eV": -0.019214784126234008,
         "n_single_points": 7
       },
       "swcnt_22_0_x4": {
-        "scale": 0.99670145,
-        "dE_eV": -0.12319114308047574,
+        "scale": 0.99768846,
+        "dE_eV": -0.060620298732828815,
         "n_single_points": 7
       },
       "swcnt_26_0_x4": {
-        "scale": 0.99624793,
-        "dE_eV": -0.1876350965903839,
+        "scale": 0.99720317,
+        "dE_eV": -0.10429956272491836,
         "n_single_points": 7
       },
       "swcnt_32_0_x4": {
-        "scale": 0.99585742,
-        "dE_eV": -0.28024871023444575,
+        "scale": 0.99678748,
+        "dE_eV": -0.16822351321025053,
         "n_single_points": 7
       },
       "swcnt_10_0_x6_vacancy": {
-        "scale": 1.00265509,
-        "dE_eV": -0.05276149594828894,
+        "scale": 1.00421432,
+        "dE_eV": -0.1295170874273026,
         "n_single_points": 7
       },
       "swcnt_10_0_x6": {
-        "scale": 1.00314918,
-        "dE_eV": -0.07562139325636963,
+        "scale": 1.00466862,
+        "dE_eV": -0.16088247894731467,
         "n_single_points": 7
       },
       "swcnt_8_8_x6_vacancy": {
-        "scale": 0.99856297,
-        "dE_eV": -0.012791774024663027,
+        "scale": 0.99961593,
+        "dE_eV": -0.0010204401642113226,
         "n_single_points": 7
       },
       "swcnt_8_8_x6": {
-        "scale": 0.99930178,
-        "dE_eV": -0.0031990316510928096,
+        "scale": 1.00021096,
+        "dE_eV": -0.00019954277377109975,
         "n_single_points": 7
       },
       "swcnt_10_0_x6_stone_wales": {
-        "scale": 1.00567015,
-        "dE_eV": -0.2381809143407736,
+        "scale": 1.00715276,
+        "dE_eV": -0.3732508198809228,
         "n_single_points": 10
       },
       "swcnt_8_8_x6_stone_wales": {
-        "scale": 1.00123188,
-        "dE_eV": -0.008806995718259714,
+        "scale": 1.00205538,
+        "dE_eV": -0.02521571199031314,
         "n_single_points": 7
       }
     }
   },
+  "energy": "E0",
+  "energy_description": "zero-temperature extrapolation F + T S / 2 of the tblite free energy from the occupations of a single point on the relaxed structure",
   "references_eV": {
-    "E_H2": -26.740252835707306,
+    "E_H2": -26.74025022626308,
     "E_H": -11.681719145327678,
-    "H2_bond_A": 0.7766856000000004
+    "H2_bond_A": 0.7766862000000003
   },
   "n_records": 368,
   "n_configurations": 125,
   "n_excluded": 0,
-  "wall_s": 1745.000771167,
+  "wall_s": 55575.00828870799,
   "files": {
-    "landscape_raw_full.parquet": "dfe385d68111537d188f29624395875ee86abe09f22bcf7e1852194581f9fd21",
-    "landscape_configurations_full.parquet": "75e690d775d859beb0d0eb0e0b84e4a3799aefdbe0e5f70a28dcc09aca2c4f19",
+    "landscape_raw_full.parquet": "81e81c9be1452a615e65944eef6b6065d3b703875a06de1b07bd87c606916adc",
+    "landscape_configurations_full.parquet": "f852d5ae0af90a69260fa730e12165d8e9de222cedf823ff2c8a8642987bc164",
     "landscape_raw_full_excluded.csv": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
   }
 }
